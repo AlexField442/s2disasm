@@ -5,8 +5,8 @@
 ; RAS' work merged into SVN by Flamewing
 ; ---------------------------------------------------------------------------
 
-FixDriverBugs = 0
-OptimiseDriver = 0
+FixDriverBugs = 1
+OptimiseDriver = 1
 
 ; ---------------------------------------------------------------------------
 ; NOTES:
@@ -842,10 +842,10 @@ zFMSetFreq:
     endif
 	add	a,zFrequencies&0FFh
 	ld	(zloc_292+2),a	; store into the instruction after zloc_292 (self-modifying code)
-;	ld	d,a
-;	adc	a,(zFrequencies&0FF00h)>>8
-;	sub	d
-;	ld	(zloc_292+3),a	; this is how you could store the high byte of the pointer too (unnecessary if it's in the right range)
+	ld	d,a
+	adc	a,(zFrequencies&0FF00h)>>8
+	sub	d
+	ld	(zloc_292+3),a	; this is how you could store the high byte of the pointer too (unnecessary if it's in the right range)
 zloc_292:
 	ld	de,(zFrequencies)	; Stores frequency into "de"
 	ld	(ix+zTrack.FreqLow),e	; Frequency low byte   -> trackPtr + 0Dh
@@ -990,18 +990,6 @@ zDoModulation:
 ; End of function zDoModulation
 
 ; ---------------------------------------------------------------------------
-; This the note -> frequency setting lookup
-; the same array is found at $729CE in Sonic 1, and at $C9C44 in Ristar
-; zword_359:
-	ensure1byteoffset 8Ch
-zPSGFrequencies:
-	dw	356h, 326h, 2F9h, 2CEh, 2A5h, 280h, 25Ch, 23Ah, 21Ah, 1FBh, 1DFh, 1C4h
-	dw	1ABh, 193h, 17Dh, 167h, 153h, 140h, 12Eh, 11Dh, 10Dh, 0FEh, 0EFh, 0E2h
-	dw	0D6h, 0C9h, 0BEh, 0B4h, 0A9h, 0A0h,  97h,  8Fh,  87h,  7Fh,  78h,  71h
-	dw	 6Bh,  65h,  5Fh,  5Ah,  55h,  50h,  4Bh,  47h,  43h,  40h,  3Ch,  39h
-	dw	 36h,  33h,  30h,  2Dh,  2Bh,  28h,  26h,  24h,  22h,  20h,  1Fh,  1Dh
-	dw	 1Bh,  1Ah,  18h,  17h,  16h,  15h,  13h,  12h,  11h,    0
-; ---------------------------------------------------------------------------
 
 ;zloc_3E5
 zFMPrepareNote:
@@ -1102,6 +1090,10 @@ zPSGSetFreq:
 	add	a,a				; Multiply note value by 2
 	add	a,zPSGFrequencies&0FFh		; Point to proper place in table
 	ld	(zloc_46D+2),a			; store into the instruction after zloc_46D (self-modifying code)
+	ld	d,a
+	adc	a,(zPSGFrequencies&0FF00h)>>8
+	sub	d
+	ld	(zloc_46D+3),a	; this is how you could store the high byte of the pointer too (unnecessary if it's in the right range)
 zloc_46D:
 	ld	de,(zPSGFrequencies)		; Gets appropriate frequency setting -> 'de'
 	ld	(ix+zTrack.FreqLow),e		; Frequency low byte   -> trackPtr + 0Dh
@@ -1292,26 +1284,6 @@ zPSGNoteOff:
     endif
 	ret
 ; End of function zPSGNoteOff
-
-; ---------------------------------------------------------------------------
-; lookup table of FM note frequencies for instruments and sound effects
-    if OptimiseDriver
-	ensure1byteoffset 18h
-    else
-	ensure1byteoffset 0C0h
-    endif
-; zbyte_534:
-zFrequencies:
-	dw 025Eh,0284h,02ABh,02D3h,02FEh,032Dh,035Ch,038Fh,03C5h,03FFh,043Ch,047Ch
-    if OptimiseDriver=0	; We will calculate these, instead, which will save space
-	dw 0A5Eh,0A84h,0AABh,0AD3h,0AFEh,0B2Dh,0B5Ch,0B8Fh,0BC5h,0BFFh,0C3Ch,0C7Ch
-	dw 125Eh,1284h,12ABh,12D3h,12FEh,132Dh,135Ch,138Fh,13C5h,13FFh,143Ch,147Ch
-	dw 1A5Eh,1A84h,1AABh,1AD3h,1AFEh,1B2Dh,1B5Ch,1B8Fh,1BC5h,1BFFh,1C3Ch,1C7Ch
-	dw 225Eh,2284h,22ABh,22D3h,22FEh,232Dh,235Ch,238Fh,23C5h,23FFh,243Ch,247Ch
-	dw 2A5Eh,2A84h,2AABh,2AD3h,2AFEh,2B2Dh,2B5Ch,2B8Fh,2BC5h,2BFFh,2C3Ch,2C7Ch
-	dw 325Eh,3284h,32ABh,32D3h,32FEh,332Dh,335Ch,338Fh,33C5h,33FFh,343Ch,347Ch
-	dw 3A5Eh,3A84h,3AABh,3AD3h,3AFEh,3B2Dh,3B5Ch,3B8Fh,3BC5h,3BFFh,3C3Ch,3C7Ch ; 96 entries
-    endif
 
 ;zloc_5F4
 zPSGSilenceAll:
@@ -3441,6 +3413,35 @@ cfOpF9:
 	rst	zWriteFMI	; Written to part I
 	dec	hl		; Doesn't take an arg, so put back one byte
 	ret
+
+; ---------------------------------------------------------------------------
+; This the note -> frequency setting lookup
+; the same array is found at $729CE in Sonic 1, and at $C9C44 in Ristar
+; zword_359:
+zPSGFrequencies:
+	dw	356h,  326h, 2F9h, 2CEh, 2A5h, 280h, 25Ch, 23Ah
+	dw	21Ah,  1FBh, 1DFh, 1C4h, 1ABh, 193h, 17Dh, 167h
+	dw	153h,  140h, 12Eh, 11Dh, 10Dh, 0FEh, 0EFh, 0E2h
+	dw	0D6h,  0C9h, 0BEh, 0B4h, 0A9h, 0A0h,  97h,  8Fh
+	dw	 87h,   7Fh,  78h,  71h,  6Bh,  65h,  5Fh,  5Ah
+	dw	 55h,   50h,  4Bh,  47h,  43h,  40h,  3Ch,  39h
+	dw	 36h,   33h,  30h,  2Dh,  2Bh,  28h,  26h,  24h
+	dw	 22h,   20h,  1Fh,  1Dh,  1Bh,  1Ah,  18h,  17h
+	dw	 16h,   15h,  13h,  12h,  11h,  10h,    0,    0
+; lookup table of FM note frequencies for instruments and sound effects
+; zbyte_534:
+zFrequencies:
+	dw 025Eh,0284h,02ABh,02D3h,02FEh,032Dh,035Ch,038Fh,03C5h,03FFh,043Ch,047Ch
+    if OptimiseDriver=0	; We will calculate these, instead, which will save space
+	dw 0A5Eh,0A84h,0AABh,0AD3h,0AFEh,0B2Dh,0B5Ch,0B8Fh,0BC5h,0BFFh,0C3Ch,0C7Ch
+	dw 125Eh,1284h,12ABh,12D3h,12FEh,132Dh,135Ch,138Fh,13C5h,13FFh,143Ch,147Ch
+	dw 1A5Eh,1A84h,1AABh,1AD3h,1AFEh,1B2Dh,1B5Ch,1B8Fh,1BC5h,1BFFh,1C3Ch,1C7Ch
+	dw 225Eh,2284h,22ABh,22D3h,22FEh,232Dh,235Ch,238Fh,23C5h,23FFh,243Ch,247Ch
+	dw 2A5Eh,2A84h,2AABh,2AD3h,2AFEh,2B2Dh,2B5Ch,2B8Fh,2BC5h,2BFFh,2C3Ch,2C7Ch
+	dw 325Eh,3284h,32ABh,32D3h,32FEh,332Dh,335Ch,338Fh,33C5h,33FFh,343Ch,347Ch
+	dw 3A5Eh,3A84h,3AABh,3AD3h,3AFEh,3B2Dh,3B5Ch,3B8Fh,3BC5h,3BFFh,3C3Ch,3C7Ch ; 96 entries
+    endif
+
 
 ; ---------------------------------------------------------------------------
 ;zbyte_FD8h

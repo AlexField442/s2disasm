@@ -1,0 +1,4 @@
+* FredBronze - Sonic 3 Unlocked blog (explained Knuckles stuff)
+* MainMemory - Port Knuckles to Sonic 2 guide
+* Saxman - Sonic Boom engine
+* Puto - Knuckles in Sonic 2 disassembly

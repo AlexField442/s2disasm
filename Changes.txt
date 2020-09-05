@@ -1,0 +1,8 @@
+v1.1:
+* Updated Knuckles' code to be more consistent with the Sonic 2 Github disassembly
+* Fixed broken Casino Night PSG notes in credits theme
+
+v1.0 (inital release):
+* Ported Knuckles
+* Fixed Oil Ocean music bug
+* Updated credits to include Knuckles port thanks
