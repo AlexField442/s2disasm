@@ -407,6 +407,10 @@ PalID_SS3_2p =	id(PalPtr_SS3_2p) ; 24
 PalID_OOZ_B =	id(PalPtr_OOZ_B) ; 25
 PalID_Menu =	id(PalPtr_Menu) ; 26
 PalID_Result =	id(PalPtr_Result) ; 27
+PalID_Knux =	id(PalPtr_Knux) ; 28
+PalID_CPZ_K_U =	id(PalPtr_CPZ_K_U) ; 29
+PalID_ARZ_K_U =	id(PalPtr_ARZ_K_U) ; 30
+PalID_SS_K =	id(PalPtr_SS_K) ; 31
 
 ; PLC IDs
 offset :=	ArtLoadCues
@@ -480,6 +484,10 @@ PLCID_Tornado =		id(PLCptr_Tornado) ; 3F
 PLCID_Capsule =		id(PLCptr_Capsule) ; 40
 PLCID_Explosion =	id(PLCptr_Explosion) ; 41
 PLCID_ResultsTails =	id(PLCptr_ResultsTails) ; 42
+PLCID_KnucklesLife =	id(PLCptr_KnucklesLife)
+PLCID_Std2Knuckles =	id(PLCptr_Std2Knuckles)
+PLCID_ResultsKnuckles =	id(PLCptr_ResultsKnuckles)
+PLCID_SignpostKnuckles =	id(PLCptr_SignpostKnuckles)
 
 ; Object IDs
 offset :=	Obj_Index
@@ -498,6 +506,7 @@ ObjID_Splash =			id(ObjPtr_Splash)		; 08
 ObjID_SonicSS =			id(ObjPtr_SonicSS)		; 09
 ObjID_SmallBubbles =		id(ObjPtr_SmallBubbles)		; 0A
 ObjID_TippingFloor =		id(ObjPtr_TippingFloor)		; 0B
+ObjID_Knuckles =		id(ObjPtr_Knuckles)		; 0C
 ObjID_Signpost =		id(ObjPtr_Signpost)		; 0D
 ObjID_IntroStars =		id(ObjPtr_IntroStars)		; 0E
 ObjID_TitleMenu =		id(ObjPtr_TitleMenu)		; 0F
@@ -786,6 +795,9 @@ SndID_FireBurn =	id(SndPtr_FireBurn)		; B3
 SndID_Bumper =		id(SndPtr_Bumper)		; B4
 SndID_Ring =		id(SndPtr_Ring)			; B5
 SndID_RingRight =	id(SndPtr_RingRight)		; B5
+SndID_WallGrab =	id(SndPtr_WallGrab)
+SndID_Land =		id(SndPtr_Land)
+SndID_Slide =		id(SndPtr_Slide)
 SndID_SpikesMove =	id(SndPtr_SpikesMove)		; B6
 SndID_Rumbling =	id(SndPtr_Rumbling)		; B7
 SndID_Smash =		id(SndPtr_Smash)		; B9
@@ -841,7 +853,7 @@ SndID_Error =		id(SndPtr_Error)		; ED
 SndID_MechaSonicBuzz =	id(SndPtr_MechaSonicBuzz)	; EE
 SndID_LargeLaser =	id(SndPtr_LargeLaser)		; EF
 SndID_OilSlide =	id(SndPtr_OilSlide)		; F0
-SndID__End =		id(SndPtr__End)			; F1
+SndID__End =		id(SndPtr__End)			; F4
     if MOMPASS == 2
 	if SndID__End > CmdID__First
 		fatal "You have too many SndPtrs. SndID__End ($\{SndID__End}) can't exceed CmdID__First ($\{CmdID__First})."

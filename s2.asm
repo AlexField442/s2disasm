@@ -18,7 +18,7 @@
 ; ASSEMBLY OPTIONS:
 ;
     ifndef gameRevision
-gameRevision = 1
+gameRevision = 2
     endif
 ;	| If 0, a REV00 ROM is built
 ;	| If 1, a REV01 ROM is built, which contains some fixes
@@ -26,25 +26,25 @@ gameRevision = 1
 padToPowerOfTwo = 1
 ;	| If 1, pads the end of the ROM to the next power of two bytes (for real hardware)
 ;
-allOptimizations = 0
+allOptimizations = 1
 ;	| If 1, enables all optimizations
 ;
-skipChecksumCheck = 0|allOptimizations
+skipChecksumCheck = 1|allOptimizations
 ;	| If 1, disables the unnecessary (and slow) bootup checksum calculation
 ;
-zeroOffsetOptimization = 0|allOptimizations
+zeroOffsetOptimization = 1|allOptimizations
 ;	| If 1, makes a handful of zero-offset instructions smaller
 ;
-removeJmpTos = 0|gameRevision=2|allOptimizations
+removeJmpTos = 1|gameRevision=2|allOptimizations
 ;	| If 1, many unnecessary JmpTos are removed, improving performance
 ;
-addsubOptimize = 0|gameRevision=2|allOptimizations
+addsubOptimize = 1|gameRevision=2|allOptimizations
 ;	| If 1, some add/sub instructions are optimized to addq/subq
 ;
-relativeLea = 0|gameRevision<>2|allOptimizations
+relativeLea = 1|gameRevision<>2|allOptimizations
 ;	| If 1, makes some instructions use pc-relative addressing, instead of absolute long
 ;
-useFullWaterTables = 0
+useFullWaterTables = 1
 ;	| If 1, zone offset tables for water levels cover all level slots instead of only slots 8-$F
 ;	| Set to 1 if you've shifted level IDs around or you want water in levels with a level slot below 8
 
@@ -2801,6 +2801,11 @@ CyclingPal_WFZ2:
 
 ; sub_213E:
 PalCycle_SuperSonic:
+	cmpi.w	#3,(Player_mode).w	; are we Knuckles?
+	blt.w	+			; if we are, run the Super Knuckles cycle instead
+	bra.w	PalCycle_SuperKnuckles
+
++
 	move.b	(Super_Sonic_palette).w,d0
 	beq.s	++	; rts	; return, if Sonic isn't super
 	bmi.w	PalCycle_SuperSonic_normal	; branch, if fade-in is done
@@ -2889,6 +2894,65 @@ PalCycle_SuperSonic_normal:
 	move.l	4(a0,d0.w),(a1)
 	rts
 ; End of function PalCycle_SuperSonic
+
+; =============== S U B	R O U T	I N E =======================================
+
+
+PalCycle_SuperKnuckles:				  ; ...
+		move.b	($FFFFF65F).w,d0
+		beq.s	return_301E74
+		bmi.w	loc_301E8A
+		subq.b	#1,d0
+		bne.s	loc_301E76
+		subq.b	#1,($FFFFF65E).w
+		bpl.s	return_301E74
+		move.b	#3,($FFFFF65E).w
+		move.b	#$FF,($FFFFF65F).w
+		move.w	#0,($FFFFF65C).w
+		move.b	#0,($FFFFB02A).w
+
+return_301E74:					  ; ...
+		rts
+; ---------------------------------------------------------------------------
+
+loc_301E76:					  ; ...
+		moveq	#0,d0
+		move.w	d0,($FFFFF65C).w
+		move.b	d0,($FFFFF65F).w
+		lea	(Pal_KnucklesReds).l,a0
+		bra.w	loc_301EBA
+; ---------------------------------------------------------------------------
+
+loc_301E8A:					  ; ...
+		subq.b	#1,($FFFFF65E).w
+		bpl.w	return_301E74
+		move.b	#2,($FFFFF65E).w
+		lea	(Pal_SuperKnuckles).l,a0
+		move.w	($FFFFF65C).w,d0
+		addq.w	#6,($FFFFF65C).w
+		cmp.w	#$3C,($FFFFF65C).w
+		bcs.s	loc_301EBA
+		move.w	#0,($FFFFF65C).w
+		move.b	#$E,($FFFFF65E).w
+
+loc_301EBA:					  ; ...
+		lea	($FFFFFB04).w,a1
+		move.l	(a0,d0.w),(a1)+
+		move.w	4(a0,d0.w),2(a1)
+		tst.b	($FFFFF730).w
+		beq.w	return_301E74
+		lea	($FFFFF084).w,a1
+		move.l	(a0,d0.w),(a1)+
+		move.w	4(a0,d0.w),2(a1)
+		rts
+; End of function PalCycle_SuperKnuckles
+
+; ---------------------------------------------------------------------------
+Pal_SuperKnuckles:dc.w	$428, $64E, $A6E, $64A,	$86E, $C8E, $86C, $A8E,	$EAE; 0	; ...
+		dc.w  $A8E, $CAE, $ECE,	$CAE, $ECE, $EEE, $A8E,	$CAE, $ECE; 9
+		dc.w  $86C, $A8E, $EAE,	$64A, $86E, $C8E, $428,	$64E, $A6E; 18
+		dc.w  $206, $40C, $84E		  ; 27
+Pal_KnucklesReds:dc.w  $206, $20C, $64E		   ; 0 ; ...
 
 ; ===========================================================================
 ;----------------------------------------------------------------------------
@@ -3536,6 +3600,10 @@ PalPtr_SS3_2p:	palptr Pal_SS3_2p,3
 PalPtr_OOZ_B:	palptr Pal_OOZ_B, 1
 PalPtr_Menu:	palptr Pal_Menu,  0
 PalPtr_Result:	palptr Pal_Result,0
+PalPtr_Knux:	palptr Pal_Knux,  0
+PalPtr_CPZ_K_U:	palptr Pal_CPZ_K_U, 0
+PalPtr_ARZ_K_U:	palptr Pal_ARZ_K_U, 0
+PalPtr_SS_K:	palptr Pal_SS_K, 0
 
 ; ----------------------------------------------------------------------------
 ; This macro defines Pal_ABC and Pal_ABC_End, so palptr can compute the size of
@@ -3586,6 +3654,10 @@ Pal_SS1_2p:palette Special Stage 1 2p.bin ; Special Stage 1 2p palette
 Pal_SS2_2p:palette Special Stage 2 2p.bin ; Special Stage 2 2p palette
 Pal_SS3_2p:palette Special Stage 3 2p.bin ; Special Stage 3 2p palette
 Pal_Result:palette Special Stage Results Screen.bin ; Special Stage Results Screen palette
+Pal_Knux:  palette Knuckles.bin,SonicAndTails2.bin ; "Sonic and Miles" background palette (also usually the primary palette line)
+Pal_CPZ_K_U: palette CPZ Knux underwater.bin ; Chemical Plant Zone underwater palette
+Pal_ARZ_K_U: palette ARZ Knux underwater.bin ; Aquatic Ruin Zone underwater palette
+Pal_SS_K:    palette Special Stage Main (Knuckles).bin ; Special Stage palette (Knuckles
 ; ===========================================================================
 
     if gameRevision<2
@@ -4307,20 +4379,29 @@ Level:
 	beq.s	+
 	bsr.w	LoadPLC
 +
-	moveq	#PLCID_Std2,d0
-	bsr.w	LoadPLC
 	bsr.w	Level_SetPlayerMode
+	moveq	#PLCID_Std2,d0
+	cmpi.w	#3,(Player_mode).w	; are we Knuckles?
+	bne.s	+	; if not, branch
+	moveq	#PLCID_Std2Knuckles,d0	; load Knuckles' standard art
++	bsr.w	LoadPLC
 	moveq	#PLCID_Miles1up,d0
 	tst.w	(Two_player_mode).w
 	bne.s	+
 	cmpi.w	#2,(Player_mode).w
-	bne.s	Level_ClrRam
+	bne.s	Level_NoTails
 	addq.w	#PLCID_MilesLife-PLCID_Miles1up,d0
 +
 	tst.b	(Graphics_Flags).w
 	bpl.s	+
 	addq.w	#PLCID_Tails1up-PLCID_Miles1up,d0
 +
+	bsr.w	LoadPLC
+
+Level_NoTails:
+	cmpi.w	#3,(Player_mode).w
+	bne.s	Level_ClrRam
+	moveq	#PLCID_KnucklesLife,d0
 	bsr.w	LoadPLC
 ; loc_3F48:
 Level_ClrRam:
@@ -4394,7 +4475,10 @@ Level_InitWater:
 ; loc_407C:
 Level_LoadPal:
 	moveq	#PalID_BGND,d0
-	bsr.w	PalLoad_Now	; load Sonic's palette line
+	cmpi.w	#3,(Player_mode).w	; are you playing as Knuckles?
+	blt.s	+	; if not, branch
+	moveq	#PalID_Knux,d0	; load Knuckles' palette index
++	bsr.w	PalLoad_Now	; load Sonic's palette line
 	tst.b	(Water_flag).w	; does level have water?
 	beq.s	Level_GetBgm	; if not, branch
 	moveq	#PalID_HPZ_U,d0	; palette number $15
@@ -4402,8 +4486,16 @@ Level_LoadPal:
 	beq.s	Level_WaterPal ; branch if level is HPZ
 	moveq	#PalID_CPZ_U,d0	; palette number $16
 	cmpi.b	#chemical_plant_zone,(Current_Zone).w
-	beq.s	Level_WaterPal ; branch if level is CPZ
+	bne.s	Level_PalNotCPZ ; branch if level is not CPZ
+	cmpi.w	#3,(Player_mode).w	; are you playing as Knuckles?
+	blt.s	Level_WaterPal	; if not, branch
+	moveq	#PalID_CPZ_K_U,d0
+	bra.s	Level_WaterPal	; branch
+Level_PalNotCPZ:
 	moveq	#PalID_ARZ_U,d0	; palette number $17
+	cmpi.w	#3,(Player_mode).w	; are you playing as Knuckles?
+	blt.s	Level_WaterPal	; if not, branch
+	moveq	#PalID_ARZ_K_U,d0
 ; loc_409E:
 Level_WaterPal:
 	bsr.w	PalLoad_Water_Now	; load underwater palette (with d0)
@@ -4444,7 +4536,7 @@ Level_TtlCard:
 +
 	moveq	#PalID_BGND,d0
 	bsr.w	PalLoad_ForFade	; load Sonic's palette line
-	bsr.w	LevelSizeLoad
+	jsr	(LevelSizeLoad).l
 	jsrto	(DeformBgLayer).l, JmpTo_DeformBgLayer
 	clr.w	(Vscroll_Factor_FG).w
 	move.w	#-$E0,(Vscroll_Factor_P2_FG).w
@@ -4453,7 +4545,7 @@ Level_TtlCard:
 
 	bsr.w	LoadZoneTiles
 	jsrto	(loadZoneBlockMaps).l, JmpTo_loadZoneBlockMaps
-	jsr	(loc_402D4).l
+	jsr	(LoadAnimatedBlocks).l
 	jsrto	(DrawInitialBG).l, JmpTo_DrawInitialBG
 	jsr	(ConvertCollisionArray).l
 	bsr.w	LoadCollisionIndexes
@@ -4715,9 +4807,18 @@ InitPlayers_Alone: ; either Sonic or Tails but not both
 ; ===========================================================================
 ; loc_44D0:
 InitPlayers_TailsAlone:
+	subq.w	#1,d0
+	bne.s	InitPlayers_KnucklesAlone ; branch if this is a Knuckles alone game
+
 	move.b	#ObjID_Tails,(MainCharacter+id).w ; load Obj02 Tails object at $FFFFB000
 	move.b	#ObjID_SpindashDust,(Tails_Dust+id).w ; load Obj08 Tails' spindash dust/splash object at $FFFFD100
 	addi_.w	#4,(MainCharacter+y_pos).w
+	rts
+; ===========================================================================
+
+InitPlayers_KnucklesAlone:
+	move.b	#ObjID_Knuckles,(MainCharacter+id).w ; load Obj0C Knuckles object at $FFFFB000
+	move.b	#ObjID_SpindashDust,(Sonic_Dust+id).w ; load Obj08 Knuckles' spindash dust/splash object at $FFFFD100
 	rts
 ; End of function InitPlayers
 
@@ -5587,6 +5688,9 @@ CheckLoadSignpostArt:
 	tst.w	(Two_player_mode).w
 	bne.s	+	; rts
 	moveq	#PLCID_Signpost,d0 ; <== PLC_1F
+	cmpi.w	#3,(Player_mode).w
+	bne.w	LoadPLC2		; load signpost art
+	moveq	#PLCID_SignpostKnuckles,d0
 	bra.w	LoadPLC2		; load signpost art
 ; ---------------------------------------------------------------------------
 ; loc_4C80:
@@ -6069,13 +6173,28 @@ SpecialStage:
 	move.l	#0,(Camera_Y_pos).w
 	move.l	#0,(Camera_X_pos_copy).w
 	move.l	#0,(Camera_Y_pos_copy).w
-	cmpi.w	#1,(Player_mode).w	; is this a Tails alone game?
-	bgt.s	+			; if yes, branch
-	move.b	#ObjID_SonicSS,(MainCharacter+id).w ; load Obj09 (special stage Sonic)
 	tst.w	(Player_mode).w		; is this a Sonic and Tails game?
 	bne.s	++			; if not, branch
-+	move.b	#ObjID_TailsSS,(Sidekick+id).w ; load Obj10 (special stage Tails)
-+	move.b	#ObjID_SSHUD,(SpecialStageHUD+id).w ; load Obj5E (special stage HUD)
+	move.b	#ObjID_SonicSS,(MainCharacter+id).w ; load Obj09 (special stage Sonic)
+	move.b	#ObjID_TailsSS,(Sidekick+id).w ; load Obj10 (special stage Tails)
+	bra.s	loc_5152
++
+	cmpi.w	#1,(Player_mode).w
+	bne.s	+
+	move.b	#ObjID_SonicSS,(MainCharacter+id).w ; load Obj09 (special stage Sonic)
+	bra.s	loc_5152
++
+	cmpi.w	#2,(Player_mode).w
+	bne.s	+
+	move.b	#ObjID_TailsSS,(Sidekick+id).w ; load Obj10 (special stage Tails)
+	bra.s	loc_5152
++
+	cmpi.w	#3,(Player_mode).w
+	bne.s	loc_5152
+	move.b	#$17,(MainCharacter+id).w ; load Obj17 (special stage Knuckles)
+
+loc_5152:
+	move.b	#ObjID_SSHUD,(SpecialStageHUD+id).w ; load Obj5E (special stage HUD)
 	move.b	#ObjID_StartBanner,(SpecialStageStartBanner+id).w ; load Obj5F (special stage banner)
 	move.b	#ObjID_SSNumberOfRings,(SpecialStageNumberOfRings+id).w ; load Obj87 (special stage ring count)
 	move.w	#$80,(SS_Offset_X).w
@@ -8644,6 +8763,10 @@ SSPlaneB_Background:
 ;sub_6DD4
 SSDecompressPlayerArt:
 	lea	(ArtNem_SpecialSonicAndTails).l,a0
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	lea	(ArtNem_SpecialKnuckles).l,a0
++
 	lea	(SSRAM_ArtNem_SpecialSonicAndTails & $FFFFFF).l,a4
 	bra.w	NemDecToRAM
 ; End of function SSDecompressPlayerArt
@@ -8973,7 +9096,12 @@ Obj5E:
 	addq.w	#1,d1
 	bra.s	++
 ; ---------------------------------------------------------------------------
-+	move.w	(Player_mode).w,d1
++	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	move.w	#8,d1
+	bra.s	++
++
+	move.w	(Player_mode).w,d1
 	andi.w	#3,d1
 	tst.b	(Graphics_Flags).w
 	bpl.s	+
@@ -9008,7 +9136,7 @@ SSHUDLayout:	offsetTable
 		offsetTableEntry.w SSHUD_Tails			; 5
 		offsetTableEntry.w SSHUD_SonicMiles		; 6
 		offsetTableEntry.w SSHUD_SonicTails		; 7
-
+		offsetTableEntry.w SSHUD_Knuckles		; 8
 ; byte_7052:
 SSHUD_SonicMilesTotal:
 	dc.b   3		; Sprite count
@@ -9040,7 +9168,10 @@ SSHUD_Tails:
 	dc.b   1
 	dc.b   $38
 	dc.b   2
-
+SSHUD_Knuckles:
+	dc.b   1
+	dc.b   $D4
+	dc.b   3
 ; 2 player
 ; byte_7068:
 SSHUD_SonicMiles:
@@ -9052,6 +9183,7 @@ SSHUD_SonicTails:
 	dc.b   2
 	dc.b   $80
 	dc.b   0,  2
+	even
 ; -----------------------------------------------------------------------------------
 ; sprite mappings
 ; -----------------------------------------------------------------------------------
@@ -9334,6 +9466,8 @@ loc_7480:
 	dbf	d4,-
 	cmpi.w	#1,(Player_mode).w
 	beq.s	loc_7536
+	cmpi.w	#3,(Player_mode).w
+	beq.s	loc_7536
 
 loc_74EA:
 	moveq	#0,d0
@@ -9555,21 +9689,10 @@ SSStartNewAct:
 	cmpi.w	#100,d1
 	blt.s	+
 	addq.w	#1,d2
-  ; The following code does a more complete binary coded decimal conversion:
-    if 1==0
 -	addi.w	#$100,d0
 	subi.w	#100,d1
 	cmpi.w	#100,d1
 	bge.s	-
-    else
-	; This code (the original) is limited to 299 rings:
-	subi.w	#100,d1
-	move.w	#$100,d0
-	cmpi.w	#100,d1
-	blt.s	+
-	subi.w	#100,d1
-	addi.w	#$100,d0
-    endif
 +
 	divu.w	#10,d1
 	lsl.w	#4,d1
@@ -9649,6 +9772,11 @@ SSInitPalAndData:
 	move.w	d0,(a2)+
 	moveq	#PalID_SS,d0
 	bsr.w	PalLoad_ForFade
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	moveq	#PalID_SS_K,d0
+	bsr.w	PalLoad_ForFade
++
 	lea_	SpecialStage_Palettes,a1
 	moveq	#0,d0
 	move.b	(Current_Special_Stage).w,d0
@@ -9761,16 +9889,28 @@ ContinueScreen:
 	lea	(ArtNem_ContinueTails).l,a0
 	bsr.w	NemDec
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_MiniContinue),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_MiniSonic).l,a0
 	cmpi.w	#2,(Player_mode).w
 	bne.s	+
 	lea	(ArtNem_MiniTails).l,a0
+	bra.s	+++
++
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	lea	(ArtNem_MiniKnuckles).l,a0
+	bra.s	++
++
+	lea	(ArtNem_MiniSonic).l,a0
 +
 	bsr.w	NemDec
 	moveq	#$A,d1
 	jsr	(ContScrCounter).l
 	moveq	#PalID_SS1,d0
 	bsr.w	PalLoad_ForFade
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	moveq	#PalID_Knux,d0
+	bsr.w	PalLoad_ForFade
++
 	move.w	#0,(Target_palette).w
 	move.b	#MusID_Continue,d0
 	bsr.w	PlayMusic
@@ -9779,8 +9919,14 @@ ContinueScreen:
 	clr.l	(Camera_X_pos_copy).w
 	move.l	#$1000000,(Camera_Y_pos_copy).w
 	move.b	#ObjID_ContinueChars,(MainCharacter+id).w ; load ObjDB (sonic on continue screen)
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	move.b	#$C,(MainCharacter+routine).w ; => ObjDB_Knuckles_Init
+	bra.s	++
++
 	move.b	#ObjID_ContinueChars,(Sidekick+id).w ; load ObjDB (tails on continue screen)
 	move.b	#6,(Sidekick+routine).w ; => ObjDB_Tails_Init
++
 	move.b	#ObjID_ContinueText,(ContinueText+id).w ; load ObjDA (continue screen text)
 	move.b	#ObjID_ContinueIcons,(ContinueIcons+id).w ; load ObjDA (continue icons)
 	move.b	#4,(ContinueIcons+routine).w ; => loc_7AD0
@@ -9795,8 +9941,15 @@ ContinueScreen:
 -
 	move.b	#VintID_Menu,(Vint_routine).w
 	bsr.w	WaitForVint
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	cmpi.b	#$10,(MainCharacter+routine).w
+	bcc.s	+++
+	bra.s	++
++
 	cmpi.b	#4,(MainCharacter+routine).w
-	bhs.s	+
+	bcc.s	++
++
 	move	#$2700,sr
 	move.w	(Demo_Time_left).w,d1
 	divu.w	#60,d1
@@ -9806,10 +9959,19 @@ ContinueScreen:
 +
 	jsr	(RunObjects).l
 	jsr	(BuildSprites).l
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	cmpi.w	#$180,(MainCharacter+x_pos).w
+	bcc.s	+++
+	cmpi.b	#$10,(MainCharacter+routine).w
+	bcc.s	-
+	bra.s	++
++
 	cmpi.w	#$180,(Sidekick+x_pos).w
-	bhs.s	+
+	bcc.s	++
 	cmpi.b	#4,(MainCharacter+routine).w
-	bhs.s	-
+	bcc.s	-
++
 	tst.w	(Demo_Time_left).w
 	bne.w	-
 	move.b	#GameModeID_SegaScreen,(Game_Mode).w ; => SegaScreen
@@ -10006,6 +10168,9 @@ ObjDB_Index:	offsetTable
 		offsetTableEntry.w ObjDB_Tails_Init	;  6
 		offsetTableEntry.w ObjDB_Tails_Wait	;  8
 		offsetTableEntry.w ObjDB_Tails_Run	; $A
+		offsetTableEntry.w ObjDB_Knuckles_Init	; $C
+		offsetTableEntry.w ObjDB_Knuckles_Wait	; $E
+		offsetTableEntry.w ObjDB_Knuckles_Run	; $F
 ; ===========================================================================
 ; loc_7BA2:
 ObjDB_Sonic_Init:
@@ -10088,6 +10253,46 @@ ObjDB_Tails_Run:
 	jsr	(ObjectMove).l
 	jsr	(Tails_Animate).l
 	jmp	(LoadTailsDynPLC).l
+; ===========================================================================
+; loc_7BA2:
+ObjDB_Knuckles_Init:
+	addq.b	#2,routine(a0) ; => ObjDB_Knuckles_Wait
+	move.w	#$9C,x_pos(a0)
+	move.w	#$19C,y_pos(a0)
+	move.l	#Mapunc_Knux,mappings(a0)
+	move.w	#make_art_tile(ArtTile_ArtUnc_Sonic,0,0),art_tile(a0)
+	move.b	#4,render_flags(a0)
+	move.b	#2,priority(a0)
+	move.b	#$24,anim(a0)
+
+; loc_7BD2:
+ObjDB_Knuckles_Wait:
+	tst.b	(Ctrl_1_Press).w	; is start pressed?
+	bmi.s	ObjDB_Knuckles_StartRunning ; if yes, branch
+	jsr	(Knuckles_Animate).l
+	jmp	(LoadKnucklesDynPLC).l
+; ---------------------------------------------------------------------------
+; loc_7BE4:
+ObjDB_Knuckles_StartRunning:
+	addq.b	#2,routine(a0) ; => ObjDB_Knuckles_Run
+	move.b	#0,anim(a0)
+	clr.w	inertia(a0)
+	move.b	#SndID_SpindashRev,d0 ; super peel-out sound
+	bsr.w	PlaySound
+
+; loc_7BFA:
+ObjDB_Knuckles_Run:
+	cmpi.w	#$800,inertia(a0)
+	bne.s	+
+	move.w	#$1000,x_vel(a0)
+	bra.s	++
+; ---------------------------------------------------------------------------
++
+	addi.w	#$20,inertia(a0)
++
+	jsr	(ObjectMove).l
+	jsr	(Knuckles_Animate).l
+	jmp	(LoadKnucklesDynPLC).l
 ; ===========================================================================
 ; animation script for continue screen Tails nagging
 ; off_7CB0
@@ -11631,7 +11836,7 @@ OptionScreen_Controls:
 ; ===========================================================================
 ; word_917A:
 OptionScreen_Choices:
-	dc.l (3-1)<<24|(Player_option&$FFFFFF)
+	dc.l (4-1)<<24|(Player_option&$FFFFFF)
 	dc.l (2-1)<<24|(Two_player_items&$FFFFFF)
 	dc.l ($80-1)<<24|(Sound_test_sound&$FFFFFF)
 
@@ -11771,10 +11976,12 @@ off_92D2:
 	dc.l TextOptScr_SonicAndMiles
 	dc.l TextOptScr_SonicAlone
 	dc.l TextOptScr_MilesAlone
+	dc.l TextOptScr_KnucklesAlone
 off_92DE:
 	dc.l TextOptScr_SonicAndTails
 	dc.l TextOptScr_SonicAlone
 	dc.l TextOptScr_TailsAlone
+	dc.l TextOptScr_KnucklesAlone
 off_92EA:
 	dc.l TextOptScr_AllKindsItems
 	dc.l TextOptScr_TeleportOnly
@@ -12263,9 +12470,7 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 	tst.w	d2				; Test this to determine which cheat to enable
 	bne.s	+				; If not 0, branch
 	move.b	#$F,(Continue_count).w		; Give 15 continues
-	; The next line causes the bug where the OOZ music plays until reset.
-	; Remove "&$7F" to fix the bug.
-	move.b	#SndID_ContinueJingle&$7F,d0	; Play the continue jingle
+	move.b	#SndID_ContinueJingle,d0	; Play the continue jingle
 	jsrto	(PlayMusic).l, JmpTo_PlayMusic
 	bra.s	++
 ; ===========================================================================
@@ -12305,6 +12510,7 @@ TextOptScr_SonicAndTails:	menutxt	"SONIC AND TAILS"	; byte_97EC:
 TextOptScr_SonicAlone:		menutxt	"SONIC ALONE    "	; byte_97FC:
 TextOptScr_MilesAlone:		menutxt	"MILES ALONE    "	; byte_980C:
 TextOptScr_TailsAlone:		menutxt	"TAILS ALONE    "	; byte_981C:
+TextOptScr_KnucklesAlone:	menutxt	"KNUCKLES ALONE "
 TextOptScr_VsModeItems:		menutxt	"* VS MODE ITEMS *"	; byte_982C:
 TextOptScr_AllKindsItems:	menutxt	"ALL KINDS ITEMS"	; byte_983E:
 TextOptScr_TeleportOnly:	menutxt	"TELEPORT ONLY  "	; byte_984E:
@@ -12404,6 +12610,13 @@ EndingSequence:
 +
 	addq.w	#2,d0
 +
+	addq.w	#2,d0
++
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	moveq	#6,d0
+	cmpi.b	#7,(Emerald_count).w
+	bne.s	+
 	addq.w	#2,d0
 +
 	move.w	d0,(Ending_Routine).w
@@ -12563,10 +12776,10 @@ EndgameCredits:
 	; Now that we have the time it should take for the credits to end, we can adjust the calculation to account
 	; for any slides we may have added. For example, if you added a slide, bringing the total to 22,
 	; performing '((154.7*60)/22)-($16+$16)' will give you the new value to put in the 'move.w' instruction below.
-	move.w	#$18E,d0
+	move.w	#$17A,d0
 	btst	#6,(Graphics_Flags).w
 	beq.s	+
-	move.w	#$144,d0
+	move.w	#$134,d0
 
 /	move.b	#VintID_Ending,(Vint_routine).w
 	bsr.w	WaitForVint
@@ -12674,10 +12887,12 @@ pal_A0FE:	BINCLUDE	"art/palettes/Ending Cycle.bin"
 ; Sprite_A1D6:
 ObjCA:
 	addq.w	#1,objoff_32(a0)
-	cmpi.w	#4,(Ending_Routine).w
-	beq.s	+
+	cmpi.w	#8,(Ending_Routine).w
+	beq.s	++
 	cmpi.w	#2,(Ending_Routine).w
-	bne.s	+
+	beq.s	+
+	bra.s	++
++
 	st	(Super_Sonic_flag).w
 	move.w	#$100,(Ring_count).w
 	move.b	#-1,(Super_Sonic_palette).w
@@ -12781,6 +12996,8 @@ ObjCA_State5_States:	offsetTable
 	offsetTableEntry.w loc_A2E0	; 0
 	offsetTableEntry.w loc_A2EE	; 2
 	offsetTableEntry.w loc_A2F2	; 4
+	offsetTableEntry.w loc_A2E0k	; 6
+	offsetTableEntry.w loc_A2EEk	; 8
 ; ===========================================================================
 
 loc_A2E0:
@@ -12805,6 +13022,19 @@ loc_A2F2:
 	rts
 ; ===========================================================================
 
+loc_A2E0k:
+	moveq	#$10,d0
+-
+	move.b	#ObjID_Knuckles,id(a1) ; load Sonic object
+	move.b	#$81,obj_control(a1)
+	rts
+; ===========================================================================
+
+loc_A2EEk:
+	moveq	#$12,d0
+	bra.s	-
+; ===========================================================================
+
 loc_A30A:
 	subq.w	#1,objoff_3C(a0)
 	bpl.s	+
@@ -12817,8 +13047,12 @@ loc_A30A:
 	move.b	#AniIDSonAni_Float2,anim(a1)
 	move.w	#$A0,x_pos(a1)
 	move.w	#$50,y_pos(a1)
+	cmpi.w	#8,(Ending_Routine).w
+	beq.s	++
 	cmpi.w	#2,(Ending_Routine).w
-	bne.s	+	; rts
+	beq.s	+
+	bra.s	++
++
 	move.b	#AniIDSonAni_Walk,anim(a1)
 	move.w	#$1000,inertia(a1)
 +
@@ -12970,6 +13204,8 @@ loc_A4B6:
 	clr.b	mapping_frame(a0)
 	cmpi.w	#2,(Ending_Routine).w
 	beq.s	+
+	cmpi.w	#8,(Ending_Routine).w
+	beq.s	+
 	move.b	#7,mapping_frame(a0)
 	cmpi.w	#4,(Ending_Routine).w
 	bne.s	+
@@ -12978,6 +13214,13 @@ loc_A4B6:
 	clr.b	anim(a0)
 	clr.b	anim_frame(a0)
 	clr.b	anim_frame_duration(a0)
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	move.l	#ObjCF_MapUnc_Knuckles,mappings(a0)
+	bra.s	++
++
+	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
++
 	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
 	jsr	(Adjust2PArtPointer).l
@@ -13000,6 +13243,8 @@ off_A534:	offsetTable
 		offsetTableEntry.w loc_A53A	; 0
 		offsetTableEntry.w loc_A55C	; 2
 		offsetTableEntry.w loc_A582	; 4
+		offsetTableEntry.w loc_A53Ak	; 6
+		offsetTableEntry.w loc_A53Ak	; 8
 ; ===========================================================================
 
 loc_A53A:
@@ -13031,6 +13276,16 @@ loc_A582:
 	move.w	y_pos(a0),d0
 	subi.w	#$18,d0
 	bra.s	-
+; ===========================================================================
+
+loc_A53Ak:
+	move.w	y_pos(a0),d0
+	subi.w	#$1C,d0
+	move.w	d0,y_pos(a1)
+	move.w	x_pos(a0),x_pos(a1)
+	move.w	#$500,anim(a1)
+	move.w	#$100,anim_frame_duration(a1)
+	rts
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -13055,7 +13310,7 @@ loc_A5A6:
 	move.w	#2,objoff_3C(a0)
 	move.w	objoff_32(a0),d0
 	cmpi.w	#$1C,d0
-	bhs.s	++
+	bhs.w	++
 	addq.w	#1,objoff_32(a0)
 	move.w	(Ending_Routine).w,d1
 	move.w	off_A5FC(pc,d1.w),d1
@@ -13070,17 +13325,12 @@ loc_A5A6:
 +
 	rts
 ; ===========================================================================
-+
-	addq.b	#2,routine_secondary(a0)
-	move.w	#$60,objoff_3C(a0)
-	clr.b	objoff_31(a0)
-	clr.w	objoff_32(a0)
-	rts
-; ===========================================================================
 off_A5FC:	offsetTable
 		offsetTableEntry.w byte_A602	; 0
 		offsetTableEntry.w byte_A61E	; 2
 		offsetTableEntry.w byte_A63A	; 4
+		offsetTableEntry.w byte_A602	; 6
+		offsetTableEntry.w byte_A61E	; 8
 byte_A602:
 	dc.b   7,  7,  7,  7,  8,  8,  8,  8,  8,  8,  8,  9,  9,  9, $A, $A
 	dc.b  $A, $B, $B, $B, $B, $B, $B, $B, $B, $B, $B, $B; 16
@@ -13090,6 +13340,7 @@ byte_A61E:
 byte_A63A:
 	dc.b $18,$18,$18,$18,$19,$19,$19,$19,$19,$19,$19,  9,  9,  9, $A, $A
 	dc.b  $A, $B, $B, $B, $B, $B, $B, $B, $B, $B, $B, $B; 16
+
 word_A656:
 	dc.w   $A0,  $70,  $B0,  $70,  $B6,  $71,  $BC,  $72
 	dc.w   $C4,  $74,  $C8,  $75,  $CA,  $76,  $CC,  $77; 8
@@ -13098,6 +13349,13 @@ word_A656:
 	dc.w   $E1,  $87,  $E4,  $8B,  $E7,  $8F,  $EC,  $94; 32
 	dc.w   $F0,  $99,  $F5,  $9D,  $F9,  $A4, $100,  $AC; 40
 	dc.w  $108,  $B8, $112,  $C4, $11F,  $D3, $12C,  $FA; 48
+; ===========================================================================
++
+	addq.b	#2,routine_secondary(a0)
+	move.w	#$60,objoff_3C(a0)
+	clr.b	objoff_31(a0)
+	clr.w	objoff_32(a0)
+	rts
 ; ===========================================================================
 
 loc_A6C6:
@@ -13271,7 +13529,13 @@ ObjCE_Index:	offsetTable
 ObjCE_Init:
 	lea	(ObjB3_SubObjData).l,a1
 	jsrto	(LoadSubObject_Part3).l, JmpTo_LoadSubObject_Part3
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	move.l	#ObjCF_MapUnc_Knuckles,mappings(a0)
+	bra.s	++
++
 	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
++
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,1),art_tile(a0)
 	move.b	#1,priority(a0)
 	jsr	(Adjust2PArtPointer).l
@@ -13366,7 +13630,13 @@ ObjCF_Index:	offsetTable
 ObjCF_Init:
 	lea	(ObjB3_SubObjData).l,a1
 	jsrto	(LoadSubObject_Part3).l, JmpTo_LoadSubObject_Part3
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	move.l	#ObjCF_MapUnc_Knuckles,mappings(a0)
+	bra.s	++
++
 	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
++
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,1),art_tile(a0)
 	move.b	#3,priority(a0)
 	jsr	(Adjust2PArtPointer).l
@@ -13618,6 +13888,8 @@ EndingSequence_LoadCharacterArt_Characters: offsetTable
 	offsetTableEntry.w EndingSequence_LoadCharacterArt_Sonic	; 0
 	offsetTableEntry.w EndingSequence_LoadCharacterArt_SuperSonic	; 2
 	offsetTableEntry.w EndingSequence_LoadCharacterArt_Tails	; 4
+	offsetTableEntry.w EndingSequence_LoadCharacterArt_Knuckles	; 6
+	offsetTableEntry.w EndingSequence_LoadCharacterArt_Knuckles	; 8
 ; ===========================================================================
 ; loc_ABF4:
 EndingSequence_LoadCharacterArt_Sonic:
@@ -13636,6 +13908,13 @@ EndingSequence_LoadCharacterArt_Tails:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_EndingCharacter),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_EndingTails).l,a0
 	jmpto	(NemDec).l, JmpTo_NemDec
+; ===========================================================================
+; loc_ABF4k:
+EndingSequence_LoadCharacterArt_Knuckles:
+	move.l	#vdpComm(tiles_to_bytes(ArtTile_EndingCharacter),VRAM,WRITE),(VDP_control_port).l
+	lea	(ArtNem_EndingKnuckles).l,a0
+	jmpto	(NemDec).l, JmpTo_NemDec
+
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -13652,6 +13931,8 @@ EndingSequence_LoadFlickyArt_Flickies: offsetTable
 	offsetTableEntry.w EndingSequence_LoadFlickyArt_Bird	; 0
 	offsetTableEntry.w EndingSequence_LoadFlickyArt_Eagle	; 2
 	offsetTableEntry.w EndingSequence_LoadFlickyArt_Chicken	; 4
+	offsetTableEntry.w EndingSequence_LoadFlickyArt_Bird	; 6
+	offsetTableEntry.w EndingSequence_LoadFlickyArt_Eagle	; 8
 ; ===========================================================================
 ; loc_AC42:
 EndingSequence_LoadFlickyArt_Bird:
@@ -13676,6 +13957,10 @@ Pal_AC9E:	BINCLUDE	"art/palettes/Ending Sonic Far.bin"
 Pal_ACDE:	BINCLUDE	"art/palettes/Ending Background.bin"
 Pal_AD1E:	BINCLUDE	"art/palettes/Ending Photos.bin"
 Pal_AD3E:	BINCLUDE	"art/palettes/Ending Super Sonic.bin"
+Pal_AC7Ek:	BINCLUDE	"art/palettes/Ending Knuckles.bin"
+Pal_AC9Ek:	BINCLUDE	"art/palettes/Ending Knuckles Far.bin"
+Pal_AD3Ek:	BINCLUDE	"art/palettes/Ending Super Knuckles.bin"
+
 
 word_AD5E:
 	dc.w objoff_3E
@@ -13722,6 +14007,8 @@ byte_AD9E:	dc.b   1,  5,  6,$FF
 ; sprite mappings
 ; -----------------------------------------------------------------------------
 ObjCF_MapUnc_ADA2:	BINCLUDE "mappings/sprite/objCF.bin"
+;--------------------------------------------------------------------------------------
+ObjCF_MapUnc_Knuckles:	BINCLUDE "mappings/sprite/objCF_Knuckles.bin"
 ; --------------------------------------------------------------------------------------
 ; Enigma compressed art mappings
 ; "Sonic the Hedgehog 2" mappings		; MapEng_B23A:
@@ -13816,7 +14103,7 @@ off_B2CA:
 	dc.l off_B3C2, off_B3DC, off_B3F0, off_B41C	; 11
 	dc.l off_B436, off_B450, off_B45E, off_B490	; 15
 	dc.l off_B4B0, off_B4C4, off_B4F0, off_B51C	; 19
-	dc.l off_B548, -1				; 21
+	dc.l KnuxPort, off_B548, -1			; 22
 
 ; credits text pointers for each screen of credits
 vram_pnt := VRAM_Plane_A_Name_Table
@@ -13841,6 +14128,8 @@ off_B4C4: creditsPtrs	byte_B55C,textLoc($0B,$06), byte_BAA2,textLoc($0A,$08), by
 off_B4F0: creditsPtrs	byte_BB58,textLoc($06,$06), byte_BB75,textLoc($12,$08), byte_BB7B,textLoc($06,$0C), byte_BC9F,textLoc($05,$0E), byte_BBD8,textLoc($08,$10), byte_BBF2,textLoc($08,$12), byte_BC0C,textLoc($09,$14)
 off_B51C: creditsPtrs	byte_BB58,textLoc($06,$06), byte_BB75,textLoc($12,$08), byte_BB98,textLoc($03,$0C), byte_BBBC,textLoc($07,$0E), byte_BCBE,textLoc($07,$10), byte_BCD9,textLoc($0D,$12), byte_BC25,textLoc($04,$14)
 off_B548: creditsPtrs	byte_BC7B,textLoc($0B,$09), byte_BC8F,textLoc($12,$0D), byte_BC95,textLoc($10,$11)
+KnuxPort: creditsPtrs	KnucklesPortYellow,textLoc($01,$09), SaxmanCredit,textLoc($0D,$0B), FredCredit,textLoc($09,$0D), MainMemoryCredit,textLoc($09,$0F), PutoCredit,textLoc($0F,$11)
+
 
  ; temporarily remap characters to credit text format
  ; let's encode 2-wide characters like Aa, Bb, Cc, etc. and hide it with a macro
@@ -13883,6 +14172,11 @@ c := c+1
 
 ; credits text data (palette index followed by a string)
 vram_src := ArtTile_ArtNem_CreditText_CredScr
+KnucklesPortYellow:	creditText 1,"KNUCKLES PORT THANKS"
+SaxmanCredit:		creditText 0,"SAXMAN"
+FredCredit:		creditText 0,"FREDBRONZE"
+MainMemoryCredit:	creditText 0,"MAINMEMORY"
+PutoCredit:		creditText 0,"PUTO"
 byte_B55C:	creditText 1,"EXECUTIVE"
 byte_B56F:	creditText 1,"PRODUCER"
 byte_B581:	creditText 0,"HAYAO  NAKAYAMA"
@@ -16385,7 +16679,7 @@ SwScrl_ARZ:
 	neg.w	d1	; d1 now contains how many pixels of the row is currently on-screen
 	subq.w	#2,a2	; Get correct row speed
 
-	move.w	#bytesToLcnt($380),d2	; Actual size of Horiz_Scroll_Buf
+	move.w	#224-1,d2 ; Height of screen
 	move.w	(Camera_X_pos).w,d0
 	neg.w	d0
 	swap	d0		; Store FG X-pos in upper 16-bits...
@@ -16882,21 +17176,26 @@ SetVertiScrollFlagsBG:		;	used by WFZ, HTZ, HPZ, ARZ
 ;loc_D940: ;Vertical_Bg_Deformation2:
 SetVertiScrollFlagsBG2:
 	move.l	d0,(Camera_BG_Y_pos).w
+	; What this does is set a specific bit in `Scroll_flags_BG`
+	; every time the background crosses a vertical 16-pixel boundary
 	move.l	d0,d1
 	swap	d1
 	andi.w	#$10,d1
 	move.b	(Verti_block_crossed_flag_BG).w,d2
 	eor.b	d2,d1
 	bne.s	++	; rts
+
 	eori.b	#$10,(Verti_block_crossed_flag_BG).w
 	sub.l	d3,d0
 	bpl.s	+
-	bset	d6,(Scroll_flags_BG).w	; everytime Verti_block_crossed_flag_BG changes from $10 to $00
+	; Background has moved down
+	bset	d6,(Scroll_flags_BG).w
 	rts
 ; ===========================================================================
 +
+	; Background has moved up
 	addq.b	#1,d6
-	bset	d6,(Scroll_flags_BG).w	; everytime Verti_block_crossed_flag_BG changes from $00 to $10
+	bset	d6,(Scroll_flags_BG).w
 +
 	rts
 ; End of function SetVertiScrollFlagsBG
@@ -16913,20 +17212,22 @@ SetHorizScrollFlagsBG_ARZ:	; only used by ARZ
 	move.w	(a1),d2
 	move.w	(Camera_ARZ_BG_X_pos).w,d0
 	sub.w	d2,d0
-	bcs.s	+
-	bhi.s	++
+	blo.s	+	; Background has moved to the right
+	bhi.s	++	; Background has moved to the left
 	rts
 ; ===========================================================================
 +
-	cmpi.w	#-$10,d0
+	; Limit the background's scrolling speed (my guess is that
+	; the game can't load more than one column of blocks per frame)
+	cmpi.w	#-16,d0
 	bgt.s	++
-	move.w	#-$10,d0
+	move.w	#-16,d0
 	bra.s	++
 ; ===========================================================================
 +
-	cmpi.w	#$10,d0
+	cmpi.w	#16,d0
 	blo.s	+
-	move.w	#$10,d0
+	move.w	#16,d0
 +
 	add.w	(a1),d0
 	move.w	d0,(a1)
@@ -21092,155 +21393,6 @@ JmpTo_ObjCheckRightWallDist ; JmpTo
 	align 4
     endif
 
-
-
-
-; ===========================================================================
-; ----------------------------------------------------------------------------
-; Object 17 - GHZ rotating log helix spikes (from Sonic 1, unused)
-; the programming of this was modified somewhat between Sonic 1 and Sonic 2
-; ----------------------------------------------------------------------------
-; Sprite_10310:
-Obj17:
-	moveq	#0,d0
-	move.b	routine(a0),d0
-	move.w	Obj17_Index(pc,d0.w),d1
-	jmp	Obj17_Index(pc,d1.w)
-; ===========================================================================
-; off_1031E:
-Obj17_Index:	offsetTable
-		offsetTableEntry.w Obj17_Init		; 0
-		offsetTableEntry.w Obj17_Main		; 2
-		offsetTableEntry.w Obj17_Display	; 4
-; ===========================================================================
-; loc_10324: Obj17_Main:
-Obj17_Init:
-	addq.b	#2,routine(a0)
-	move.l	#Obj17_MapUnc_10452,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_GHZ_Spiked_Log,2,0),art_tile(a0)
-	bsr.w	Adjust2PArtPointer
-	move.b	#4,render_flags(a0)
-	move.b	#3,priority(a0)
-	move.b	#8,width_pixels(a0)
-	move.w	y_pos(a0),d2
-	move.w	x_pos(a0),d3
-	_move.b	id(a0),d4
-	lea	subtype(a0),a2	; move helix length to a2
-	moveq	#0,d1
-	move.b	(a2),d1	; move a2 to d1
-	move.b	#0,(a2)+
-	move.w	d1,d0
-	lsr.w	#1,d0
-	lsl.w	#4,d0
-	sub.w	d0,d3
-	subq.b	#2,d1
-	bcs.s	Obj17_Main
-	moveq	#0,d6
-; loc_10372:
-Obj17_MakeHelix:
-	bsr.w	SingleObjLoad2
-	bne.s	Obj17_Main
-	addq.b	#1,subtype(a0)
-	move.w	a1,d5
-	subi.w	#Object_RAM,d5
-    if object_size=$40
-	lsr.w	#6,d5
-    else
-	divu.w	#object_size,d5
-    endif
-	andi.w	#$7F,d5
-	move.b	d5,(a2)+
-	move.b	#4,routine(a1)
-	_move.b	d4,id(a1) ; load obj17
-	move.w	d2,y_pos(a1)
-	move.w	d3,x_pos(a1)
-	move.l	mappings(a0),mappings(a1)
-	move.w	#make_art_tile(ArtTile_ArtNem_GHZ_Spiked_Log,2,0),art_tile(a1)
-	bsr.w	Adjust2PArtPointer2
-	move.b	#4,render_flags(a1)
-	move.b	#3,priority(a1)
-	move.b	#8,width_pixels(a1)
-	move.b	d6,objoff_3E(a1)
-	addq.b	#1,d6
-	andi.b	#7,d6
-	addi.w	#$10,d3
-	cmp.w	x_pos(a0),d3
-	bne.s	+
-	move.b	d6,objoff_3E(a0)
-	addq.b	#1,d6
-	andi.b	#7,d6
-	addi.w	#$10,d3
-	addq.b	#1,subtype(a0)
-+	dbf	d1,Obj17_MakeHelix ; repeat d1 times (helix length)
-
-; loc_103E8: Obj17_Action:
-Obj17_Main:
-	bsr.w	Obj17_RotateSpike
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	Obj17_DelAll
-	bra.w	DisplaySprite
-; ===========================================================================
-; loc_10404:
-Obj17_DelAll:
-	moveq	#0,d2
-	lea	subtype(a0),a2	; move helix length to a2
-	move.b	(a2)+,d2	; move a2 to d2
-	subq.b	#2,d2
-	bcs.s	BranchTo2_DeleteObject
-; loc_10410:
-Obj17_DelLoop:
-	moveq	#0,d0
-	move.b	(a2)+,d0
-    if object_size=$40
-	lsl.w	#6,d0
-    else
-	mulu.w	#object_size,d0
-    endif
-	addi.l	#Object_RAM,d0
-	movea.l	d0,a1 ; a1=object
-	bsr.w	DeleteObject2	; delete object
-	dbf	d2,Obj17_DelLoop	; repeat d2 times (helix length)
-; loc_10426:
-BranchTo2_DeleteObject
-	bra.w	DeleteObject
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; sub_1042A:
-Obj17_RotateSpike:
-	move.b	(Logspike_anim_frame).w,d0
-	move.b	#0,collision_flags(a0)	; make object harmless
-	add.b	objoff_3E(a0),d0
-	andi.b	#7,d0
-	move.b	d0,mapping_frame(a0)	; change current frame
-	bne.s	+	; rts
-	move.b	#%10000100,collision_flags(a0)	; make object harmful
-+
-	rts
-; End of function Obj17_RotateSpike
-
-; ===========================================================================
-; loc_1044A:
-Obj17_Display:
-	bsr.w	Obj17_RotateSpike
-	bra.w	DisplaySprite
-; ===========================================================================
-; -----------------------------------------------------------------------------
-; sprite mappings - helix of spikes on a pole (GHZ) (unused)
-; -----------------------------------------------------------------------------
-Obj17_MapUnc_10452:	BINCLUDE "mappings/sprite/obj17.bin"
-; ===========================================================================
-
-    if gameRevision<2
-	nop
-    endif
-
-
-
-
 ; ----------------------------------------------------------------------------
 ; Object 18 - Stationary floating platform from ARZ, EHZ and HTZ
 ; ----------------------------------------------------------------------------
@@ -23581,11 +23733,23 @@ BranchTo2_MarkObjGone
 SolidObject_Monitor_Sonic:
 	btst	d6,status(a0)			; is Sonic standing on the monitor?
 	bne.s	Obj26_ChkOverEdge		; if yes, branch
+	cmpi.b	#ObjID_Knuckles,id(a1)
+	beq.s	SolidObject_Monitor_Knuckles
 	cmpi.b	#AniIDSonAni_Roll,anim(a1)		; is Sonic spinning?
 	bne.w	SolidObject_cont		; if not, branch
 	rts
 ; End of function SolidObject_Monitor_Sonic
 
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+SolidObject_Monitor_Knuckles:
+	cmp.b	#1,$21(a1)
+	beq.s	+
+	cmp.b	#3,$21(a1)
+	beq.s	+
+	cmpi.b	#AniIDSonAni_Roll,anim(a1)
+	bne.w	SolidObject_cont
++	rts
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 ; sub_12768:
@@ -24788,6 +24952,8 @@ PaletteChangerDataIndex: offsetTable
 	offsetTableEntry.w off_133C8	; $A
 	offsetTableEntry.w off_133D4	; $C
 	offsetTableEntry.w off_133E0	; $E
+	offsetTableEntry.w off_310678	;$10
+	offsetTableEntry.w off_310690	;$12
 
 C9PalInfo macro codeptr,dataptr,loadtoOffset,length,fadeinTime,fadeinAmount
 	dc.l codeptr, dataptr
@@ -24802,10 +24968,20 @@ off_133BC:	C9PalInfo                      loc_1344C,  Pal_AC7E,   0,$1F,4,7
 off_133C8:	C9PalInfo                      loc_1344C,  Pal_ACDE, $40,$1F,4,7
 off_133D4:	C9PalInfo                      loc_1344C,  Pal_AD3E,   0, $F,4,7
 off_133E0:	C9PalInfo                      loc_1344C,  Pal_AC9E,   0,$1F,4,7
+off_310678:	C9PalInfo   		       loc_1344C,  Pal_3090BC,   0,$1F,4,7
+off_310690:	C9PalInfo    		       loc_1344C,  Pal_3090BC+$C0,0,$F,4,7
 
 Pal_133EC:	BINCLUDE "art/palettes/Title Sonic.bin"
 Pal_1340C:	BINCLUDE "art/palettes/Title Background.bin"
 Pal_1342C:	BINCLUDE "art/palettes/Title Emblem.bin"
+
+Pal_3090BC:	dc.w	 0,    0, $206,	$20C,  $80, $64E, $EEE,	$AAA, $888, $444, $8AE,	$46A,	$E,    8,  $AE,	 $8E; 0	; ...
+		dc.w	 0,    0, $206,	$20C,  $80, $64E, $EEE,	$AAA, $888, $444, $8AE,	$46A,	$E,    8,  $AE,	 $8E; 16
+		dc.w  $AEE,    0,  $6C,	 $8E,  $AE, $8CE, $EEE,	$ECA, $EA8, $A66, $46A,	$EEC,	$E,    6,    0,	   0; 32
+		dc.w	 0,    0,    2,	 $24,  $46,  $68,  $8A,	 $CE, $ECA, $EA6, $E80,	$E64, $E40, $C00, $EEE,	  $E; 48
+		dc.w  $E44,    0, $E64,	$E86, $EA8, $ECA, $EEE,	$4EE, $2AE,  $6E,  $2C,	$444, $888, $AAA,  $E0,	$EC0; 64
+		dc.w  $EEE,    0, $222,	$444, $666, $888, $AAA,	$CCC, $EEE,    0,    0,	   0,	 0,    0,    0,	   0; 80
+		dc.w  $EEE,    0, $4CC,	$AEC, $EEE, $EEE, $EEE,	$AAA, $888, $444, $8AE,	$46A,	$E,    8,  $AE,	 $8E; 96
 
 ; ===========================================================================
 
@@ -25586,6 +25762,10 @@ loc_140AC:
 +
 	movea.l	a0,a1
 	lea	byte_14380(pc),a2
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	lea	byte_14380_K(pc),a2
++
 	moveq	#7,d1
 
 loc_140BC:
@@ -25606,6 +25786,10 @@ loc_140CE:
 	move.b	(a2)+,routine(a1)
 	move.b	(a2)+,mapping_frame(a1)
 	move.l	#Obj3A_MapUnc_14CBC,mappings(a1)
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	move.l	#Map_Obj3A_Knuckles,mappings(a1)
++
 	bsr.w	Adjust2PArtPointer2
 	move.b	#0,render_flags(a1)
 	lea	next_object(a1),a1 ; a1=object
@@ -25897,6 +26081,16 @@ results_screen_object macro startx, targetx, y, routine, frame
 	dc.b	routine, frame
     endm
 	results_screen_object   $20, $120,  $B8,   2,  0
+	results_screen_object  $200, $100,  $CA,   4,  3
+	results_screen_object  $240, $140,  $CA,   6,  4
+	results_screen_object  $278, $178,  $BE,   8,  6
+	results_screen_object  $350, $120, $120,   4,  9
+	results_screen_object  $320, $120,  $F0,   4, $A
+	results_screen_object  $330, $120, $100,   4, $B
+	results_screen_object  $340, $120, $110, $16, $E
+
+byte_14380_K:
+	results_screen_object   $28, $138,  $B8,   2,  0
 	results_screen_object  $200, $100,  $CA,   4,  3
 	results_screen_object  $240, $140,  $CA,   6,  4
 	results_screen_object  $278, $178,  $BE,   8,  6
@@ -26556,6 +26750,36 @@ word_14E96:	dc.w 7
 	dc.w 5,	$85F0, $82F8, $FFF4
 	dc.w $D, $8538,	$829C, $38
 	dc.w 1,	$86F0, $8378, $58
+
+Map_Obj3A_Knuckles:	offsetTable
+	offsetTableEntry.w word_311BF6
+	offsetTableEntry.w word_14D1C
+	offsetTableEntry.w word_14D5E
+	offsetTableEntry.w word_14DA0
+	offsetTableEntry.w word_14DDA
+	offsetTableEntry.w word_14BC8
+	offsetTableEntry.w word_14BEA
+	offsetTableEntry.w word_14BF4
+	offsetTableEntry.w word_14BFE
+	offsetTableEntry.w word_14DF4
+	offsetTableEntry.w word_14E1E
+	offsetTableEntry.w word_14E50
+	offsetTableEntry.w word_14E82
+	offsetTableEntry.w word_14E8C
+	offsetTableEntry.w word_14E96
+word_311BF6:	dc.w $B
+	dc.w 5, $85C6, $82E3, $FF88
+	dc.w 5, $8584, $82C2, $FF98
+	dc.w 5, $85D8, $82EC, $FFA8
+	dc.w 5, $85B4, $82DA, $FFB8
+	dc.w 5, $85C6, $82E3, $FFC8
+	dc.w 5, $85C2, $82E1, $FFD8
+	dc.w 5, $8580, $82C0, $FFE8
+	dc.w 5, $85D0, $82E8, $FFF8
+	dc.w 5, $85B8, $82DC, $10
+	dc.w 5, $8588, $82C4, $20
+	dc.w 5, $85D4, $82EA, $2F
+
 ; -------------------------------------------------------------------------------
 ; sprite mappings
 ; -------------------------------------------------------------------------------
@@ -26810,6 +27034,14 @@ LoadTitleCard0:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleCard),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_TitleCard).l,a0
 	jsrto	(NemDec).l, JmpTo2_NemDec
+	cmpi.w	#3,(Player_option).w
+	bne.s	LoadTitleCard_Art2
+	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_TitleCard+$5A),VRAM,WRITE),(VDP_control_port).l
+	moveq	#$F,d0
+
+-	move.l	#$44444444,(VDP_data_port).l
+	dbf	d0,-
+LoadTitleCard_Art2:
 	lea	(Level_Layout).w,a4
 	lea	(ArtNem_TitleCard2).l,a0
 	jmpto	(NemDecToRAM).l, JmpTo_NemDecToRAM
@@ -27503,7 +27735,7 @@ ObjPtr_Splash:		dc.l Obj08	; Water splash in Aquatic Ruin Zone, Spindash dust
 ObjPtr_SonicSS:		dc.l Obj09	; Sonic in Special Stage
 ObjPtr_SmallBubbles:	dc.l Obj0A	; Small bubbles from Sonic's face while underwater
 ObjPtr_TippingFloor:	dc.l Obj0B	; Section of pipe that tips you off from CPZ
-			dc.l Obj0C	; Small floating platform (unused)
+ObjPtr_Knuckles:	dc.l Obj0C	; Knuckles
 ObjPtr_Signpost:	dc.l Obj0D	; End of level signpost
 ObjPtr_IntroStars:	dc.l Obj0E	; Flashing stars from intro
 ObjPtr_TitleMenu:	dc.l Obj0F	; Title screen menu
@@ -27514,7 +27746,7 @@ ObjPtr_HPZWaterfall:	dc.l Obj13	; Waterfall in Hidden Palace Zone (unused)
 ObjPtr_Seesaw:		dc.l Obj14	; Seesaw from Hill Top Zone
 ObjPtr_SwingingPlatform:dc.l Obj15	; Swinging platform from Aquatic Ruin Zone
 ObjPtr_HTZLift:		dc.l Obj16	; Diagonally moving lift from HTZ
-			dc.l Obj17	; GHZ rotating log helix spikes (from Sonic 1, unused)
+ObjPtr_KnucklesSS:	dc.l Obj17	; Knuckles in Special Stage
 ObjPtr_ARZPlatform:
 ObjPtr_EHZPlatform:	dc.l Obj18	; Stationary floating platform from ARZ and EHZ
 ObjPtr_CPZPlatform:
@@ -32044,6 +32276,10 @@ Load_EndOfAct:
 	bne.s	+
 	moveq	#PLCID_ResultsTails,d0
 +
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	moveq	#PLCID_ResultsKnuckles,d0
++
 	jsr	(LoadPLC2).l
 	move.b	#1,(Update_Bonus_score).w
 	moveq	#0,d0
@@ -35040,6 +35276,9 @@ Sonic_ResetOnFloor:
 Sonic_ResetOnFloor_Part2:
 	; some routines outside of Tails' code can call Sonic_ResetOnFloor_Part2
 	; when they mean to call Tails_ResetOnFloor_Part2, so fix that here
+	_cmpi.b	#ObjID_Knuckles,id(a0)	; is this object ID Knuckles?
+	beq.w	Knuckles_ResetOnFloor_Part2	; if it is, branch to the Knuckles version of this code
+
 	_cmpi.b	#ObjID_Sonic,id(a0)	; is this object ID Sonic (obj01)?
 	bne.w	Tails_ResetOnFloor_Part2	; if not, branch to the Tails version of this code
 
@@ -36149,7 +36388,7 @@ loc_1BC68:
 	move.b	spindash_flag(a0),d0
 	beq.s	return_1BCDE
 	move.b	d0,spindash_flag(a1)
-	bsr.w	loc_212C4
+	jsr	(loc_212C4).l
 
 return_1BCDE:
 	rts
@@ -39458,9 +39697,15 @@ BranchTo16_DeleteObject
 ; loc_1DE4A:
 Obj08_CheckSkid:
 	movea.w	parent(a0),a2 ; a2=character
+	moveq	#$10,d1	; move y offset to d1
 	cmpi.b	#AniIDSonAni_Stop,anim(a2)	; SonAni_Stop
 	beq.s	Obj08_SkidDust
-	move.b	#2,routine(a0)
+	moveq	#6,d1	; move different y offset to d1
+	cmpi.b	#ObjID_Knuckles,id(a2)	; playing as Knuckles?
+	bne.s	+
+	cmpi.b	#3,$21(a2)	; check for sliding
+	beq.s	Obj08_SkidDust
++	move.b	#2,routine(a0)
 	move.b	#0,obj08_dust_timer(a0)
 	rts
 ; ===========================================================================
@@ -39474,7 +39719,7 @@ Obj08_SkidDust:
 	_move.b	id(a0),id(a1) ; load obj08
 	move.w	x_pos(a2),x_pos(a1)
 	move.w	y_pos(a2),y_pos(a1)
-	addi.w	#$10,y_pos(a1)
+	add.w	d1,y_pos(a1)
 	tst.b	obj08_belongs_to_tails(a0)
 	beq.s	+
 	subi_.w	#4,y_pos(a1)	; Tails is shorter than Sonic
@@ -41197,7 +41442,8 @@ ObjCheckLeftWallDist:
 	rts
 
 
-
+	include	"Knuckles.asm"
+	include	"Knuckles in special stage.asm"
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -41469,7 +41715,7 @@ Obj79_MakeSpecialStars:
 	moveq	#4-1,d1 ; execute the loop 4 times (1 for each star)
 	moveq	#0,d2
 
--	bsr.w	SingleObjLoad2
+-	jsr	(SingleObjLoad2).l
 	bne.s	+	; rts
 	_move.b	id(a0),id(a1) ; load obj79
 	move.l	#Obj79_MapUnc_1F4A0,mappings(a1)
@@ -41790,7 +42036,7 @@ Obj44_BumpCharacter:
 	moveq	#1,d0
 	movea.w	a1,a3
 	jsr	(AddPoints2).l
-	bsr.w	SingleObjLoad
+	jsr	(SingleObjLoad).l
 	bne.s	return_1F83C
 	_move.b	#ObjID_Points,id(a1) ; load obj29
 	move.w	x_pos(a0),x_pos(a1)
@@ -41990,7 +42236,7 @@ loc_1FA2A:
 	jsr	(RandomNumber).l
 	andi.w	#$1F,d0
 	move.w	d0,objoff_38(a0)
-	bsr.w	SingleObjLoad
+	jsr	(SingleObjLoad).l
 	bne.s	loc_1FAA6
 	_move.b	id(a0),id(a1) ; load obj24
 	move.w	x_pos(a0),x_pos(a1)
@@ -42105,8 +42351,11 @@ loc_1FB0C:
 	bclr	#4,status(a1)
 	btst	#2,status(a1)
 	beq.w	loc_1FBB8
+	cmpi.b	#ObjID_Knuckles,id(a1)
+	beq.s	+
 	cmpi.b	#1,(a1)
 	bne.s	loc_1FBA8
++
 	bclr	#2,status(a1)
 	move.b	#$13,y_radius(a1)
 	move.b	#9,x_radius(a1)
@@ -42584,7 +42833,7 @@ loc_2013C:
 	move.b	width_pixels(a0),d1
 	moveq	#$11,d3
 	move.w	x_pos(a0),d4
-	bsr.w	PlatformObject
+	jsr	(PlatformObject).l
 	jmpto	(MarkObjGone).l, JmpTo3_MarkObjGone
 ; ---------------------------------------------------------------------------
 +
@@ -42634,122 +42883,6 @@ JmpTo8_Adjust2PArtPointer ; JmpTo
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
-; Object 0C - Small floating platform (unused)
-; (used in CPZ in the Nick Arcade prototype)
-; ----------------------------------------------------------------------------
-; Sprite_20210:
-Obj0C:
-	moveq	#0,d0
-	move.b	routine(a0),d0
-	move.w	Obj0C_Index(pc,d0.w),d1
-	jmp	Obj0C_Index(pc,d1.w)
-; ===========================================================================
-; off_2021E
-Obj0C_Index:	offsetTable
-		offsetTableEntry.w Obj0C_Init	; 0
-		offsetTableEntry.w Obj0C_Main	; 2
-; ===========================================================================
-; loc_20222:
-Obj0C_Init:
-	addq.b	#2,routine(a0)
-	move.l	#Obj0C_MapUnc_202FA,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_FloatPlatform,3,1),art_tile(a0)
-	jsrto	(Adjust2PArtPointer).l, JmpTo9_Adjust2PArtPointer
-	ori.b	#4,render_flags(a0)
-	move.b	#$10,width_pixels(a0)
-	move.b	#4,priority(a0)
-	move.w	y_pos(a0),d0
-	subi.w	#$10,d0
-	move.w	d0,objoff_3A(a0)
-	moveq	#0,d0
-	move.b	subtype(a0),d0
-	andi.w	#$F0,d0
-	addi.w	#$10,d0
-	move.w	d0,d1
-	subq.w	#1,d0
-	move.w	d0,objoff_30(a0)
-	move.w	d0,objoff_32(a0)
-	moveq	#0,d0
-	move.b	subtype(a0),d0
-	andi.w	#$F,d0
-	move.b	d0,objoff_3E(a0)
-	move.b	d0,objoff_3F(a0)
-; loc_20282:
-Obj0C_Main:
-	move.b	objoff_3C(a0),d0
-	beq.s	loc_202C0
-	cmpi.b	#$80,d0
-	bne.s	loc_202D0
-	move.b	objoff_3D(a0),d1
-	bne.s	loc_202A2
-	subq.b	#1,objoff_3E(a0)
-	bpl.s	loc_202A2
-	move.b	objoff_3F(a0),objoff_3E(a0)
-	bra.s	loc_202D0
-; ===========================================================================
-
-loc_202A2:
-	addq.b	#1,objoff_3D(a0)
-	move.b	d1,d0
-	jsrto	(CalcSine).l, JmpTo5_CalcSine
-	addi_.w	#8,d0
-	asr.w	#6,d0
-	subi.w	#$10,d0
-	add.w	objoff_3A(a0),d0
-	move.w	d0,y_pos(a0)
-	bra.s	loc_202E6
-; ===========================================================================
-
-loc_202C0:
-	move.w	(Vint_runcount+2).w,d1
-	andi.w	#$3FF,d1
-	bne.s	loc_202D4
-	move.b	#1,objoff_3D(a0)
-
-loc_202D0:
-	addq.b	#1,objoff_3C(a0)
-
-loc_202D4:
-	jsrto	(CalcSine).l, JmpTo5_CalcSine
-	addi_.w	#8,d1
-	asr.w	#4,d1
-	add.w	objoff_3A(a0),d1
-	move.w	d1,y_pos(a0)
-
-loc_202E6:
-	moveq	#0,d1
-	move.b	width_pixels(a0),d1
-	moveq	#9,d3
-	move.w	x_pos(a0),d4
-	bsr.w	PlatformObject
-	jmpto	(MarkObjGone).l, JmpTo4_MarkObjGone
-; ===========================================================================
-; ----------------------------------------------------------------------------
-; Unused sprite mappings
-; ----------------------------------------------------------------------------
-Obj0C_MapUnc_202FA:	BINCLUDE "mappings/sprite/obj0C.bin"
-; ===========================================================================
-
-    if gameRevision<2
-	nop
-    endif
-
-    if ~~removeJmpTos
-JmpTo4_MarkObjGone ; JmpTo
-	jmp	(MarkObjGone).l
-JmpTo9_Adjust2PArtPointer ; JmpTo
-	jmp	(Adjust2PArtPointer).l
-JmpTo5_CalcSine ; JmpTo
-	jmp	(CalcSine).l
-
-	align 4
-    endif
-
-
-
-
-; ===========================================================================
-; ----------------------------------------------------------------------------
 ; Object 12 - Emerald from Hidden Palace Zone (unused)
 ; ----------------------------------------------------------------------------
 ; Sprite_2031C:
@@ -42779,7 +42912,7 @@ Obj12_Main:
 	move.w	#$10,d2
 	move.w	#$10,d3
 	move.w	x_pos(a0),d4
-	bsr.w	SolidObject
+	jsr	(SolidObject).l
 	move.w	x_pos(a0),d0
 	andi.w	#$FF80,d0
 	sub.w	(Camera_X_pos_coarse).w,d0
@@ -43257,7 +43390,7 @@ Obj74_Main:
 	move.w	d2,d3
 	addq.w	#1,d3
 	move.w	x_pos(a0),d4
-	bsr.w	SolidObject_Always
+	jsr	(SolidObject_Always).l
 	tst.w	(Two_player_mode).w
 	bne.s	+
 	move.w	x_pos(a0),d0
@@ -43828,8 +43961,7 @@ loc_21562:
 	bhs.s	return_215BE
 	tst.b	obj_control(a1)
 	bne.s	return_215BE
-	bsr.w	RideObject_SetRide
-	rts
+	jmp	(RideObject_SetRide).l
 ; ---------------------------------------------------------------------------
 
 loc_21580:
@@ -43856,7 +43988,7 @@ loc_215A8:
 	subi.w	#$10,d1
 	cmpi.w	#$30,d1
 	bhs.s	return_215BE
-	bsr.w	RideObject_SetRide
+	jsr	(RideObject_SetRide).l
 
 return_215BE:
 	rts
@@ -44022,7 +44154,7 @@ Obj06_Cylinder:
 	addq.w	#3,d2
 	move.w	d2,y_pos(a1)
 	move.b	#1,flip_turned(a1) ; face the other way
-	bsr.w	RideObject_SetRide
+	jsr	(RideObject_SetRide).l
 	move.w	#AniIDSonAni_Run,anim(a1)
 	move.b	#0,(a2)
 	tst.w	inertia(a1)
@@ -44227,8 +44359,7 @@ Obj14_UpdateMappingAndCollision:
 	move.b	width_pixels(a0),d1
 	moveq	#8,d3
 	move.w	(sp)+,d4
-	bra.w	SlopedPlatform
-; ===========================================================================
+	jsr	(SlopedPlatform).l
 
 return_21A74:
 	rts
@@ -48445,7 +48576,7 @@ Obj22_Arrow:
 	btst	#0,status(a0)
 	bne.s	loc_257DE
 	moveq	#-8,d3
-	bsr.w	ObjCheckLeftWallDist
+	jsr	(ObjCheckLeftWallDist).l
 	tst.w	d1
 	bmi.w	BranchTo_JmpTo27_DeleteObject
 	jmpto	(MarkObjGone).l, JmpTo15_MarkObjGone
@@ -48457,7 +48588,7 @@ BranchTo_JmpTo27_DeleteObject ; BranchTo
 
 loc_257DE:
 	moveq	#8,d3
-	bsr.w	ObjCheckRightWallDist
+	jsr	(ObjCheckRightWallDist).l
 	tst.w	d1
 	bmi.w	BranchTo_JmpTo27_DeleteObject
 	jmpto	(MarkObjGone).l, JmpTo15_MarkObjGone
@@ -48625,7 +48756,7 @@ byte_259B0:
 loc_259B8:
 	jsrto	(ObjectMove).l, JmpTo12_ObjectMove
 	addi.w	#$38,y_vel(a0)
-	bsr.w	ObjCheckFloorDist
+	jsr	(ObjCheckFloorDist).l
 	tst.w	d1
 	bpl.w	+
 	add.w	d1,y_pos(a0)
@@ -54968,7 +55099,7 @@ BranchTo2_JmpTo26_MarkObjGone
 
 loc_2A990:
 	cmpi.b	#4,routine(a1)
-	bhs.s	return_2AA10
+	bhs.w	return_2AA10
 	tst.b	obj_control(a1)
 	bne.s	return_2AA10
 	move.w	x_pos(a1),d0
@@ -54988,6 +55119,10 @@ loc_2A990:
 	bcs.s	+
 	not.w	d1
 	add.w	d1,d1
++
+	cmpi.b	#ObjID_Knuckles,id(a1)
+	bne.s	+
+	clr.b	$21(a1)
 +
 	addi.w	#$60,d1
 	neg.w	d1
@@ -56890,6 +57025,8 @@ SlotMachine_Subroutine2:
 ; ===========================================================================
 ; loc_2C2B8
 SlotMachine_GetPixelRow:
+	cmpi.w	#3,(Player_mode).w
+	beq.s	sub_325964
 	move.w	d3,d0					; d0 = pixel offset into slot picture
 	lsr.w	#8,d0					; Convert offset into index
 	andi.w	#7,d0					; Limit each sequence to 8 pictures
@@ -56903,6 +57040,32 @@ SlotMachine_GetPixelRow:
 	lsr.w	#1,d0					; Convert into bytes
 	adda.w	d0,a2					; a2 = pointer to desired pixel row
 	rts
+
+sub_325964:					  ; ...
+		move.w	d3,d0
+		lsr.w	#8,d0
+		and.w	#7,d0
+		move.b	(a3,d0.w),d0
+		and.w	#7,d0
+		beq.s	loc_32598C
+		ror.w	#7,d0
+		lea	(ArtUnc_CNZSlotPics).l,a2
+		add.w	d0,a2
+		move.w	d3,d0
+		and.w	#$F8,d0
+		lsr.w	#1,d0
+		add.w	d0,a2
+		rts
+; ---------------------------------------------------------------------------
+
+loc_32598C:					  ; ...
+		lea	(byte_33B1F0).l,a2
+		move.w	d3,d0
+		and.w	#$F8,d0
+		lsr.w	#1,d0
+		add.w	d0,a2
+		rts
+; End of function sub_325964
 ; ==========================================================================
 ; loc_2C2DE:
 SlotMachine_ChooseReward:
@@ -68172,18 +68335,10 @@ Obj5A_RingsNeeded:
 	moveq	#0,d0
 	cmpi.w	#100,d1
 	blt.s	+
-  ; The following code does a more complete binary coded decimal conversion:
-    if 1==0
 -	addi.w	#$100,d0
 	subi.w	#100,d1
 	cmpi.w	#100,d1
 	bge.s	-
-    else
-	; This code (the original) breaks when 101+ rings are needed:
--	addi.w	#$100,d0
-	subi.w	#100,d1
-	bgt.s	-
-    endif
 +
 	divu.w	#10,d1
 	lsl.w	#4,d1
@@ -74818,15 +74973,9 @@ ObjB0_Init:
 	; Depending on the exact location (and size) of the art being used,
 	; you may encounter an overflow in the original code which garbles
 	; the enlarged Sonic. The following code fixes this:
-    if 1==0
 	andi.l	#$FFF,d0
 	lsl.l	#5,d0
 	lea	(a3,d0.l),a4 ; source ROM address of tiles to copy
-    else
-	andi.w	#$FFF,d0
-	lsl.w	#5,d0
-	lea	(a3,d0.w),a4 ; source ROM address of tiles to copy
-    endif
 	andi.w	#$F000,d1 ; abcd000000000000
 	rol.w	#4,d1	  ; (this calculation can be done smaller and faster
 	addq.w	#1,d1	  ; by doing rol.w #7,d1 addq.w #7,d1
@@ -75445,13 +75594,14 @@ ObjB2_Main_WFZ_End:
 ObjB2_Main_WFZ_states:	offsetTable
 		offsetTableEntry.w ObjB2_Wait_Leader_position	;   0
 		offsetTableEntry.w ObjB2_Move_Leader_edge	;   2
-		offsetTableEntry.w ObjB2_Wait_for_plane	;   4
+		offsetTableEntry.w ObjB2_Wait_for_plane		;   4
 		offsetTableEntry.w ObjB2_Prepare_to_jump	;   6
-		offsetTableEntry.w ObjB2_Jump_to_plane	;   8
+		offsetTableEntry.w ObjB2_Jump_to_plane		;   8
 		offsetTableEntry.w ObjB2_Landed_on_plane	;  $A
 		offsetTableEntry.w ObjB2_Approaching_ship	;  $C
-		offsetTableEntry.w ObjB2_Jump_to_ship	;  $E
-		offsetTableEntry.w ObjB2_Dock_on_DEZ	; $10
+		offsetTableEntry.w ObjB2_Jump_to_ship		;  $E
+		offsetTableEntry.w ObjB2_Dock_on_DEZ		; $10
+		offsetTableEntry.w ObjB2_Jumping_to_ship	; $12
 ; ===========================================================================
 ; loc_3A982:
 ObjB2_Wait_Leader_position:
@@ -75544,7 +75694,7 @@ ObjB2_Jump_to_plane:
 	addq.w	#1,objoff_2A(a0)
 	subq.w	#1,objoff_2E(a0)
 	bmi.s	+
-	move.w	#((button_right_mask|button_A_mask)<<8)|button_right_mask|button_A_mask,(Ctrl_1_Logical).w
+	move.w	#(button_right_mask|button_A_mask)<<8,(Ctrl_1_Logical).w
 + ; loc_3AABC:
 	bsr.w	ObjB2_Align_plane
 	btst	#p1_standing_bit,status(a0)
@@ -75581,6 +75731,10 @@ loc_3AB18:
 	bclr	#1,status(a1)
 	bclr	#2,status(a1)
 	move.l	#(1<<24)|(0<<16)|(AniIDSonAni_Wait<<8)|AniIDSonAni_Wait,mapping_frame(a1)
+	cmpi.b	#ObjID_Knuckles,id(a1)
+	bne.s	+
+	move.l	#($56<<24)|(0<<16)|(AniIDSonAni_Wait<<8)|AniIDSonAni_Wait,mapping_frame(a1)
++
 	move.w	#$100,anim_frame_duration(a1)
 	move.b	#$13,y_radius(a1)
 	cmpi.w	#2,(Player_mode).w
@@ -75602,6 +75756,13 @@ ObjB2_Jump_to_ship:
 	cmpi.w	#$447,objoff_2A(a0)
 	bhs.s	loc_3AB8A
 	move.w	#(button_A_mask<<8)|button_A_mask,(Ctrl_1_Logical).w
+	addq.b	#2,routine_secondary(a0)
+	bra.s	loc_3AB8A
+
+ObjB2_Jumping_to_ship:
+	cmpi.w	#$447,objoff_2A(a0)
+	bcc.s	loc_3AB8A
+	move.w	#button_A_mask<<8,(Ctrl_1_Logical).w
 
 loc_3AB8A:
 	cmpi.w	#$460,objoff_2A(a0)
@@ -75690,6 +75851,10 @@ ObjB2_Deactivate_level:
 ObjB2_Waiting_animation:
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.l	#(1<<24)|(0<<16)|(AniIDSonAni_Wait<<8)|AniIDSonAni_Wait,mapping_frame(a1)
+	cmpi.b	#ObjID_Knuckles,id(a1)
+	bne.s	+
+	move.l	#($56<<24)|(0<<16)|(AniIDSonAni_Wait<<8)|AniIDSonAni_Wait,mapping_frame(a1)
++
 	move.w	#$100,anim_frame_duration(a1)
 	rts
 ; ===========================================================================
@@ -76280,7 +76445,7 @@ ObjB5_Animate:
 ; loc_3B456:
 ObjB5_CheckPlayers:
 	cmpi.b	#4,anim(a0)
-	bne.s	++	; rts
+	bne.w	++	; rts
 	lea	(MainCharacter).w,a1 ; a1=character
 	bsr.w	ObjB5_CheckPlayer
 	lea	(Sidekick).w,a1 ; a1=character
@@ -76304,6 +76469,11 @@ ObjB5_CheckPlayer:
 	not.w	d1
 	add.w	d1,d1
 +
+	cmpi.b	#ObjID_Knuckles,id(a1)
+	bne.s	ObjB5_NotKnuckles
+	clr.b	$21(a1)
+
+ObjB5_NotKnuckles:
 	addi.w	#$60,d1
 	neg.w	d1
 	asr.w	#4,d1
@@ -79151,7 +79321,7 @@ loc_3D5EA:
 	clr.w	y_vel(a0)
 	move.b	#$1F,anim_frame_duration(a0)
 	move.b	#$16,collision_flags(a0)
-	move.b	#$C,collision_property(a0)
+	move.b	#1,collision_property(a0)		; change back to $C
 	bsr.w	ObjC7_InitCollision
 	movea.w	objoff_38(a0),a1 ; a1=object
 	move.b	#6,routine_secondary(a1)
@@ -81841,13 +82011,16 @@ Touch_Monitor:
 ; ===========================================================================
 
 loc_3F768:
-	cmpa.w	#MainCharacter,a0
-	beq.s	+
-	tst.w	(Two_player_mode).w
-	beq.s	return_3F78A
-+
 	cmpi.b	#AniIDSonAni_Roll,anim(a0)
+	beq.s	Break_Monitor
+	cmpi.b	#ObjID_Knuckles,id(a0)
 	bne.s	return_3F78A
+	cmp.b	#1,$21(a0)
+	beq.s	Break_Monitor
+	cmp.b	#3,$21(a0)
+	bne.s	return_3F78A
+
+Break_Monitor:
 	neg.w	y_vel(a0)	; reverse Sonic's y-motion
 	move.b	#4,routine(a1)
 	move.w	a0,parent(a1)
@@ -81857,6 +82030,14 @@ return_3F78A:
 ; ===========================================================================
 ; loc_3F78C:
 Touch_Enemy:
+	cmpi.b	#ObjID_Knuckles,id(a0)
+	bne.s	Touch_NotKnuckles
+	cmp.b	#1,$21(a0)
+	beq.s	+
+	cmp.b	#3,$21(a0)
+	beq.s	+
+
+Touch_NotKnuckles:
 	btst	#status_sec_isInvincible,status_secondary(a0)	; is Sonic invincible?
 	bne.s	+			; if yes, branch
 	cmpi.b	#AniIDSonAni_Spindash,anim(a0)
@@ -81868,6 +82049,13 @@ Touch_Enemy:
 	beq.s	Touch_Enemy_Part2
 	tst.b	boss_hitcount2(a1)
 	beq.s	return_3F7C6
+	cmpi.b	#ObjID_Knuckles,id(a0)
+	bne.s	+
+	cmp.b	#1,$21(a0)
+	bne.s	+
+	move.b	#2,$21(a0)
+	move.b	#$21,anim(a0)
++
 	neg.w	x_vel(a0)
 	neg.w	y_vel(a0)
 	move.b	#0,collision_flags(a1)
@@ -81880,6 +82068,13 @@ return_3F7C6:
 Touch_Enemy_Part2:
 	tst.b	collision_property(a1)
 	beq.s	Touch_KillEnemy
+	cmpi.b	#ObjID_Knuckles,id(a0)
+	bne.s	+
+	cmp.b	#1,$21(a0)
+	bne.s	+
+	move.b	#2,$21(a0)
+	move.b	#$21,anim(a0)
++
 	neg.w	x_vel(a0)
 	neg.w	y_vel(a0)
 	move.b	#0,collision_flags(a1)
@@ -83201,8 +83396,8 @@ Animated_Null:
 				; 400 + 7 * (-16) = 512 byte range was affected
 	rts
 ; ===========================================================================
-
-loc_402D4:
+; loc_402D4:
+LoadAnimatedBlocks:
 	cmpi.b	#hill_top_zone,(Current_Zone).w
 	bne.s	+
 	bsr.w	PatchHTZTiles
@@ -83882,6 +84077,10 @@ BuildHUD:
 	move.w	#128+16,d3	; set X pos
 	move.w	#128+136,d2	; set Y pos
 	lea	(HUD_MapUnc_40A9A).l,a1
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	lea	(HUD_MapUnc_Knuckles).l,a1
++
 	movea.w	#make_art_tile(ArtTile_ArtNem_HUD,0,1),a3	; set art tile and flags
 	add.w	d1,d1
 	adda.w	(a1,d1.w),a1
@@ -84154,6 +84353,9 @@ HUD_MapUnc_40BEA:	BINCLUDE "mappings/sprite/hud_b.bin"
 
 
 HUD_MapUnc_40C82:	BINCLUDE "mappings/sprite/hud_c.bin"
+
+
+HUD_MapUnc_Knuckles:	BINCLUDE "mappings/sprite/hud_k.bin"
 
 ; ---------------------------------------------------------------------------
 ; Add points subroutine
@@ -85144,6 +85346,10 @@ Debug_ExitDebugMode:
 	move.w	d0,(Debug_placement_mode).w
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.l	#Mapunc_Sonic,mappings(a1)
+	cmpi.b	#ObjID_Knuckles,id(a1)
+	bne.s	+
+	move.l	#Mapunc_Knux,mappings(a1)
++
 	move.w	#make_art_tile(ArtTile_ArtUnc_Sonic,0,0),art_tile(a1)
 	tst.w	(Two_player_mode).w
 	beq.s	.notTwoPlayerMode
@@ -85727,6 +85933,10 @@ PLCptr_Tornado:		offsetTableEntry.w PlrList_Tornado		; 63
 PLCptr_Capsule:		offsetTableEntry.w PlrList_Capsule		; 64
 PLCptr_Explosion:	offsetTableEntry.w PlrList_Explosion		; 65
 PLCptr_ResultsTails:	offsetTableEntry.w PlrList_ResultsTails		; 66
+PLCptr_KnucklesLife:	offsetTableEntry.w PlrList_KnucklesLife		; 67
+PLCptr_Std2Knuckles:	offsetTableEntry.w PlrList_Std2Knuckles		; 68
+PLCptr_ResultsKnuckles:	offsetTableEntry.w PlrList_ResultsKnuckles	; 69
+PLCptr_SignpostKnuckles:	offsetTableEntry.w PlrList_SignpostKnuckles	; 70
 
 ; macro for a pattern load request list header
 ; must be on the same line as a label that has a corresponding _End label later
@@ -86369,308 +86579,42 @@ PlrList_ResultsTails: plrlistheader
 	plreq ArtTile_ArtNem_Perfect, ArtNem_Perfect
 PlrList_ResultsTails_End
 
-
-
-
 ;---------------------------------------------------------------------------------------
-; Weird revision-specific duplicates of portions of the PLR lists (unused)
+; Pattern load queue
+; Knuckles life counter
 ;---------------------------------------------------------------------------------------
-    if gameRevision=0
-	; half of PlrList_ResultsTails
-	plreq ArtTile_ArtNem_MiniCharacter, ArtNem_MiniTails
-	plreq ArtTile_ArtNem_Perfect, ArtNem_Perfect
-PlrList_ResultsTails_Dup_End
-	dc.l	0
-    elseif gameRevision=2
-	; half of the second ARZ PLR list
-	plreq ArtTile_ArtNem_Grounder, ArtNem_Grounder
-	plreq ArtTile_ArtNem_BigBubbles, ArtNem_BigBubbles
-	plreq ArtTile_ArtNem_Spikes, ArtNem_Spikes
-	plreq ArtTile_ArtNem_LeverSpring, ArtNem_LeverSpring
-	plreq ArtTile_ArtNem_VrtclSprng, ArtNem_VrtclSprng
-	plreq ArtTile_ArtNem_HrzntlSprng, ArtNem_HrzntlSprng
-PlrList_Arz2_Dup_End
+PlrList_KnucklesLife: plrlistheader
+	plreq ArtTile_ArtNem_life_counter, ArtNem_KTELife
+PlrList_KnucklesLife_End
 ;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; SCZ Primary
+; PATTERN LOAD REQUEST LIST
+; Standard 2 - loaded for every level
 ;---------------------------------------------------------------------------------------
-PlrList_Scz1_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Tornado, ArtNem_Tornado
-PlrList_Scz1_Dup_End
+PlrList_Std2Knuckles: plrlistheader
+	plreq ArtTile_ArtNem_Checkpoint, ArtNem_Checkpoint
+	plreq ArtTile_ArtNem_Powerups, ArtNem_Powerups
+	plreq ArtTile_ArtNem_Powerups+$2C, ArtNem_MonitorIconsMod
+	plreq ArtTile_ArtNem_Shield, ArtNem_InvincibilityShield
+PlrList_Std2Knuckles_End
 ;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; SCZ Secondary
+; Pattern load queue
+; Knuckles end of level results screen
 ;---------------------------------------------------------------------------------------
-PlrList_Scz2_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Clouds, ArtNem_Clouds
-	plreq ArtTile_ArtNem_WfzVrtclPrpllr, ArtNem_WfzVrtclPrpllr
-	plreq ArtTile_ArtNem_WfzHrzntlPrpllr, ArtNem_WfzHrzntlPrpllr
-	plreq ArtTile_ArtNem_Balkrie, ArtNem_Balkrie
-	plreq ArtTile_ArtNem_Turtloid, ArtNem_Turtloid
-	plreq ArtTile_ArtNem_Nebula, ArtNem_Nebula
-PlrList_Scz2_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; Sonic end of level results screen
-;---------------------------------------------------------------------------------------
-PlrList_Results_Dup: plrlistheader
+PlrList_ResultsKnuckles: plrlistheader
 	plreq ArtTile_ArtNem_TitleCard, ArtNem_TitleCard
 	plreq ArtTile_ArtNem_ResultsText, ArtNem_ResultsText
-	plreq ArtTile_ArtNem_MiniCharacter, ArtNem_MiniSonic
+	plreq ArtTile_ArtNem_MiniCharacter, ArtNem_MiniKnuckles
 	plreq ArtTile_ArtNem_Perfect, ArtNem_Perfect
-PlrList_Results_Dup_End
+	plreq ArtTile_ArtNem_ResultsText+$16, ArtNem_KnucklesK
+PlrList_ResultsKnuckles_End
 ;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
+; Pattern load queue
 ; End of level signpost
 ;---------------------------------------------------------------------------------------
-PlrList_Signpost_Dup: plrlistheader
+PlrList_SignpostKnuckles: plrlistheader
 	plreq ArtTile_ArtNem_Signpost, ArtNem_Signpost
-PlrList_Signpost_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; CPZ Boss
-;---------------------------------------------------------------------------------------
-PlrList_CpzBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Eggpod_3, ArtNem_Eggpod
-	plreq ArtTile_ArtNem_CPZBoss, ArtNem_CPZBoss
-	plreq ArtTile_ArtNem_EggpodJets_1, ArtNem_EggpodJets
-	plreq ArtTile_ArtNem_BossSmoke_1, ArtNem_BossSmoke
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-PlrList_CpzBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; EHZ Boss
-;---------------------------------------------------------------------------------------
-PlrList_EhzBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Eggpod_1, ArtNem_Eggpod
-	plreq ArtTile_ArtNem_EHZBoss, ArtNem_EHZBoss
-	plreq ArtTile_ArtNem_EggChoppers, ArtNem_EggChoppers
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-PlrList_EhzBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; HTZ Boss
-;---------------------------------------------------------------------------------------
-PlrList_HtzBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Eggpod_2, ArtNem_Eggpod
-	plreq ArtTile_ArtNem_HTZBoss, ArtNem_HTZBoss
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-	plreq ArtTile_ArtNem_BossSmoke_2, ArtNem_BossSmoke
-PlrList_HtzBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; ARZ Boss
-;---------------------------------------------------------------------------------------
-PlrList_ArzBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Eggpod_4, ArtNem_Eggpod
-	plreq ArtTile_ArtNem_ARZBoss, ArtNem_ARZBoss
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-PlrList_ArzBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; MCZ Boss
-;---------------------------------------------------------------------------------------
-PlrList_MczBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Eggpod_4, ArtNem_Eggpod
-	plreq ArtTile_ArtNem_MCZBoss, ArtNem_MCZBoss
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-PlrList_MczBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; CNZ Boss
-;---------------------------------------------------------------------------------------
-PlrList_CnzBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Eggpod_4, ArtNem_Eggpod
-	plreq ArtTile_ArtNem_CNZBoss, ArtNem_CNZBoss
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-PlrList_CnzBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; MTZ Boss
-;---------------------------------------------------------------------------------------
-PlrList_MtzBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Eggpod_4, ArtNem_Eggpod
-	plreq ArtTile_ArtNem_MTZBoss, ArtNem_MTZBoss
-	plreq ArtTile_ArtNem_EggpodJets_2, ArtNem_EggpodJets
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-PlrList_MtzBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; OOZ Boss
-;---------------------------------------------------------------------------------------
-PlrList_OozBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_OOZBoss, ArtNem_OOZBoss
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-PlrList_OozBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; Fiery Explosion
-;---------------------------------------------------------------------------------------
-PlrList_FieryExplosion_Dup: plrlistheader
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-PlrList_FieryExplosion_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; Death Egg
-;---------------------------------------------------------------------------------------
-PlrList_DezBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_DEZBoss, ArtNem_DEZBoss
-PlrList_DezBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; EHZ Animals
-;---------------------------------------------------------------------------------------
-PlrList_EhzAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Squirrel
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Bird
-PlrList_EhzAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; MCZ Animals
-;---------------------------------------------------------------------------------------
-PlrList_MczAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Mouse
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Chicken
-PlrList_MczAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; HTZ/MTZ/WFZ animals
-;---------------------------------------------------------------------------------------
-PlrList_HtzAnimals_Dup:
-PlrList_MtzAnimals_Dup:
-PlrList_WfzAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Beaver
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Eagle
-PlrList_HtzAnimals_Dup_End
-PlrList_MtzAnimals_Dup_End
-PlrList_WfzAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; DEZ Animals
-;---------------------------------------------------------------------------------------
-PlrList_DezAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Pig
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Chicken
-PlrList_DezAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; HPZ animals
-;---------------------------------------------------------------------------------------
-PlrList_HpzAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Mouse
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Seal
-PlrList_HpzAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; OOZ Animals
-;---------------------------------------------------------------------------------------
-PlrList_OozAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Penguin
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Seal
-PlrList_OozAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; SCZ Animals
-;---------------------------------------------------------------------------------------
-PlrList_SczAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Turtle
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Chicken
-PlrList_SczAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; CNZ Animals
-;---------------------------------------------------------------------------------------
-PlrList_CnzAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Bear
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Bird
-PlrList_CnzAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; CPZ Animals
-;---------------------------------------------------------------------------------------
-PlrList_CpzAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Rabbit
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Eagle
-PlrList_CpzAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; ARZ Animals
-;---------------------------------------------------------------------------------------
-PlrList_ArzAnimals_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Animal_1, ArtNem_Penguin
-	plreq ArtTile_ArtNem_Animal_2, ArtNem_Bird
-PlrList_ArzAnimals_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; Special Stage
-;---------------------------------------------------------------------------------------
-PlrList_SpecialStage_Dup: plrlistheader
-	plreq ArtTile_ArtNem_SpecialEmerald, ArtNem_SpecialEmerald
-	plreq ArtTile_ArtNem_SpecialMessages, ArtNem_SpecialMessages
-	plreq ArtTile_ArtNem_SpecialHUD, ArtNem_SpecialHUD
-	plreq ArtTile_ArtNem_SpecialFlatShadow, ArtNem_SpecialFlatShadow
-	plreq ArtTile_ArtNem_SpecialDiagShadow, ArtNem_SpecialDiagShadow
-	plreq ArtTile_ArtNem_SpecialSideShadow, ArtNem_SpecialSideShadow
-	plreq ArtTile_ArtNem_SpecialExplosion, ArtNem_SpecialExplosion
-	plreq ArtTile_ArtNem_SpecialRings, ArtNem_SpecialRings
-	plreq ArtTile_ArtNem_SpecialStart, ArtNem_SpecialStart
-	plreq ArtTile_ArtNem_SpecialPlayerVSPlayer, ArtNem_SpecialPlayerVSPlayer
-	plreq ArtTile_ArtNem_SpecialBack, ArtNem_SpecialBack
-	plreq ArtTile_ArtNem_SpecialStars, ArtNem_SpecialStars
-	plreq ArtTile_ArtNem_SpecialTailsText, ArtNem_SpecialTailsText
-PlrList_SpecialStage_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; Special Stage Bombs
-;---------------------------------------------------------------------------------------
-PlrList_SpecStageBombs_Dup: plrlistheader
-	plreq ArtTile_ArtNem_SpecialBomb, ArtNem_SpecialBomb
-PlrList_SpecStageBombs_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; WFZ Boss
-;---------------------------------------------------------------------------------------
-PlrList_WfzBoss_Dup: plrlistheader
-	plreq ArtTile_ArtNem_WFZBoss, ArtNem_WFZBoss
-	plreq ArtTile_ArtNem_RobotnikRunning, ArtNem_RobotnikRunning
-	plreq ArtTile_ArtNem_RobotnikUpper, ArtNem_RobotnikUpper
-	plreq ArtTile_ArtNem_RobotnikLower, ArtNem_RobotnikLower
-	plreq ArtTile_ArtNem_FieryExplosion, ArtNem_FieryExplosion
-PlrList_WfzBoss_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; Tornado
-;---------------------------------------------------------------------------------------
-PlrList_Tornado_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Tornado, ArtNem_Tornado
-	plreq ArtTile_ArtNem_TornadoThruster, ArtNem_TornadoThruster
-	plreq ArtTile_ArtNem_Clouds, ArtNem_Clouds
-PlrList_Tornado_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; Capsule/Egg Prison
-;---------------------------------------------------------------------------------------
-PlrList_Capsule_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Capsule, ArtNem_Capsule
-PlrList_Capsule_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; Normal explosion
-;---------------------------------------------------------------------------------------
-PlrList_Explosion_Dup: plrlistheader
-	plreq ArtTile_ArtNem_Explosion, ArtNem_Explosion
-PlrList_Explosion_Dup_End
-;---------------------------------------------------------------------------------------
-; Pattern load queue (duplicate)
-; Tails end of level results screen
-;---------------------------------------------------------------------------------------
-PlrList_ResultsTails_Dup: plrlistheader
-	plreq ArtTile_ArtNem_TitleCard, ArtNem_TitleCard
-	plreq ArtTile_ArtNem_ResultsText, ArtNem_ResultsText
-	plreq ArtTile_ArtNem_MiniCharacter, ArtNem_MiniTails
-	plreq ArtTile_ArtNem_Perfect, ArtNem_Perfect
-PlrList_ResultsTails_Dup_End
-    endif
+	plreq ArtTile_ArtNem_Signpost+$22, ArtNem_Signpost_KnucklesPatch
+PlrList_SignpostKnuckles_End
 
 
 
@@ -86963,6 +86907,12 @@ ArtUnc_Sonic:	BINCLUDE	"art/uncompressed/Sonic's art.bin"
 ;---------------------------------------------------------------------------------------
 	align $20
 ArtUnc_Tails:	BINCLUDE	"art/uncompressed/Tails's art.bin"
+;---------------------------------------------------------------------------------------
+; Uncompressed art
+; Patterns for Knuckles
+;---------------------------------------------------------------------------------------
+	align $20
+ArtUnc_Knux:	BINCLUDE	"art/uncompressed/Knuckles' art.bin"
 ;--------------------------------------------------------------------------------------
 ; Sprite Mappings
 ; Sonic			; MapUnc_6FBE0: SprTbl_Sonic:
@@ -87004,6 +86954,16 @@ MapUnc_Tails:	BINCLUDE	"mappings/sprite/Tails.bin"
 ; Tails DPLCs	; MapRUnc_7446C:
 ;--------------------------------------------------------------------------------------
 MapRUnc_Tails:	BINCLUDE	"mappings/spriteDPLC/Tails.bin"
+;--------------------------------------------------------------------------------------
+; Sprite Mappings
+; Knuckles
+;--------------------------------------------------------------------------------------
+Mapunc_Knux:	BINCLUDE	"mappings/sprite/Knuckles.bin"
+;--------------------------------------------------------------------------------------
+; Sprite Dynamic Pattern Reloading
+; Knuckles DPLCs
+;--------------------------------------------------------------------------------------
+MapRUnc_Knux:	BINCLUDE	"mappings/spriteDPLC/Knuckles.bin"
 ;-------------------------------------------------------------------------------------
 ; Nemesis compressed art (127 blocks)
 ; "SEGA" Patterns	; ArtNem_74876:
@@ -87210,6 +87170,8 @@ ArtNem_TitleCard:	BINCLUDE	"art/nemesis/Title card.bin"
 ; Alphabet for font using large broken letters	; ArtNem_7D58A:
 	even
 ArtNem_TitleCard2:	BINCLUDE	"art/nemesis/Font using large broken letters.bin"
+	even
+ArtNem_KnucklesK:	BINCLUDE	"art/nemesis/S2KnuxK.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art (21 blocks)
 ; A menu box with a shadow	; ArtNem_7D990:
@@ -87915,6 +87877,11 @@ ArtNem_EndingSuperSonic:	BINCLUDE	"art/nemesis/Small pictures of Sonic and final
 	even
 ArtNem_EndingTails:	BINCLUDE	"art/nemesis/Final image of Tails.bin"
 ;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Final image of Knuckles
+	even
+ArtNem_EndingKnuckles:	BINCLUDE	"art/nemesis/Final image of Knuckles.bin"
+;--------------------------------------------------------------------------------------
 ; Nemesis compressed art (72 blocks)
 ; Sonic the Hedgehog 2 image at end of credits	; ArtNem_94B28:
 	even
@@ -88358,6 +88325,12 @@ ArtNem_SpecialMessages:	BINCLUDE	"art/nemesis/Special stage messages and icons.b
 ; Art for Obj09 and Obj10 and Obj88	; ArtNem_DEEAE:
 	even
 ArtNem_SpecialSonicAndTails:	BINCLUDE	"art/nemesis/Sonic and Tails animation frames in special stage.bin"
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Knuckles animation frames from special stage
+; Art for Obj17
+	even
+ArtNem_SpecialKnuckles:	BINCLUDE	"art/nemesis/Knuckles animation frames in special stage.bin"
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art (5 blocks)
 ; "Tails" patterns from special stage	; ArtNem_E247E:
@@ -88806,6 +88779,10 @@ SndDAC_End
 	if SndDAC_End - SndDAC_Start > Size_of_DAC_samples
 		fatal "Size_of_DAC_samples = $\{Size_of_DAC_samples}, but you have $\{SndDAC_End-SndDAC_Start} bytes of DAC samples."
 	endif
+
+
+SonicDriverVer = 2
+		include	"sound/_smps2asm_inc.asm"
 
 ; ---------------------------------------------------------------------------
 ; Music pointers
@@ -89596,22 +89573,6 @@ MusCreditsE246:	dc.b $80,$0C
 		dc.b $C8,$0C
 		dc.b $C9,$08
 		dc.b $C8,$04,$80,$18,$80,$0C
-
-    if 1==1
-		; this part of the original credits music (CNZ PSG) sounds buggy (dissonant)
-		dc.b $C6,$04,$80,$10
-		dc.b $C6,$04,$80,$0C
-		dc.b $C6,$0C
-		dc.b $C8,$08
-		dc.b $C6,$04,$80,$18,$80,$0C
-		dc.b $C5,$04,$80,$10
-		dc.b $C5,$04,$80,$0C
-		dc.b $C5,$0C
-		dc.b $C7,$08
-    else
-		; replace the above block of notes with this to fix it.
-		; (I'm not sure why, but the notes $C6 and $C7 are broken here,
-		;  so I've replaced them with pitch-shifted $C8s)
 		dc.b	$E1,-64
 		dc.b $C8,$04,$80,$10 ; $C6
 		dc.b $C8,$04,$80,$0C ; $C6
@@ -89627,8 +89588,6 @@ MusCreditsE246:	dc.b $80,$0C
 		dc.b	$E1,-32
 		dc.b $C8,$08 ; $C7
 		dc.b	$E1,0
-    endif
-
 		dc.b $C5,$04,$80,$18
 		dc.b $E3
 MusCreditsE28F:	dc.b $EF,$25,$80,$0C,$D0,$D4,$D7,$DB,$0C,$80,$06,$DB
@@ -90059,7 +90018,7 @@ MusCred_Voices:	dc.b $3A,$01,$01,$07,$01,$8E,$8D,$8E,$53,$0E,$0E,$0E
 		dc.b $06,$07,$06,$06,$08,$2F,$1F,$1F,$FF,$19,$13,$37,$80
 		dc.b $3D,$01,$02,$02,$02,$14,$8C,$0E,$0E,$08,$02,$05
 		dc.b $05,$00,$00,$00,$00,$1F,$1F,$1F,$1F,$1A,$80,$80,$80
-; end of Mus_Credits
+	finishBank
 
 ; ------------------------------------------------------------------------------------------
 ; Sound effect pointers
@@ -90075,7 +90034,7 @@ MusCred_Voices:	dc.b $3A,$01,$01,$07,$01,$8E,$8D,$8E,$53,$0E,$0E,$0E
 ;       a sound can get dropped if a higher-priority sound is already playing.
 ;	see zSFXPriority for the priority allocation itself.
 ; loc_FEE91: SoundPoint:
-SoundIndex:
+SoundIndex:	startBank
 SndPtr_Jump:		rom_ptr_z80	Sound20	; jumping sound
 SndPtr_Checkpoint:	rom_ptr_z80	Sound21	; checkpoint ding-dong sound
 SndPtr_SpikeSwitch:	rom_ptr_z80	Sound22	; spike switch sound
@@ -90100,6 +90059,9 @@ SndPtr_FireBurn:	rom_ptr_z80	Sound33	; fire + burn
 SndPtr_Bumper:		rom_ptr_z80	Sound34	; bumper bing
 SndPtr_Ring:
 SndPtr_RingRight:	rom_ptr_z80	Sound35	; ring sound
+SndPtr_WallGrab:	rom_ptr_z80	Snd_WallGrab
+SndPtr_Land:		rom_ptr_z80	Snd_Land
+SndPtr_Slide:		rom_ptr_z80	Snd_Slide
 SndPtr_SpikesMove:	rom_ptr_z80	Sound36
 SndPtr_Rumbling:	rom_ptr_z80	Sound37	; rumbling
 			rom_ptr_z80	Sound38	; (unused)
@@ -90941,9 +90903,12 @@ Sound70:	dc.w $0000,$0101
 		dc.w $01F7,$0008,z80_ptr(-)
 		dc.b $F2
 
-
+Snd_WallGrab:	include	"sound/sfx/wallgrab.asm"
+Snd_Land:	include	"sound/sfx/land.asm"
+Snd_Slide:	include	"sound/sfx/slide.asm"
 	finishBank
 
+	include	"Knuckles art.asm"
 ; end of 'ROM'
 	if padToPowerOfTwo && (*)&(*-1)
 		cnop	-1,2<<lastbit(*-1)
