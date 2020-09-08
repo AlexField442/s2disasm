@@ -4356,14 +4356,17 @@ Level:
 	bsr.w	ClearPLC
 	bsr.w	Pal_FadeToBlack
 	tst.w	(Demo_mode_flag).w
-	bmi.s	Level_ClrRam
+	bmi.w	Level_ClrRam
 	move	#$2700,sr
 	bsr.w	ClearScreen
 	jsr	(LoadTitleCard).l ; load title card patterns
 	move	#$2300,sr
 	moveq	#0,d0
 	move.w	d0,(Timer_frames).w
-	move.b	(Current_Zone).w,d0
+	move.w	(Current_ZoneAndAct).w,d0
+	ror.b	#1,d0
+	lsr.w	#6,d0
+	add.w	(Two_player_mode).w,d0
 
 	; multiply d0 by 12, the size of a level art load block
 	add.w	d0,d0
@@ -6020,7 +6023,10 @@ Demo_ARZ:
 ;sub_4E98:
 LoadZoneTiles:
 	moveq	#0,d0
-	move.b	(Current_Zone).w,d0
+	move.w	(Current_ZoneAndAct).w,d0
+	ror.b	#1,d0
+	lsr.w	#6,d0
+	add.w	(Two_player_mode).w,d0
 	add.w	d0,d0
 	add.w	d0,d0
 	move.w	d0,d1
@@ -6191,7 +6197,7 @@ SpecialStage:
 +
 	cmpi.w	#3,(Player_mode).w
 	bne.s	loc_5152
-	move.b	#$17,(MainCharacter+id).w ; load Obj17 (special stage Knuckles)
+	move.b	#ObjID_SSKnuckles,(MainCharacter+id).w ; load Obj17 (special stage Knuckles)
 
 loc_5152:
 	move.b	#ObjID_SSHUD,(SpecialStageHUD+id).w ; load Obj5E (special stage HUD)
@@ -12887,12 +12893,8 @@ pal_A0FE:	BINCLUDE	"art/palettes/Ending Cycle.bin"
 ; Sprite_A1D6:
 ObjCA:
 	addq.w	#1,objoff_32(a0)
-	cmpi.w	#8,(Ending_Routine).w
-	beq.s	++
 	cmpi.w	#2,(Ending_Routine).w
-	beq.s	+
-	bra.s	++
-+
+	bne.s	+
 	st	(Super_Sonic_flag).w
 	move.w	#$100,(Ring_count).w
 	move.b	#-1,(Super_Sonic_palette).w
@@ -13047,12 +13049,8 @@ loc_A30A:
 	move.b	#AniIDSonAni_Float2,anim(a1)
 	move.w	#$A0,x_pos(a1)
 	move.w	#$50,y_pos(a1)
-	cmpi.w	#8,(Ending_Routine).w
-	beq.s	++
 	cmpi.w	#2,(Ending_Routine).w
-	beq.s	+
-	bra.s	++
-+
+	bne.s	+
 	move.b	#AniIDSonAni_Walk,anim(a1)
 	move.w	#$1000,inertia(a1)
 +
@@ -13202,10 +13200,6 @@ loc_A4B6:
 	move.w	#2,objoff_3C(a0)
 	clr.w	objoff_32(a0)
 	clr.b	mapping_frame(a0)
-	cmpi.w	#2,(Ending_Routine).w
-	beq.s	+
-	cmpi.w	#8,(Ending_Routine).w
-	beq.s	+
 	move.b	#7,mapping_frame(a0)
 	cmpi.w	#4,(Ending_Routine).w
 	bne.s	+
@@ -13214,14 +13208,11 @@ loc_A4B6:
 	clr.b	anim(a0)
 	clr.b	anim_frame(a0)
 	clr.b	anim_frame_duration(a0)
+	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 	cmpi.w	#3,(Player_mode).w
 	bne.s	+
 	move.l	#ObjCF_MapUnc_Knuckles,mappings(a0)
-	bra.s	++
 +
-	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
-+
-	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
 	jsr	(Adjust2PArtPointer).l
 	subi.w	#$14,x_pos(a0)
@@ -13529,12 +13520,10 @@ ObjCE_Index:	offsetTable
 ObjCE_Init:
 	lea	(ObjB3_SubObjData).l,a1
 	jsrto	(LoadSubObject_Part3).l, JmpTo_LoadSubObject_Part3
+	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 	cmpi.w	#3,(Player_mode).w
 	bne.s	+
 	move.l	#ObjCF_MapUnc_Knuckles,mappings(a0)
-	bra.s	++
-+
-	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 +
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,1),art_tile(a0)
 	move.b	#1,priority(a0)
@@ -13630,12 +13619,10 @@ ObjCF_Index:	offsetTable
 ObjCF_Init:
 	lea	(ObjB3_SubObjData).l,a1
 	jsrto	(LoadSubObject_Part3).l, JmpTo_LoadSubObject_Part3
+	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 	cmpi.w	#3,(Player_mode).w
 	bne.s	+
 	move.l	#ObjCF_MapUnc_Knuckles,mappings(a0)
-	bra.s	++
-+
-	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
 +
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,1),art_tile(a0)
 	move.b	#3,priority(a0)
@@ -14128,7 +14115,7 @@ off_B4C4: creditsPtrs	byte_B55C,textLoc($0B,$06), byte_BAA2,textLoc($0A,$08), by
 off_B4F0: creditsPtrs	byte_BB58,textLoc($06,$06), byte_BB75,textLoc($12,$08), byte_BB7B,textLoc($06,$0C), byte_BC9F,textLoc($05,$0E), byte_BBD8,textLoc($08,$10), byte_BBF2,textLoc($08,$12), byte_BC0C,textLoc($09,$14)
 off_B51C: creditsPtrs	byte_BB58,textLoc($06,$06), byte_BB75,textLoc($12,$08), byte_BB98,textLoc($03,$0C), byte_BBBC,textLoc($07,$0E), byte_BCBE,textLoc($07,$10), byte_BCD9,textLoc($0D,$12), byte_BC25,textLoc($04,$14)
 off_B548: creditsPtrs	byte_BC7B,textLoc($0B,$09), byte_BC8F,textLoc($12,$0D), byte_BC95,textLoc($10,$11)
-KnuxPort: creditsPtrs	KnucklesPortYellow,textLoc($01,$09), SaxmanCredit,textLoc($0D,$0B), FredCredit,textLoc($09,$0D), MainMemoryCredit,textLoc($09,$0F), PutoCredit,textLoc($0F,$11)
+KnuxPort: creditsPtrs	UpdatedDisassemblyYellow,textLoc($01,$09), SaxmanCredit,textLoc($0D,$0B), FredCredit,textLoc($09,$0D), MainMemoryCredit,textLoc($09,$0F), PutoCredit,textLoc($0F,$11), RalakimusCredit,textLoc($09,$13)
 
 
  ; temporarily remap characters to credit text format
@@ -14172,11 +14159,12 @@ c := c+1
 
 ; credits text data (palette index followed by a string)
 vram_src := ArtTile_ArtNem_CreditText_CredScr
-KnucklesPortYellow:	creditText 1,"KNUCKLES PORT THANKS"
+UpdatedDisassemblyYellow:	creditText 1,"UPDATED DISASSEMBLY"
 SaxmanCredit:		creditText 0,"SAXMAN"
 FredCredit:		creditText 0,"FREDBRONZE"
 MainMemoryCredit:	creditText 0,"MAINMEMORY"
 PutoCredit:		creditText 0,"PUTO"
+RalakimusCredit:	creditText 0,"RALAKIMUS"
 byte_B55C:	creditText 1,"EXECUTIVE"
 byte_B56F:	creditText 1,"PRODUCER"
 byte_B581:	creditText 0,"HAYAO  NAKAYAMA"
@@ -14371,7 +14359,8 @@ LevelSizeLoad:
 	move.w	(Current_ZoneAndAct).w,d0
 	ror.b	#1,d0
 	lsr.w	#4,d0
-	lea	LevelSize(pc,d0.w),a0
+	lea	(LevelSize).l,a0
+	lea	(a0,d0.w),a0
 	move.l	(a0)+,d0
 	move.l	d0,(Camera_Min_X_pos).w
 	move.l	d0,(unk_EEC0).w	; unused besides this one write...
@@ -14443,7 +14432,8 @@ LevelSize: zoneOrderedTable 2,8	; WrdArr_LvlSize
 	move.w	(Current_ZoneAndAct).w,d0
 	ror.b	#1,d0
 	lsr.w	#5,d0
-	lea	StartLocations(pc,d0.w),a1
+	lea	(StartLocations).l,a1
+	lea	(a1,d0.w),a1
 	moveq	#0,d1
 	move.w	(a1)+,d1
 	move.w	d1,(MainCharacter+x_pos).w
@@ -18500,7 +18490,10 @@ loc_E396:
 
 loadZoneBlockMaps:
 	moveq	#0,d0
-	move.b	(Current_Zone).w,d0
+	move.w	(Current_ZoneAndAct).w,d0
+	ror.b	#1,d0
+	lsr.w	#6,d0
+	add.w	(Two_player_mode).w,d0
 	add.w	d0,d0
 	add.w	d0,d0
 	move.w	d0,d1
@@ -18552,8 +18545,7 @@ loadZoneBlockMaps:
 	addq.w	#4,a2
 	moveq	#0,d0
 	move.b	(a2),d0	; palette ID
-	jsrto	(PalLoad_Now).l, JmpTo_PalLoad_Now
-	rts
+	jmpto	(PalLoad_Now).l, JmpTo_PalLoad_Now
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -25332,12 +25324,12 @@ titlecardobjdata macro routine,frame,width,duration,xstart,xstop,y
     endm
 ; word_13CD4:
 Obj34_TitleCardData:
-	titlecardobjdata  8,   0, $80, $1B, $240, $120, $B8	; zone name
-	titlecardobjdata $A, $11, $40, $1C,  $28, $148, $D0	; "ZONE"
-	titlecardobjdata $C, $12, $18, $1C,  $68, $188, $D0	; act number
-	titlecardobjdata  2,   0,   0,   0,    0,    0,   0	; blue background
-	titlecardobjdata  4, $15, $48,   8, $2A8, $168,$120	; bottom yellow part
-	titlecardobjdata  6, $16,   8, $15,  $80,  $F0, $F0	; left red part
+	titlecardobjdata  8,   0, $80, $1B, $240, $120, $B8		; zone name
+	titlecardobjdata $A, NumberOfZones+1, $40, $1C,  $28, $148, $D0	; "ZONE"
+	titlecardobjdata $C, NumberOfZones+2, $18, $1C,  $68, $188, $D0	; act number
+	titlecardobjdata  2,   0,   0,   0,    0,    0,   0		; blue background
+	titlecardobjdata  4, NumberOfZones+5, $48,   8, $2A8, $168,$120	; bottom yellow part
+	titlecardobjdata  6, NumberOfZones+6,   8, $15,  $80,  $F0, $F0	; left red part
 Obj34_TitleCardData_End:
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -25446,10 +25438,10 @@ Obj34_ActNumber:	; the act number, coming in
 	cmpi.b	#death_egg_zone,d0	; is it Death Egg Zone?
 	beq.s	BranchTo9_DeleteObject	; if yes, branch
 	move.b	(Current_Act).w,d1	; get the current act
-	addi.b	#$12,d1			; add $12 to it (this is the index of the "1" frame in the mappings)
+	addi.b	#NumberOfZones+2,d1	; add to it (this is the index of the "1" frame in the mappings)
 	cmpi.b	#metropolis_zone_2,d0	; are we in Metropolis Zone Act 3?
 	bne.s	+			; if not, branch
-	moveq	#$14,d1			; use the "3" frame instead
+	moveq	#NumberOfZones+4,d1	; use the "3" frame instead
 +
 	move.b	d1,mapping_frame(a0)	; set the mapping frame
 
@@ -27051,9 +27043,9 @@ LoadTitleCard:
 	bsr.s	LoadTitleCard0
 	moveq	#0,d0
 	move.b	(Current_Zone).w,d0
-	move.b	Off_TitleCardLetters(pc,d0.w),d0
-	lea	TitleCardLetters(pc),a0
-	lea	(a0,d0.w),a0
+	add.w	d0,d0
+	move.w	Off_TitleCardLetters(pc,d0.w),d0
+	lea	Off_TitleCardLetters(pc,d0.w),a0
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_LevelName),VRAM,WRITE),d0
 
 loc_157EC:
@@ -27084,24 +27076,24 @@ loc_1581A:
 	rts
 ; ===========================================================================
 ; byte_15820:
-Off_TitleCardLetters:
-	dc.b TitleCardLetters_EHZ - TitleCardLetters	; 0
-	dc.b TitleCardLetters_EHZ - TitleCardLetters	; 1
-	dc.b TitleCardLetters_EHZ - TitleCardLetters	; 2
-	dc.b TitleCardLetters_EHZ - TitleCardLetters	; 3
-	dc.b TitleCardLetters_MTZ - TitleCardLetters	; 4
-	dc.b TitleCardLetters_MTZ - TitleCardLetters	; 5
-	dc.b TitleCardLetters_WFZ - TitleCardLetters	; 6
-	dc.b TitleCardLetters_HTZ - TitleCardLetters	; 7
-	dc.b TitleCardLetters_HPZ - TitleCardLetters	; 8
-	dc.b TitleCardLetters_EHZ - TitleCardLetters	; 9
-	dc.b TitleCardLetters_OOZ - TitleCardLetters	; A
-	dc.b TitleCardLetters_MCZ - TitleCardLetters	; B
-	dc.b TitleCardLetters_CNZ - TitleCardLetters	; C
-	dc.b TitleCardLetters_CPZ - TitleCardLetters	; D
-	dc.b TitleCardLetters_DEZ - TitleCardLetters	; E
-	dc.b TitleCardLetters_ARZ - TitleCardLetters	; F
-	dc.b TitleCardLetters_SCZ - TitleCardLetters	; 10
+Off_TitleCardLetters:	offsetTable
+	offsetTableEntry.w TitleCardLetters_EHZ	; 0
+	offsetTableEntry.w TitleCardLetters_EHZ	; 1
+	offsetTableEntry.w TitleCardLetters_EHZ	; 2
+	offsetTableEntry.w TitleCardLetters_EHZ	; 3
+	offsetTableEntry.w TitleCardLetters_MTZ	; 4
+	offsetTableEntry.w TitleCardLetters_MTZ	; 5
+	offsetTableEntry.w TitleCardLetters_WFZ	; 6
+	offsetTableEntry.w TitleCardLetters_HTZ	; 7
+	offsetTableEntry.w TitleCardLetters_HPZ	; 8
+	offsetTableEntry.w TitleCardLetters_EHZ	; 9
+	offsetTableEntry.w TitleCardLetters_OOZ	; $A
+	offsetTableEntry.w TitleCardLetters_MCZ	; $B
+	offsetTableEntry.w TitleCardLetters_CNZ	; $C
+	offsetTableEntry.w TitleCardLetters_CPZ	; $D
+	offsetTableEntry.w TitleCardLetters_DEZ	; $E
+	offsetTableEntry.w TitleCardLetters_ARZ	; $F
+	offsetTableEntry.w TitleCardLetters_SCZ	; $10
 	even
 
  ; temporarily remap characters to title card letter format
@@ -41651,8 +41643,16 @@ Obj79_LoadData:
 	move.w	(Saved_y_pos).w,(MainCharacter+y_pos).w
 	move.w	(Saved_Ring_count).w,(Ring_count).w
 	move.b	(Saved_Extra_life_flags).w,(Extra_life_flags).w
+
+	tst.b	(Bonus_stage_flag).w
+	bne.s	Exit_BonusStage
+
 	clr.w	(Ring_count).w
 	clr.b	(Extra_life_flags).w
+
+Exit_BonusStage:
+	clr.b	(Bonus_stage_flag).w
+
 	move.l	(Saved_Timer).w,(Timer).w
 	move.b	#59,(Timer_frame).w
 	subq.b	#1,(Timer_second).w
@@ -41748,6 +41748,7 @@ Obj79_Star:
 	beq.s	+
 	move.b	#1,(SpecialStage_flag_2P).w
 	move.b	#GameModeID_SpecialStage,(Game_Mode).w ; => SpecialStage
+	move.b	#1,(Bonus_stage_flag).w
 +
 	clr.b	collision_property(a0)
 
@@ -82011,6 +82012,11 @@ Touch_Monitor:
 ; ===========================================================================
 
 loc_3F768:
+	cmpa.w	#MainCharacter,a0
+	beq.s	+
+	tst.w	(Two_player_mode).w
+	beq.s	return_3F78A
++
 	cmpi.b	#AniIDSonAni_Roll,anim(a0)
 	beq.s	Break_Monitor
 	cmpi.b	#ObjID_Knuckles,id(a0)
@@ -85791,42 +85797,102 @@ JmpTo66_Adjust2PArtPointer ; JmpTo
 ; declare some global variables to be used by the levartptrs macro
 cur_zone_id := 0
 cur_zone_str := "0"
+cur_zone_off := 0
 
 ; macro for declaring a "main level load block" (MLLB)
 levartptrs macro plc1,plc2,palette,art,map16x16,map128x128
-	!org LevelArtPointers+zone_id_{cur_zone_str}*12
-	dc.l (plc1<<24)|art
-	dc.l (plc2<<24)|map16x16
-	dc.l (palette<<24)|map128x128
+    !org LevelArtPointers+zone_id_{cur_zone_str}*(12*4)+cur_zone_off
+    dc.l (plc1<<24)|art
+    dc.l (plc2<<24)|map16x16
+    dc.l (palette<<24)|map128x128
+cur_zone_off := cur_zone_off+12
+    if cur_zone_off>=(12*4)
+cur_zone_off := 0
 cur_zone_id := cur_zone_id+1
 cur_zone_str := "\{cur_zone_id}"
+    endif
     endm
+
 
 ; BEGIN SArt_Ptrs Art_Ptrs_Array[17]
 ; dword_42594: MainLoadBlocks: saArtPtrs:
 LevelArtPointers:
-	levartptrs PLCID_Ehz1,     PLCID_Ehz2,      PalID_EHZ,  ArtKos_EHZ, BM16_EHZ, BM128_EHZ ;   0 ; EHZ  ; EMERALD HILL ZONE
-	levartptrs PLCID_Miles1up, PLCID_MilesLife, PalID_EHZ2, ArtKos_EHZ, BM16_EHZ, BM128_EHZ ;   1 ; LEV1 ; LEVEL 1 (UNUSED)
-	levartptrs PLCID_Tails1up, PLCID_TailsLife, PalID_WZ,   ArtKos_EHZ, BM16_EHZ, BM128_EHZ ;   2 ; LEV2 ; LEVEL 2 (UNUSED)
-	levartptrs PLCID_Unused1,  PLCID_Unused2,   PalID_EHZ3, ArtKos_EHZ, BM16_EHZ, BM128_EHZ ;   3 ; LEV3 ; LEVEL 3 (UNUSED)
-	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ, BM16_MTZ, BM128_MTZ ;   4 ; MTZ  ; METROPOLIS ZONE ACTS 1 & 2
-	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ, BM16_MTZ, BM128_MTZ ;   5 ; MTZ3 ; METROPOLIS ZONE ACT 3
-	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ ;   6 ; WFZ  ; WING FORTRESS ZONE
-	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ, BM16_EHZ, BM128_EHZ ;   7 ; HTZ  ; HILL TOP ZONE
-	levartptrs PLCID_Hpz1,     PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ ;   8 ; HPZ  ; HIDDEN PALACE ZONE (UNUSED)
-	levartptrs PLCID_Unused3,  PLCID_Unused4,   PalID_EHZ4, ArtKos_EHZ, BM16_EHZ, BM128_EHZ ;   9 ; LEV9 ; LEVEL 9 (UNUSED)
-	levartptrs PLCID_Ooz1,     PLCID_Ooz2,      PalID_OOZ,  ArtKos_OOZ, BM16_OOZ, BM128_OOZ ;  $A ; OOZ  ; OIL OCEAN ZONE
-	levartptrs PLCID_Mcz1,     PLCID_Mcz2,      PalID_MCZ,  ArtKos_MCZ, BM16_MCZ, BM128_MCZ ;  $B ; MCZ  ; MYSTIC CAVE ZONE
-	levartptrs PLCID_Cnz1,     PLCID_Cnz2,      PalID_CNZ,  ArtKos_CNZ, BM16_CNZ, BM128_CNZ ;  $C ; CNZ  ; CASINO NIGHT ZONE
-	levartptrs PLCID_Cpz1,     PLCID_Cpz2,      PalID_CPZ,  ArtKos_CPZ, BM16_CPZ, BM128_CPZ ;  $D ; CPZ  ; CHEMICAL PLANT ZONE
-	levartptrs PLCID_Dez1,     PLCID_Dez2,      PalID_DEZ,  ArtKos_CPZ, BM16_CPZ, BM128_CPZ ;  $E ; DEZ  ; DEATH EGG ZONE
-	levartptrs PLCID_Arz1,     PLCID_Arz2,      PalID_ARZ,  ArtKos_ARZ, BM16_ARZ, BM128_ARZ ;  $F ; ARZ  ; AQUATIC RUIN ZONE
-	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ ; $10 ; SCZ  ; SKY CHASE ZONE
+	levartptrs PLCID_Ehz1,     PLCID_Ehz2,      PalID_EHZ,  ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   0 ; EHZ1  ; EMERALD HILL ZONE ACT 1
+	levartptrs PLCID_Ehz1,     PLCID_Ehz2,      PalID_EHZ,  ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   0 ; EHZ1  ; EMERALD HILL ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Ehz1,     PLCID_Ehz2,      PalID_EHZ,  ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   0 ; EHZ2  ; EMERALD HILL ZONE ACT 2
+	levartptrs PLCID_Ehz1,     PLCID_Ehz2,      PalID_EHZ,  ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   0 ; EHZ2  ; EMERALD HILL ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Miles1up, PLCID_MilesLife, PalID_EHZ2, ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   1 ; LEV1 ; LEVEL 1 ACT 1 (UNUSED)
+	levartptrs PLCID_Miles1up, PLCID_MilesLife, PalID_EHZ2, ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   1 ; LEV1 ; LEVEL 1 ACT 1 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Miles1up, PLCID_MilesLife, PalID_EHZ2, ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   1 ; LEV1 ; LEVEL 1 ACT 2 (UNUSED)
+	levartptrs PLCID_Miles1up, PLCID_MilesLife, PalID_EHZ2, ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   1 ; LEV1 ; LEVEL 1 ACT 2 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Tails1up, PLCID_TailsLife, PalID_WZ,   ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   2 ; WZ1  ; WOOD ZONE ACT 1 (UNUSED)
+	levartptrs PLCID_Tails1up, PLCID_TailsLife, PalID_WZ,   ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   2 ; WZ1  ; WOOD ZONE ACT 1 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Tails1up, PLCID_TailsLife, PalID_WZ,   ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   2 ; WZ2  ; WOOD ZONE ACT 2 (UNUSED)
+	levartptrs PLCID_Tails1up, PLCID_TailsLife, PalID_WZ,   ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   2 ; WZ2  ; WOOD ZONE ACT 2 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Unused1,  PLCID_Unused2,   PalID_EHZ3, ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   3 ; LEV3 ; LEVEL 3 ACT 1 (UNUSED)
+	levartptrs PLCID_Unused1,  PLCID_Unused2,   PalID_EHZ3, ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   3 ; LEV3 ; LEVEL 3 ACT 1 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Unused1,  PLCID_Unused2,   PalID_EHZ3, ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   3 ; LEV3 ; LEVEL 3 ACT 2 (UNUSED)
+	levartptrs PLCID_Unused1,  PLCID_Unused2,   PalID_EHZ3, ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   3 ; LEV3 ; LEVEL 3 ACT 2 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ1, BM16_MTZ1, BM128_MTZ1 	;   4 ; MTZ1 ; METROPOLIS ZONE ACT 1
+	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ1, BM16_MTZ1, BM128_MTZ1 	;   4 ; MTZ1 ; METROPOLIS ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ2, BM16_MTZ2, BM128_MTZ2 	;   4 ; MTZ2 ; METROPOLIS ZONE ACT 2
+	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ2, BM16_MTZ2, BM128_MTZ2 	;   4 ; MTZ2 ; METROPOLIS ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ3, BM16_MTZ3, BM128_MTZ3 	;   5 ; MTZ3 ; METROPOLIS ZONE ACT 3
+	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ3, BM16_MTZ3, BM128_MTZ3 	;   5 ; MTZ3 ; METROPOLIS ZONE ACT 3 (2 PLAYER)
+	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ4, BM16_MTZ4, BM128_MTZ4 	;   5 ; MTZ4 ; METROPOLIS ZONE ACT 4
+	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ4, BM16_MTZ4, BM128_MTZ4 	;   5 ; MTZ4 ; METROPOLIS ZONE ACT 4 (2 PLAYER)
+	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	;   6 ; WFZ1 ; WING FORTRESS ZONE ACT 1
+	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	;   6 ; WFZ1 ; WING FORTRESS ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	;   6 ; WFZ2 ; WING FORTRESS ZONE ACT 2
+	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	;   6 ; WFZ2 ; WING FORTRESS ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   7 ; HTZ1 ; HILL TOP ZONE ACT 1
+	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   7 ; HTZ1 ; HILL TOP ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   7 ; HTZ2 ; HILL TOP ZONE ACT 2
+	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   7 ; HTZ2 ; HILL TOP ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Hpz1,     PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ 	;   8 ; HPZ1 ; HIDDEN PALACE ZONE ACT 1 (UNUSED)
+	levartptrs PLCID_Hpz1,     PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ 	;   8 ; HPZ1 ; HIDDEN PALACE ZONE ACT 1 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Hpz1,     PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ 	;   8 ; HPZ2 ; HIDDEN PALACE ZONE ACT 2 (UNUSED)
+	levartptrs PLCID_Hpz1,     PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ 	;   8 ; HPZ2 ; HIDDEN PALACE ZONE ACT 2 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Unused3,  PLCID_Unused4,   PalID_EHZ4, ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   9 ; LEV9 ; LEVEL 9 ACT 1 (UNUSED)
+	levartptrs PLCID_Unused3,  PLCID_Unused4,   PalID_EHZ4, ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   9 ; LEV9 ; LEVEL 9 ACT 1 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Unused3,  PLCID_Unused4,   PalID_EHZ4, ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   9 ; LEV9 ; LEVEL 9 ACT 2 (UNUSED)
+	levartptrs PLCID_Unused3,  PLCID_Unused4,   PalID_EHZ4, ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   9 ; LEV9 ; LEVEL 9 ACT 2 (UNUSED, 2 PLAYER)
+	levartptrs PLCID_Ooz1,     PLCID_Ooz2,      PalID_OOZ,  ArtKos_OOZ1, BM16_OOZ1, BM128_OOZ1 	;  $A ; OOZ1 ; OIL OCEAN ZONE ACT 1
+	levartptrs PLCID_Ooz1,     PLCID_Ooz2,      PalID_OOZ,  ArtKos_OOZ1, BM16_OOZ1, BM128_OOZ1 	;  $A ; OOZ1 ; OIL OCEAN ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Ooz1,     PLCID_Ooz2,      PalID_OOZ,  ArtKos_OOZ2, BM16_OOZ2, BM128_OOZ2 	;  $A ; OOZ2 ; OIL OCEAN ZONE ACT 2
+	levartptrs PLCID_Ooz1,     PLCID_Ooz2,      PalID_OOZ,  ArtKos_OOZ2, BM16_OOZ2, BM128_OOZ2 	;  $A ; OOZ2 ; OIL OCEAN ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Mcz1,     PLCID_Mcz2,      PalID_MCZ,  ArtKos_MCZ1, BM16_MCZ1, BM128_MCZ1 	;  $B ; MCZ1 ; MYSTIC CAVE ZONE ACT 1
+	levartptrs PLCID_Mcz1,     PLCID_Mcz2,      PalID_MCZ,  ArtKos_MCZ1, BM16_MCZ1, BM128_MCZ1 	;  $B ; MCZ1 ; MYSTIC CAVE ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Mcz1,     PLCID_Mcz2,      PalID_MCZ,  ArtKos_MCZ2, BM16_MCZ2, BM128_MCZ2 	;  $B ; MCZ2 ; MYSTIC CAVE ZONE ACT 2
+	levartptrs PLCID_Mcz1,     PLCID_Mcz2,      PalID_MCZ,  ArtKos_MCZ2, BM16_MCZ2, BM128_MCZ2 	;  $B ; MCZ2 ; MYSTIC CAVE ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Cnz1,     PLCID_Cnz2,      PalID_CNZ,  ArtKos_CNZ1, BM16_CNZ1, BM128_CNZ1 	;  $C ; CNZ1 ; CASINO NIGHT ZONE ACT 1
+	levartptrs PLCID_Cnz1,     PLCID_Cnz2,      PalID_CNZ,  ArtKos_CNZ1, BM16_CNZ1, BM128_CNZ1 	;  $C ; CNZ1 ; CASINO NIGHT ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Cnz1,     PLCID_Cnz2,      PalID_CNZ,  ArtKos_CNZ2, BM16_CNZ2, BM128_CNZ2 	;  $C ; CNZ2 ; CASINO NIGHT ZONE ACT 2
+	levartptrs PLCID_Cnz1,     PLCID_Cnz2,      PalID_CNZ,  ArtKos_CNZ2, BM16_CNZ2, BM128_CNZ2 	;  $C ; CNZ2 ; CASINO NIGHT ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Cpz1,     PLCID_Cpz2,      PalID_CPZ,  ArtKos_CPZ1, BM16_CPZ1, BM128_CPZ1 	;  $D ; CPZ1 ; CHEMICAL PLANT ZONE ACT 1
+	levartptrs PLCID_Cpz1,     PLCID_Cpz2,      PalID_CPZ,  ArtKos_CPZ1, BM16_CPZ1, BM128_CPZ1 	;  $D ; CPZ1 ; CHEMICAL PLANT ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Cpz1,     PLCID_Cpz2,      PalID_CPZ,  ArtKos_CPZ2, BM16_CPZ2, BM128_CPZ2 	;  $D ; CPZ2 ; CHEMICAL PLANT ZONE ACT 2
+	levartptrs PLCID_Cpz1,     PLCID_Cpz2,      PalID_CPZ,  ArtKos_CPZ2, BM16_CPZ2, BM128_CPZ2 	;  $D ; CPZ2 ; CHEMICAL PLANT ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Dez1,     PLCID_Dez2,      PalID_DEZ,  ArtKos_DEZ1, BM16_DEZ1, BM128_DEZ1 	;  $E ; DEZ1 ; DEATH EGG ZONE ACT 1
+	levartptrs PLCID_Dez1,     PLCID_Dez2,      PalID_DEZ,  ArtKos_DEZ1, BM16_DEZ1, BM128_DEZ1 	;  $E ; DEZ1 ; DEATH EGG ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Dez1,     PLCID_Dez2,      PalID_DEZ,  ArtKos_DEZ2, BM16_DEZ2, BM128_DEZ2 	;  $E ; DEZ1 ; DEATH EGG ZONE ACT 2
+	levartptrs PLCID_Dez1,     PLCID_Dez2,      PalID_DEZ,  ArtKos_DEZ2, BM16_DEZ2, BM128_DEZ2 	;  $E ; DEZ1 ; DEATH EGG ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Arz1,     PLCID_Arz2,      PalID_ARZ,  ArtKos_ARZ1, BM16_ARZ1, BM128_ARZ1 	;  $F ; ARZ1 ; AQUATIC RUIN ZONE ACT 1
+	levartptrs PLCID_Arz1,     PLCID_Arz2,      PalID_ARZ,  ArtKos_ARZ1, BM16_ARZ1, BM128_ARZ1 	;  $F ; ARZ1 ; AQUATIC RUIN ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Arz1,     PLCID_Arz2,      PalID_ARZ,  ArtKos_ARZ2, BM16_ARZ2, BM128_ARZ2 	;  $F ; ARZ2 ; AQUATIC RUIN ZONE ACT 2
+	levartptrs PLCID_Arz1,     PLCID_Arz2,      PalID_ARZ,  ArtKos_ARZ2, BM16_ARZ2, BM128_ARZ2 	;  $F ; ARZ2 ; AQUATIC RUIN ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	; $10 ; SCZ1 ; SKY CHASE ZONE ACT 1
+	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	; $10 ; SCZ1 ; SKY CHASE ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	; $10 ; SCZ2 ; SKY CHASE ZONE ACT 2
+	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	; $10 ; SCZ2 ; SKY CHASE ZONE ACT 2 (2 PLAYER)
 
-    if (cur_zone_id<>no_of_zones)&&(MOMPASS=1)
-	message "Warning: Table LevelArtPointers has \{cur_zone_id/1.0} entries, but it should have \{no_of_zones/1.0} entries"
+    if (cur_zone_off<>0)&&(MOMPASS=1)
+    message "Warning: Table LevelArtPointers's last zone entry set is not complete"
     endif
-	!org LevelArtPointers+cur_zone_id*12
+    if (cur_zone_id<>no_of_zones)&&(MOMPASS=1)
+    message "Warning: Table LevelArtPointers has \{cur_zone_id/1.0} entries, but it should have \{no_of_zones/1.0} entries"
+    endif
+    !org LevelArtPointers+cur_zone_id*(12*4)
 
 ; ---------------------------------------------------------------------------
 ; END Art_Ptrs_Array[17]
@@ -87938,11 +88004,18 @@ ArtNem_EndingTitle:	BINCLUDE	"art/nemesis/Sonic the Hedgehog 2 image at end of c
 
 ;----------------------------------------------------------------------------------
 ; EHZ 16x16 block mappings (Kosinski compression) ; was: (Kozinski compression)
-BM16_EHZ:	BINCLUDE	"mappings/16x16/EHZ.bin"
+BM16_EHZ1:	BINCLUDE	"mappings/16x16/EHZ1.bin"
+BM16_EHZ2:	BINCLUDE	"mappings/16x16/EHZ2.bin"
 ;-----------------------------------------------------------------------------------
 ; EHZ/HTZ main level patterns (Kosinski compression)
 ; ArtKoz_95C24:
-ArtKos_EHZ:	BINCLUDE	"art/kosinski/EHZ_HTZ.bin"
+ArtKos_EHZ1:	BINCLUDE	"art/kosinski/EHZ_HTZ1.bin"
+ArtKos_EHZ2:	BINCLUDE	"art/kosinski/EHZ_HTZ2.bin"
+;-----------------------------------------------------------------------------------
+; EHZ/HTZ 128x128 block mappings (Kosinski compression)
+BM128_EHZ1:	BINCLUDE	"mappings/128x128/EHZ_HTZ1.bin"
+BM128_EHZ2:	BINCLUDE	"mappings/128x128/EHZ_HTZ2.bin"
+
 ;-----------------------------------------------------------------------------------
 ; HTZ 16x16 block mappings (Kosinski compression)
 BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.bin"
@@ -87950,19 +88023,27 @@ BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.bin"
 ; HTZ pattern suppliment to EHZ level patterns (Kosinski compression)
 ; ArtKoz_98AB4:
 ArtKos_HTZ:	BINCLUDE	"art/kosinski/HTZ_Supp.bin"
-;-----------------------------------------------------------------------------------
-; EHZ/HTZ 128x128 block mappings (Kosinski compression)
-BM128_EHZ:	BINCLUDE	"mappings/128x128/EHZ_HTZ.bin"
+
 ;-----------------------------------------------------------------------------------
 ; MTZ 16x16 block mappings (Kosinski compression)
-BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.bin"
+BM16_MTZ1:	BINCLUDE	"mappings/16x16/MTZ1.bin"
+BM16_MTZ2:	BINCLUDE	"mappings/16x16/MTZ2.bin"
+BM16_MTZ3:	BINCLUDE	"mappings/16x16/MTZ3.bin"
+BM16_MTZ4:	BINCLUDE	"mappings/16x16/MTZ4.bin"
 ;-----------------------------------------------------------------------------------
 ; MTZ main level patterns (Kosinski compression)
 ; ArtKoz_9DB64:
-ArtKos_MTZ:	BINCLUDE	"art/kosinski/MTZ.bin"
+ArtKos_MTZ1:	BINCLUDE	"art/kosinski/MTZ1.bin"
+ArtKos_MTZ2:	BINCLUDE	"art/kosinski/MTZ2.bin"
+ArtKos_MTZ3:	BINCLUDE	"art/kosinski/MTZ3.bin"
+ArtKos_MTZ4:	BINCLUDE	"art/kosinski/MTZ4.bin"
 ;-----------------------------------------------------------------------------------
 ; MTZ 128x128 block mappings (Kosinski compression)
-BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.bin"
+BM128_MTZ1:	BINCLUDE	"mappings/128x128/MTZ1.bin"
+BM128_MTZ2:	BINCLUDE	"mappings/128x128/MTZ2.bin"
+BM128_MTZ3:	BINCLUDE	"mappings/128x128/MTZ3.bin"
+BM128_MTZ4:	BINCLUDE	"mappings/128x128/MTZ4.bin"
+
 ;-----------------------------------------------------------------------------------
 ; HPZ 16x16 block mappings (Kosinski compression)
 BM16_HPZ:	;BINCLUDE	"mappings/16x16/HPZ.bin"
@@ -87972,56 +88053,91 @@ ArtKos_HPZ:	;BINCLUDE	"art/kosinski/HPZ.bin"
 ;-----------------------------------------------------------------------------------
 ; HPZ 128x128 block mappings (Kosinski compression)
 BM128_HPZ:	;BINCLUDE	"mappings/128x128/HPZ.bin"
+
 ;-----------------------------------------------------------------------------------
 ; OOZ 16x16 block mappings (Kosinski compression)
-BM16_OOZ:	BINCLUDE	"mappings/16x16/OOZ.bin"
+BM16_OOZ1:	BINCLUDE	"mappings/16x16/OOZ1.bin"
+BM16_OOZ2:	BINCLUDE	"mappings/16x16/OOZ2.bin"
 ;-----------------------------------------------------------------------------------
 ; OOZ main level patterns (Kosinski compression)
 ; ArtKoz_A4204:
-ArtKos_OOZ:	BINCLUDE	"art/kosinski/OOZ.bin"
+ArtKos_OOZ1:	BINCLUDE	"art/kosinski/OOZ1.bin"
+ArtKos_OOZ2:	BINCLUDE	"art/kosinski/OOZ2.bin"
 ;-----------------------------------------------------------------------------------
 ; OOZ 128x128 block mappings (Kosinski compression)
-BM128_OOZ:	BINCLUDE	"mappings/128x128/OOZ.bin"
+BM128_OOZ1:	BINCLUDE	"mappings/128x128/OOZ1.bin"
+BM128_OOZ2:	BINCLUDE	"mappings/128x128/OOZ2.bin"
+
 ;-----------------------------------------------------------------------------------
 ; MCZ 16x16 block mappings (Kosinski compression)
-BM16_MCZ:	BINCLUDE	"mappings/16x16/MCZ.bin"
+BM16_MCZ1:	BINCLUDE	"mappings/16x16/MCZ1.bin"
+BM16_MCZ2:	BINCLUDE	"mappings/16x16/MCZ2.bin"
 ;-----------------------------------------------------------------------------------
 ; MCZ main level patterns (Kosinski compression)
 ; ArtKoz_A9D74:
-ArtKos_MCZ:	BINCLUDE	"art/kosinski/MCZ.bin"
+ArtKos_MCZ1:	BINCLUDE	"art/kosinski/MCZ1.bin"
+ArtKos_MCZ2:	BINCLUDE	"art/kosinski/MCZ2.bin"
 ;-----------------------------------------------------------------------------------
 ; MCZ 128x128 block mappings (Kosinski compression)
-BM128_MCZ:	BINCLUDE	"mappings/128x128/MCZ.bin"
+BM128_MCZ1:	BINCLUDE	"mappings/128x128/MCZ1.bin"
+BM128_MCZ2:	BINCLUDE	"mappings/128x128/MCZ2.bin"
+
 ;-----------------------------------------------------------------------------------
 ; CNZ 16x16 block mappings (Kosinski compression)
-BM16_CNZ:	BINCLUDE	"mappings/16x16/CNZ.bin"
+BM16_CNZ1:	BINCLUDE	"mappings/16x16/CNZ1.bin"
+BM16_CNZ2:	BINCLUDE	"mappings/16x16/CNZ2.bin"
 ;-----------------------------------------------------------------------------------
 ; CNZ main level patterns (Kosinski compression)
 ; ArtKoz_B0894:
-ArtKos_CNZ:	BINCLUDE	"art/kosinski/CNZ.bin"
+ArtKos_CNZ1:	BINCLUDE	"art/kosinski/CNZ1.bin"
+ArtKos_CNZ2:	BINCLUDE	"art/kosinski/CNZ2.bin"
 ;-----------------------------------------------------------------------------------
 ; CNZ 128x128 block mappings (Kosinski compression)
-BM128_CNZ:	BINCLUDE	"mappings/128x128/CNZ.bin"
+BM128_CNZ1:	BINCLUDE	"mappings/128x128/CNZ1.bin"
+BM128_CNZ2:	BINCLUDE	"mappings/128x128/CNZ2.bin"
+
 ;-----------------------------------------------------------------------------------
-; CPZ/DEZ 16x16 block mappings (Kosinski compression)
-BM16_CPZ:	BINCLUDE	"mappings/16x16/CPZ_DEZ.bin"
+; CPZ 16x16 block mappings (Kosinski compression)
+BM16_CPZ1:	BINCLUDE	"mappings/16x16/CPZ1.bin"
+BM16_CPZ2:	BINCLUDE	"mappings/16x16/CPZ2.bin"
 ;-----------------------------------------------------------------------------------
-; CPZ/DEZ main level patterns (Kosinski compression)
+; CPZ main level patterns (Kosinski compression)
 ; ArtKoz_B6174:
-ArtKos_CPZ:	BINCLUDE	"art/kosinski/CPZ_DEZ.bin"
+ArtKos_CPZ1:	BINCLUDE	"art/kosinski/CPZ1.bin"
+ArtKos_CPZ2:	BINCLUDE	"art/kosinski/CPZ2.bin"
 ;-----------------------------------------------------------------------------------
-; CPZ/DEZ 128x128 block mappings (Kosinski compression)
-BM128_CPZ:	BINCLUDE	"mappings/128x128/CPZ_DEZ.bin"
+; CPZ 128x128 block mappings (Kosinski compression)
+BM128_CPZ1:	BINCLUDE	"mappings/128x128/CPZ1.bin"
+BM128_CPZ2:	BINCLUDE	"mappings/128x128/CPZ2.bin"
+
+;-----------------------------------------------------------------------------------
+; DEZ 16x16 block mappings (Kosinski compression)
+BM16_DEZ1:	BINCLUDE	"mappings/16x16/DEZ1.bin"
+BM16_DEZ2:	BINCLUDE	"mappings/16x16/DEZ2.bin"
+;-----------------------------------------------------------------------------------
+; DEZ main level patterns (Kosinski compression)
+; ArtKoz_B6174:
+ArtKos_DEZ1:	BINCLUDE	"art/kosinski/DEZ1.bin"
+ArtKos_DEZ2:	BINCLUDE	"art/kosinski/DEZ2.bin"
+;-----------------------------------------------------------------------------------
+; DEZ 128x128 block mappings (Kosinski compression)
+BM128_DEZ1:	BINCLUDE	"mappings/128x128/DEZ1.bin"
+BM128_DEZ2:	BINCLUDE	"mappings/128x128/DEZ2.bin"
+
 ;-----------------------------------------------------------------------------------
 ; ARZ 16x16 block mappings (Kosinski compression)
-BM16_ARZ:	BINCLUDE	"mappings/16x16/ARZ.bin"
+BM16_ARZ1:	BINCLUDE	"mappings/16x16/ARZ1.bin"
+BM16_ARZ2:	BINCLUDE	"mappings/16x16/ARZ2.bin"
 ;-----------------------------------------------------------------------------------
 ; ARZ main level patterns (Kosinski compression)
 ; ArtKoz_BCC24:
-ArtKos_ARZ:	BINCLUDE	"art/kosinski/ARZ.bin"
+ArtKos_ARZ1:	BINCLUDE	"art/kosinski/ARZ1.bin"
+ArtKos_ARZ2:	BINCLUDE	"art/kosinski/ARZ2.bin"
 ;-----------------------------------------------------------------------------------
 ; ARZ 128x128 block mappings (Kosinski compression)
-BM128_ARZ:	BINCLUDE	"mappings/128x128/ARZ.bin"
+BM128_ARZ1:	BINCLUDE	"mappings/128x128/ARZ1.bin"
+BM128_ARZ2:	BINCLUDE	"mappings/128x128/ARZ2.bin"
+
 ;-----------------------------------------------------------------------------------
 ; WFZ/SCZ 16x16 block mappings (Kosinski compression)
 BM16_WFZ:	BINCLUDE	"mappings/16x16/WFZ_SCZ.bin"

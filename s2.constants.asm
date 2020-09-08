@@ -1,6 +1,8 @@
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; Equates section - Names for variables.
 
+NumberOfZones = $10	; change this when adding new zones!
+
 ; ---------------------------------------------------------------------------
 ; size variables - you'll get an informational error if you need to change these...
 ; they are all in units of bytes
@@ -45,8 +47,10 @@ respawn_index =		$23
 subtype =		$28
 ; ---------------------------------------------------------------------------
 ; conventions specific to sonic/tails (Obj01, Obj02, and ObjDB):
-; note: $1F, $20, and $21 are unused and available
+; note: $20 is unused and available ($1F and $21 are only used by Knuckles, so they are free for Sonic and Tails as well)
 inertia =		$14 ; and $15 ; directionless representation of speed... not updated in the air
+double_jump_flag =	$1F ; used by Knuckles for climbing and gliding
+double_jump_property =	$21 ; used by Knuckles for climbing and gliding
 flip_angle =		$27 ; angle about the x axis (360 degrees = 256) (twist/tumble)
 air_left =		$28
 flip_turned =		$29 ; 0 for normal, 1 to invert flipping (it's a 180 degree rotation about the axis of Sonic's spine, so he stays in the same position but looks turned around)
@@ -517,6 +521,7 @@ ObjID_HPZWaterfall =		id(ObjPtr_HPZWaterfall)		; 13
 ObjID_Seesaw =			id(ObjPtr_Seesaw)		; 14
 ObjID_SwingingPlatform =	id(ObjPtr_SwingingPlatform)	; 15
 ObjID_HTZLift =			id(ObjPtr_HTZLift)		; 16
+ObjID_SSKnuckles =		id(ObjPtr_KnucklesSS)		; 17
 ObjID_ARZPlatform =		id(ObjPtr_ARZPlatform)		; 18
 ObjID_EHZPlatform =		id(ObjPtr_EHZPlatform)		; 18
 ObjID_CPZPlatform =		id(ObjPtr_CPZPlatform)		; 19
@@ -1388,7 +1393,9 @@ Collision_addr:			ds.l	1
 Boss_defeated_flag:		ds.b	1
 				ds.b	2	; $FFFFF7A8-$FFFFF7A9 ; seems unused
 Current_Boss_ID:		ds.b	1
-				ds.b	5	; $FFFFF7AB-$FFFFF7AF ; seems unused
+Bonus_stage_flag:		ds.b	1	; used so rings when exiting the special stage won't be retained after dying
+Knuckles_Gliding:		ds.w	1	; flag for Knuckles gliding
+				ds.b	2	; $FFFFF7AE-$FFFFF7AF ; seems unused
 MTZ_Platform_Cog_X:			ds.w	1	; X position of moving MTZ platform for cog animation.
 MTZCylinder_Angle_Sonic:	ds.b	1
 MTZCylinder_Angle_Tails:	ds.b	1
