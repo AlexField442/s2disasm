@@ -22,12 +22,12 @@ Obj17_Index:
 ; =============== S U B	R O U T	I N E =======================================
 
 sub_32CB2A:
-	lea	($FFFFDB82).w,a1
-	moveq	#$E,d0
+	lea	(SS_Ctrl_Record_Buf_End).w,a1
 
-loc_32CB30:
-	move.w	-4(a1),-(a1)
-	dbf	d0,loc_32CB30
+	moveq	#(SS_Ctrl_Record_Buf_End-SS_Ctrl_Record_Buf)/2-2,d0
+-	move.w	-4(a1),-(a1)
+	dbf	d0,-
+
 	move.w	(Ctrl_1_Logical).w,-(a1)
 	rts
 ; End of function sub_32CB2A
@@ -41,9 +41,9 @@ sub_32CB3E:
 	move.w	#$80,d1
 	move.w	d1,objoff_2E(a0)
 	move.w	d0,objoff_30(a0)
-	add.w	($FFFFF73E).w,d0
+	add.w	(SS_Offset_X).w,d0
 	move.w	d0,x_pos(a0)
-	add.w	($FFFFF740).w,d1
+	add.w	(SS_Offset_Y).w,d1
 	move.w	d1,y_pos(a0)
 	move.b	#$E,y_radius(a0)
 	move.b	#7,x_radius(a0)
@@ -52,15 +52,15 @@ sub_32CB3E:
 	move.b	#4,render_flags(a0)
 	move.b	#3,priority(a0)
 	move.w	#$6E,objoff_34(a0)
-	clr.b	($FFFFF742).w
+	clr.b	(SS_Swap_Positions_Flag).w
 	move.w	#$400,objoff_32(a0)
 	move.b	#$40,angle(a0)
-	move.b	#1,($FFFFF766).w
+	move.b	#1,(Sonic_LastLoadedDPLC).w
 	clr.b	objoff_37(a0)
 	bclr	#6,status(a0)
 	clr.b	collision_property(a0)
 	clr.b	respawn_index(a0)
-	move.l	#Object_RAM+$140,a1
+	move.l	#SpecialStageShadow_Sonic,a1
 	move.b	#ObjID_SSShadow,(a1) ; load obj63 (shadow) at $FFFFB140
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
@@ -165,7 +165,7 @@ loc_32CCC6:
 LoadObj17_DPLC:
 	jsr	(DisplaySprite).l
 	move.l	#$FF0000,d6
-	lea	($FFFFF766).w,a4
+	lea	(Sonic_LastLoadedDPLC).w,a4
 	move.w	#$5CA0,d4
 	moveq	#0,d1
 
@@ -214,29 +214,29 @@ loc_32CD3E:					  ; ...
 		beq.w	return_32CDA6
 		move.w	#$780,d2
 		moveq	#0,d0
-		move.b	$26(a0),d0
+		move.b	angle(a0),d0
 		add.b	#-$80,d0
 		jsr	(CalcSine).l
 		muls.w	d2,d1
 		asr.l	#8,d1
-		add.w	d1,$10(a0)
+		add.w	d1,x_vel(a0)
 		muls.w	d2,d0
 		asr.l	#7,d0
-		add.w	d0,$12(a0)
-		bset	#2,$22(a0)
-		move.b	#4,$24(a0)
-		move.b	#3,$1C(a0)
+		add.w	d0,y_vel(a0)
+		bset	#2,status(a0)
+		move.b	#4,routine(a0)
+		move.b	#3,anim(a0)
 		moveq	#0,d0
-		move.b	d0,$1E(a0)
-		move.b	d0,$1B(a0)
-		move.b	d0,$21(a0)
-		tst.b	($FFFFFE00).w
+		move.b	d0,anim_frame_duration(a0)
+		move.b	d0,anim_frame(a0)
+		move.b	d0,collision_property(a0)
+		tst.b	(SS_2p_Flag).w
 		bne.s	loc_32CD98
-		tst.w	($FFFFFF70).w
+		tst.w	(Player_mode).w
 		bne.s	loc_32CD9C
 
 loc_32CD98:					  ; ...
-		not.b	($FFFFF742).w
+		not.b	(SS_Swap_Positions_Flag).w
 
 loc_32CD9C:					  ; ...
 		move.w	#SndID_Jump,d0
@@ -282,19 +282,19 @@ loc_32CDD2:					  ; ...
 
 
 sub_32CE00:					  ; ...
-		move.l	$2A(a0),d2
-		move.l	$2E(a0),d3
-		move.w	$10(a0),d0
+		move.l	ss_x_pos(a0),d2
+		move.l	ss_y_pos(a0),d3
+		move.w	x_vel(a0),d0
 		ext.l	d0
 		asl.l	#8,d0
 		add.l	d0,d2
-		move.w	$12(a0),d0
-		add.w	#$A8,$12(a0)
+		move.w	y_vel(a0),d0
+		add.w	#$A8,y_vel(a0)
 		ext.l	d0
 		asl.l	#8,d0
 		add.l	d0,d3
-		move.l	d2,$2A(a0)
-		move.l	d3,$2E(a0)
+		move.l	d2,ss_x_pos(a0)
+		move.l	d3,ss_y_pos(a0)
 		rts
 ; End of function sub_32CE00
 
@@ -312,12 +312,12 @@ sub_32CE2C:					  ; ...
 ; ---------------------------------------------------------------------------
 
 loc_32CE3E:					  ; ...
-		sub.w	#$40,$10(a0)
+		sub.w	#$40,x_vel(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
 loc_32CE46:					  ; ...
-		add.w	#$40,$10(a0)
+		add.w	#$40,x_vel(a0)
 		rts
 ; End of function sub_32CE2C
 
@@ -328,23 +328,23 @@ loc_32CE46:					  ; ...
 sub_32CE4E:					  ; ...
 		moveq	#0,d2
 		moveq	#0,d3
-		move.w	$2E(a0),d2
+		move.w	ss_y_pos(a0),d2
 		bmi.s	loc_32CEAE
-		move.w	$2A(a0),d3
+		move.w	ss_x_pos(a0),d3
 		bmi.s	loc_32CE8A
 		cmp.w	d2,d3
 		bcs.s	loc_32CE7A
 		bne.s	loc_32CE70
 		tst.w	d3
 		bne.s	loc_32CE70
-		move.b	#$40,$26(a0)
+		move.b	#$40,angle(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
 loc_32CE70:					  ; ...
 		lsl.l	#5,d2
 		divu.w	d3,d2
-		move.b	d2,$26(a0)
+		move.b	d2,angle(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
@@ -355,7 +355,7 @@ loc_32CE7A:					  ; ...
 		neg.w	d3
 
 loc_32CE84:
-		move.b	d3,$26(a0)
+		move.b	d3,angle(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
@@ -366,7 +366,7 @@ loc_32CE8A:					  ; ...
 		lsl.l	#5,d3
 		divu.w	d2,d3
 		add.w	#$40,d3
-		move.b	d3,$26(a0)
+		move.b	d3,angle(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
@@ -375,13 +375,13 @@ loc_32CE9E:					  ; ...
 		divu.w	d3,d2
 		sub.w	#$80,d2
 		neg.w	d2
-		move.b	d2,$26(a0)
+		move.b	d2,angle(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
 loc_32CEAE:					  ; ...
 		neg.w	d2
-		move.w	$2A(a0),d3
+		move.w	ss_x_pos(a0),d3
 		bpl.s	loc_32CEDA
 		neg.w	d3
 		cmp.w	d2,d3
@@ -391,7 +391,7 @@ loc_32CEAE:					  ; ...
 		add.w	#$80,d2
 
 loc_32CEC4:
-		move.b	d2,$26(a0)
+		move.b	d2,angle(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
@@ -402,7 +402,7 @@ loc_32CECA:					  ; ...
 		neg.w	d3
 
 loc_32CED4:
-		move.b	d3,$26(a0)
+		move.b	d3,angle(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
@@ -412,7 +412,7 @@ loc_32CEDA:					  ; ...
 		lsl.l	#5,d3
 		divu.w	d2,d3
 		add.w	#$C0,d3
-		move.b	d3,$26(a0)
+		move.b	d3,angle(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
@@ -421,7 +421,7 @@ loc_32CEEC:					  ; ...
 		divu.w	d3,d2
 		sub.w	#$100,d2
 		neg.w	d2
-		move.b	d2,$26(a0)
+		move.b	d2,angle(a0)
 		rts
 ; End of function sub_32CE4E
 
@@ -432,14 +432,14 @@ loc_32CEEC:					  ; ...
 sub_32CEFC:					  ; ...
 		moveq	#0,d6
 		moveq	#0,d0
-		move.w	$2A(a1),d0
+		move.w	ss_x_pos(a1),d0
 		bpl.s	loc_32CF0A
 		st	d6
 		neg.w	d0
 
 loc_32CF0A:					  ; ...
 		lsl.l	#7,d0
-		divu.w	$34(a1),d0
+		divu.w	ss_z_pos(a1),d0
 		move.b	byte_32CF2C(pc,d0.w),d0
 		tst.b	d6
 		bne.s	loc_32CF1E
@@ -447,12 +447,12 @@ loc_32CF0A:					  ; ...
 		neg.b	d0
 
 loc_32CF1E:					  ; ...
-		tst.w	$2E(a1)
+		tst.w	ss_y_pos(a1)
 		bpl.s	loc_32CF26
 		neg.b	d0
 
 loc_32CF26:					  ; ...
-		move.b	d0,$26(a0)
+		move.b	d0,angle(a0)
 		rts
 ; End of function sub_32CEFC
 
@@ -475,24 +475,24 @@ byte_32CF2C:	dc.b  $40, $40,	$40, $40, $41, $41, $41, $42, $42, $42;	0
 
 
 sub_32CFAE:					  ; ...
-		move.w	$2E(a0),d0
+		move.w	ss_y_pos(a0),d0
 		ble.s	return_32CFF4
 		muls.w	d0,d0
-		move.w	$2A(a0),d1
+		move.w	ss_x_pos(a0),d1
 		muls.w	d1,d1
 		add.w	d1,d0
-		move.w	$34(a0),d1
+		move.w	ss_z_pos(a0),d1
 		mulu.w	d1,d1
 		cmp.l	d1,d0
 		bcs.s	return_32CFF4
-		move.b	#2,$24(a0)
-		bclr	#2,$22(a0)
+		move.b	#2,routine(a0)
+		bclr	#2,status(a0)
 		moveq	#0,d0
-		move.w	d0,$10(a0)
-		move.w	d0,$12(a0)
-		move.w	d0,$14(a0)
-		move.b	d0,$37(a0)
-		bset	#6,$22(a0)
+		move.w	d0,x_vel(a0)
+		move.w	d0,y_vel(a0)
+		move.w	d0,inertia(a0)
+		move.b	d0,ss_slide_timer(a0)
+		bset	#6,status(a0)
 		bsr.w	sub_32D244
 		bsr.w	sub_32D27E
 
@@ -505,23 +505,23 @@ return_32CFF4:					  ; ...
 
 
 sub_32CFF6:					  ; ...
-		tst.b	$21(a0)
+		tst.b	collision_property(a0)
 		beq.s	return_32D03C
-		clr.b	$21(a0)
-		tst.b	$23(a0)
+		clr.b	collision_property(a0)
+		tst.b	ss_dplc_timer(a0)
 		bne.s	return_32D03C
-		clr.b	$14(a0)
-		cmp.l	#$FFFFB000,a0
+		clr.b	inertia(a0)
+		cmp.l	#MainCharacter,a0
 		bne.s	loc_32D01E
-		st	($FFFFF742).w
-		tst.w	($FFFFFE20).w
+		st	(SS_Swap_Positions_Flag).w
+		tst.w	(Ring_count).w
 		beq.s	loc_32D032
 		bra.s	loc_32D028
 ; ---------------------------------------------------------------------------
 
 loc_32D01E:					  ; ...
-		clr.b	($FFFFF742).w
-		tst.w	($FFFFFED0).w
+		clr.b	(SS_Swap_Positions_Flag).w
+		tst.w	(Ring_count_2P).w
 		beq.s	loc_32D032
 
 loc_32D028:					  ; ...
@@ -529,8 +529,8 @@ loc_32D028:					  ; ...
 		jsr	(PlaySound).l
 
 loc_32D032:					  ; ...
-		move.b	#2,$25(a0)
-		clr.b	$36(a0)
+		move.b	#2,routine_secondary(a0)
+		clr.b	ss_hurt_timer(a0)
 
 return_32D03C:					  ; ...
 		rts
@@ -541,18 +541,18 @@ return_32D03C:					  ; ...
 
 
 sub_32D03E:					  ; ...
-		tst.w	($FFFFFF70).w
+		tst.w	(Player_mode).w
 		bne.s	return_32D088
-		move.w	$34(a0),d0
-		cmp.l	#$FFFFB000,a0
+		move.w	ss_z_pos(a0),d0
+		cmp.l	#MainCharacter,a0
 		bne.s	loc_32D058
-		tst.b	($FFFFF742).w
+		tst.b	(SS_Swap_Positions_Flag).w
 		beq.s	loc_32D068
 		bra.s	loc_32D05E
 ; ---------------------------------------------------------------------------
 
 loc_32D058:					  ; ...
-		tst.b	($FFFFF742).w
+		tst.b	(SS_Swap_Positions_Flag).w
 		bne.s	loc_32D068
 
 loc_32D05E:					  ; ...
@@ -568,15 +568,15 @@ loc_32D068:					  ; ...
 		subq.w	#1,d0
 
 loc_32D070:					  ; ...
-		move.w	d0,$34(a0)
+		move.w	d0,ss_z_pos(a0)
 		cmp.w	#$77,d0
 		bcc.s	loc_32D082
-		move.b	#3,$18(a0)
+		move.b	#3,priority(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
 loc_32D082:					  ; ...
-		move.b	#2,$18(a0)
+		move.b	#2,priority(a0)
 
 return_32D088:					  ; ...
 		rts
@@ -591,39 +591,39 @@ byte_32D08B:	dc.b	1,   0,	  0,   1,   0,	 2,   0,   1,	2,   0;	0
 
 
 sub_32D09A:					  ; ...
-		btst	#2,$22(a0)
+		btst	#2,status(a0)
 		beq.s	loc_32D0B0
-		move.b	#3,$1C(a0)
-		and.b	#$FC,$22(a0)
+		move.b	#3,anim(a0)
+		and.b	#$FC,status(a0)
 		rts
 ; ---------------------------------------------------------------------------
 
 loc_32D0B0:					  ; ...
 		moveq	#0,d0
-		move.b	$26(a0),d0
+		move.b	angle(a0),d0
 		sub.b	#$10,d0
 		lsr.b	#5,d0
 		move.b	d0,d1
 		add.w	d0,d0
 		move.b	byte_32D08A(pc,d0.w),d2
-		cmp.b	$1C(a0),d2
+		cmp.b	anim(a0),d2
 		bne.s	loc_32D0D0
-		cmp.b	$3F(a0),d1
+		cmp.b	ss_last_angle_index(a0),d1
 		beq.s	return_32D0F8
 
 loc_32D0D0:					  ; ...
-		move.b	d1,$3F(a0)
-		move.b	d2,$1C(a0)
+		move.b	d1,ss_last_angle_index(a0)
+		move.b	d2,anim(a0)
 		move.b	byte_32D08B(pc,d0.w),d0
-		and.b	#$FC,$22(a0)
-		or.b	d0,$22(a0)
+		and.b	#$FC,status(a0)
+		or.b	d0,status(a0)
 		cmp.b	#1,d1
 		beq.s	loc_32D0F2
 		cmp.b	#5,d1
 		bne.s	return_32D0F8
 
 loc_32D0F2:					  ; ...
-		move.w	#$400,$32(a0)
+		move.w	#$400,ss_init_flip_timer(a0)
 
 return_32D0F8:					  ; ...
 		rts
@@ -635,47 +635,47 @@ return_32D0F8:					  ; ...
 
 sub_32D0FA:					  ; ...
 		moveq	#0,d0
-		move.b	$1C(a0),d0
-		cmp.b	$1D(a0),d0
+		move.b	anim(a0),d0
+		cmp.b	prev_anim(a0),d0
 		beq.s	loc_32D116
-		move.b	#0,$1B(a0)
-		move.b	d0,$1D(a0)
-		move.b	#0,$1E(a0)
+		move.b	#0,anim_frame(a0)
+		move.b	d0,prev_anim(a0)
+		move.b	#0,anim_frame_duration(a0)
 
 loc_32D116:					  ; ...
-		subq.b	#1,$1E(a0)
+		subq.b	#1,anim_frame_duration(a0)
 		bpl.s	return_32D182
 		add.w	d0,d0
 		add.w	(a1,d0.w),a1
-		move.b	($FFFFDB21).w,d0
+		move.b	(SS_player_anim_frame_timer).w,d0
 		lsr.b	#1,d0
-		move.b	d0,$1E(a0)
-		cmp.b	#0,$1C(a0)
+		move.b	d0,anim_frame_duration(a0)
+		cmp.b	#0,anim(a0)
 		bne.s	loc_32D14E
-		sub.b	#1,$33(a0)
+		sub.b	#1,ss_flip_timer(a0)
 		bgt.s	loc_32D14E
-		bchg	#0,$22(a0)
-		bchg	#0,1(a0)
-		move.b	$32(a0),$33(a0)
+		bchg	#0,status(a0)
+		bchg	#0,render_flags(a0)
+		move.b	ss_init_flip_timer(a0),ss_flip_timer(a0)
 
 loc_32D14E:					  ; ...
 		moveq	#0,d1
-		move.b	$1B(a0),d1
+		move.b	anim_frame(a0),d1
 		move.b	1(a1,d1.w),d0
 		bpl.s	loc_32D164
-		move.b	#0,$1B(a0)
+		move.b	#0,anim_frame(a0)
 
 loc_32D160:
 		move.b	1(a1),d0
 
 loc_32D164:					  ; ...
 		and.b	#$7F,d0
-		move.b	d0,$1A(a0)
-		move.b	$22(a0),d1
+		move.b	d0,mapping_frame(a0)
+		move.b	status(a0),d1
 		and.b	#3,d1
-		and.b	#%11111100,1(a0)
-		or.b	d1,1(a0)
-		addq.b	#1,$1B(a0)
+		and.b	#%11111100,render_flags(a0)
+		or.b	d1,render_flags(a0)
+		addq.b	#1,anim_frame(a0)
 
 return_32D182:					  ; ...
 		rts
@@ -686,18 +686,18 @@ return_32D182:					  ; ...
 
 
 sub_32D184:					  ; ...
-		move.w	$14(a0),d2
+		move.w	inertia(a0),d2
 		move.b	(a2),d0
 		btst	#2,d0
 		bne.s	loc_32D1D6
 		btst	#3,d0
 		bne.w	loc_32D1E6
-		bset	#6,$22(a0)
+		bset	#6,status(a0)
 		bne.s	loc_32D1A6
-		move.b	#$1E,$37(a0)
+		move.b	#$1E,ss_slide_timer(a0)
 
 loc_32D1A6:					  ; ...
-		move.b	$26(a0),d0
+		move.b	angle(a0),d0
 		bmi.s	loc_32D1BE
 		sub.b	#$38,d0
 		cmp.b	#$10,d0
@@ -714,11 +714,11 @@ loc_32D1BE:					  ; ...
 		sub.w	d1,d2
 
 loc_32D1C4:					  ; ...
-		move.w	d2,$14(a0)
-		move.b	$37(a0),d0
+		move.w	d2,inertia(a0)
+		move.b	ss_slide_timer(a0),d0
 		beq.s	return_32D1D4
 		subq.b	#1,d0
-		move.b	d0,$37(a0)
+		move.b	d0,ss_slide_timer(a0)
 
 return_32D1D4:					  ; ...
 		rts
@@ -739,9 +739,9 @@ loc_32D1E6:					  ; ...
 		move.w	#-$600,d2
 
 loc_32D1F4:					  ; ...
-		move.w	d2,$14(a0)
-		bclr	#6,$22(a0)
-		clr.b	$37(a0)
+		move.w	d2,inertia(a0)
+		bclr	#6,status(a0)
+		clr.b	ss_slide_timer(a0)
 		rts
 ; End of function sub_32D184
 
@@ -750,28 +750,28 @@ loc_32D1F4:					  ; ...
 
 
 sub_32D204:					  ; ...
-		tst.b	$37(a0)
+		tst.b	ss_slide_timer(a0)
 		bne.s	loc_32D21E
-		move.b	$26(a0),d0
+		move.b	angle(a0),d0
 		jsr	(CalcSine).l
 		muls.w	#$50,d1
 		asr.l	#8,d1
-		add.w	d1,$14(a0)
+		add.w	d1,inertia(a0)
 
 loc_32D21E:					  ; ...
-		move.b	$26(a0),d0
+		move.b	angle(a0),d0
 		bpl.s	return_32D242
 		add.b	#4,d0
 		cmp.b	#$88,d0
 		bcs.s	return_32D242
-		move.w	$14(a0),d0
+		move.w	inertia(a0),d0
 		bpl.s	loc_32D236
 		neg.w	d0
 
 loc_32D236:					  ; ...
 		cmp.w	#$100,d0
 		bcc.s	return_32D242
-		move.b	#8,$24(a0)
+		move.b	#8,routine(a0)
 
 return_32D242:					  ; ...
 		rts
@@ -784,27 +784,27 @@ return_32D242:					  ; ...
 sub_32D244:					  ; ...
 		moveq	#0,d0
 		moveq	#0,d1
-		move.w	$14(a0),d2
+		move.w	inertia(a0),d2
 		bpl.s	loc_32D258
 		neg.w	d2
 		lsr.w	#8,d2
-		sub.b	d2,$26(a0)
+		sub.b	d2,angle(a0)
 		bra.s	loc_32D25E
 ; ---------------------------------------------------------------------------
 
 loc_32D258:					  ; ...
 		lsr.w	#8,d2
-		add.b	d2,$26(a0)
+		add.b	d2,angle(a0)
 
 loc_32D25E:					  ; ...
-		move.b	$26(a0),d0
+		move.b	angle(a0),d0
 		jsr	(CalcSine).l
-		muls.w	$34(a0),d1
+		muls.w	ss_z_pos(a0),d1
 		asr.l	#8,d1
-		move.w	d1,$2A(a0)
-		muls.w	$34(a0),d0
+		move.w	d1,ss_x_pos(a0)
+		muls.w	ss_z_pos(a0),d0
 		asr.l	#8,d0
-		move.w	d0,$2E(a0)
+		move.w	d0,ss_y_pos(a0)
 		rts
 ; End of function sub_32D244
 
@@ -813,13 +813,13 @@ loc_32D25E:					  ; ...
 
 
 sub_32D27E:					  ; ...
-		move.w	$2A(a0),d0
+		move.w	ss_x_pos(a0),d0
 		muls.w	#$CC,d0
 		asr.l	#8,d0
-		add.w	($FFFFF73E).w,d0
+		add.w	(SS_Offset_X).w,d0
 		move.w	d0,8(a0)
-		move.w	$2E(a0),d0
-		add.w	($FFFFF740).w,d0
+		move.w	ss_y_pos(a0),d0
+		add.w	(SS_Offset_Y).w,d0
 		move.w	d0,$C(a0)
 		rts				  ; End	of Special Stage Knuckles object
 ; End of function sub_32D27E

@@ -4115,6 +4115,7 @@ TitleScreen_Loop:
 	move.b	#3,(Life_count).w
 	move.b	#3,(Life_count_2P).w
 	moveq	#0,d0
+	move.b	d0,(WFZ_cutscene).w
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
@@ -4197,6 +4198,7 @@ TitleScreen_Demo:
 	move.b	#3,(Life_count).w
 	move.b	#3,(Life_count_2P).w
 	moveq	#0,d0
+	move.b	d0,(WFZ_cutscene).w
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
@@ -4295,48 +4297,82 @@ JmpTo_SwScrl_Title ; JmpTo
 ; 1P Music Playlist
 ;----------------------------------------------------------------------------
 ; byte_3EA0:
-MusicList: zoneOrderedTable 1,1
-	zoneTableEntry.b MusID_EHZ	; 0 ; EHZ
+MusicList: zoneOrderedTable 1,2
+	zoneTableEntry.b MusID_EHZ	; 0 ; EHZ1
+	zoneTableEntry.b MusID_EHZ	; 0 ; EHZ2
+	zoneTableEntry.b MusID_EHZ	; 1
 	zoneTableEntry.b MusID_EHZ	; 1
 	zoneTableEntry.b MusID_MTZ	; 2
+	zoneTableEntry.b MusID_MTZ	; 2
 	zoneTableEntry.b MusID_OOZ	; 3
-	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ1,2
+	zoneTableEntry.b MusID_OOZ	; 3
+	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ1
+	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ2
 	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ3
-	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ
-	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ
-	zoneTableEntry.b MusID_HPZ	; 8
+	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ4
+	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ1
+	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ2
+	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ1
+	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ2
+	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1
+	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1
 	zoneTableEntry.b MusID_SCZ	; 9
-	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ
-	zoneTableEntry.b MusID_MCZ	; 11 ; MCZ
-	zoneTableEntry.b MusID_CNZ	; 12 ; CNZ
-	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ
-	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ
-	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ
-	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ
+	zoneTableEntry.b MusID_SCZ	; 9
+	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ1
+	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ2
+	zoneTableEntry.b MusID_MCZ	; 11 ; MCZ1
+	zoneTableEntry.b MusID_MCZ	; 11 ; MCZ2
+	zoneTableEntry.b MusID_CNZ	; 12 ; CNZ1
+	zoneTableEntry.b MusID_CNZ	; 12 ; CNZ2
+	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ1
+	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ2
+	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ1
+	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ2
+	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ1
+	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ2
+	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ1
+	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ2
     zoneTableEnd
 	even
 ;----------------------------------------------------------------------------
 ; 2P Music Playlist
 ;----------------------------------------------------------------------------
 ; byte_3EB2:
-MusicList2: zoneOrderedTable 1,1
-	zoneTableEntry.b MusID_EHZ_2P	; 0  ; EHZ 2P
+MusicList2: zoneOrderedTable 1,2
+	zoneTableEntry.b MusID_EHZ_2P	; 0 ; EHZ1
+	zoneTableEntry.b MusID_EHZ_2P	; 0 ; EHZ2
+	zoneTableEntry.b MusID_EHZ	; 1
 	zoneTableEntry.b MusID_EHZ	; 1
 	zoneTableEntry.b MusID_MTZ	; 2
+	zoneTableEntry.b MusID_MTZ	; 2
 	zoneTableEntry.b MusID_OOZ	; 3
-	zoneTableEntry.b MusID_MTZ	; 4
-	zoneTableEntry.b MusID_MTZ	; 5
-	zoneTableEntry.b MusID_WFZ	; 6
-	zoneTableEntry.b MusID_HTZ	; 7
-	zoneTableEntry.b MusID_HPZ	; 8
+	zoneTableEntry.b MusID_OOZ	; 3
+	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ1
+	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ2
+	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ3
+	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ4
+	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ1
+	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ2
+	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ1
+	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ2
+	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1
+	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1
 	zoneTableEntry.b MusID_SCZ	; 9
-	zoneTableEntry.b MusID_OOZ	; 10
-	zoneTableEntry.b MusID_MCZ_2P	; 11 ; MCZ 2P
-	zoneTableEntry.b MusID_CNZ_2P	; 12 ; CNZ 2P
-	zoneTableEntry.b MusID_CPZ	; 13
-	zoneTableEntry.b MusID_DEZ	; 14
-	zoneTableEntry.b MusID_ARZ	; 15
-	zoneTableEntry.b MusID_SCZ	; 16
+	zoneTableEntry.b MusID_SCZ	; 9
+	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ1
+	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ2
+	zoneTableEntry.b MusID_MCZ_2P	; 11 ; MCZ1
+	zoneTableEntry.b MusID_MCZ_2P	; 11 ; MCZ2
+	zoneTableEntry.b MusID_CNZ_2P	; 12 ; CNZ1
+	zoneTableEntry.b MusID_CNZ_2P	; 12 ; CNZ2
+	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ1
+	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ2
+	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ1
+	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ2
+	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ1
+	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ2
+	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ1
+	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ2
     zoneTableEnd
 	even
 ; ===========================================================================
@@ -4510,11 +4546,14 @@ Level_GetBgm:
 	tst.w	(Demo_mode_flag).w
 	bmi.s	+
 	moveq	#0,d0
-	move.b	(Current_Zone).w,d0
-	lea_	MusicList,a1
+	move.w	(Current_ZoneAndAct).w,d0
+	ror.b	#1,d0
+	lsr.w	#7,d0
+	lea	(MusicList).l,a1
 	tst.w	(Two_player_mode).w
 	beq.s	Level_PlayBgm
-	lea_	MusicList2,a1
+	lea	(MusicList2).l,a1
+
 ; loc_40C8:
 Level_PlayBgm:
 	move.b	(a1,d0.w),d0		; load from music playlist
@@ -4581,6 +4620,7 @@ Level_ClrHUD:
 	moveq	#0,d0
 	tst.b	(Last_star_pole_hit).w	; are you starting from a lamppost?
 	bne.s	Level_FromCheckpoint	; if yes, branch
+	move.b	d0,(WFZ_cutscene).w
 	move.w	d0,(Ring_count).w	; clear rings
 	move.l	d0,(Timer).w		; clear time
 	move.b	d0,(Extra_life_flags).w	; clear extra lives counter
@@ -6040,20 +6080,6 @@ LoadZoneTiles:
 	lea	(Chunk_Table).l,a1
 	bsr.w	KosDec
 	move.w	a1,d3
-	cmpi.b	#hill_top_zone,(Current_Zone).w
-	bne.s	+
-	lea	(ArtKos_HTZ).l,a0
-	lea	(Chunk_Table+tiles_to_bytes(ArtTile_ArtKos_NumTiles_HTZ_Main)).l,a1
-	bsr.w	KosDec	; patch for HTZ
-	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_HTZ),d3
-+
-	cmpi.b	#wing_fortress_zone,(Current_Zone).w
-	bne.s	+
-	lea	(ArtKos_WFZ).l,a0
-	lea	(Chunk_Table+tiles_to_bytes(ArtTile_ArtKos_NumTiles_WFZ_Main)).l,a1
-	bsr.w	KosDec	; patch for WFZ
-	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_WFZ),d3
-+
 	cmpi.b	#death_egg_zone,(Current_Zone).w
 	bne.s	+
 	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_DEZ),d3
@@ -9098,9 +9124,9 @@ Obj5E:
 	beq.s	+
 	addq.w	#6,d1
 	tst.b	(Graphics_Flags).w
-	bpl.s	++
+	bpl.s	+++
 	addq.w	#1,d1
-	bra.s	++
+	bra.s	+++
 ; ---------------------------------------------------------------------------
 +	cmpi.w	#3,(Player_mode).w
 	bne.s	+
@@ -9988,6 +10014,7 @@ ContinueScreen:
 	move.b	#3,(Life_count).w
 	move.b	#3,(Life_count_2P).w
 	moveq	#0,d0
+	move.b	d0,(WFZ_cutscene).w
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
@@ -12093,7 +12120,7 @@ LevelSelect_PressStart:
 	move.w	LevelSelect_Order(pc,d0.w),d0
 	bmi.w	LevelSelect_Return	; sound test
 	cmpi.w	#$4000,d0
-	bne.s	LevelSelect_StartZone
+	bne.w	LevelSelect_StartZone
 
 ;LevelSelect_SpecialStage:
 	move.b	#GameModeID_SpecialStage,(Game_Mode).w ; => SpecialStage
@@ -12101,6 +12128,7 @@ LevelSelect_PressStart:
 	move.b	#3,(Life_count).w
 	move.b	#3,(Life_count_2P).w
 	moveq	#0,d0
+	move.b	d0,(WFZ_cutscene).w
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
@@ -12159,6 +12187,7 @@ LevelSelect_StartZone:
 	move.b	#3,(Life_count).w
 	move.b	#3,(Life_count_2P).w
 	moveq	#0,d0
+	move.b	d0,(WFZ_cutscene).w
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
 	move.l	d0,(Score).w
@@ -18508,12 +18537,6 @@ loadZoneBlockMaps:
 	movea.l	d0,a0
 	lea	(Block_Table).w,a1
 	jsrto	(KosDec).l, JmpTo_KosDec	; load block maps
-	cmpi.b	#hill_top_zone,(Current_Zone).w
-	bne.s	+
-	lea	(Block_Table+$980).w,a1
-	lea	(BM16_HTZ).l,a0
-	jsrto	(KosDec).l, JmpTo_KosDec	; patch for Hill Top Zone block map
-+
 	tst.w	(Two_player_mode).w
 	beq.s	+
 	; In 2P mode, adjust the block table to halve the pattern index on each block
@@ -67440,6 +67463,10 @@ Obj61_Init:
 	move.w	#$58,y_pos(a0)
 	move.l	#Obj61_MapUnc_36508,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_SpecialBomb,1,0),art_tile(a0)
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	move.w	#make_art_tile(ArtTile_ArtNem_SpecialBomb,2,0),art_tile(a0)
++
 	move.b	#4,render_flags(a0)
 	move.b	#3,priority(a0)
 	move.b	#2,collision_flags(a0)
@@ -68311,6 +68338,8 @@ Obj5A_RingsNeeded:
 	move.w	(Ring_count).w,d0
 	cmpi.w	#1,(Player_mode).w
 	blt.s	+
+	beq.s	++
+	cmpi.w	#3,(Player_mode).w
 	beq.s	++
 	move.w	(Ring_count_2P).w,d0
 	bra.s	++
@@ -75595,14 +75624,13 @@ ObjB2_Main_WFZ_End:
 ObjB2_Main_WFZ_states:	offsetTable
 		offsetTableEntry.w ObjB2_Wait_Leader_position	;   0
 		offsetTableEntry.w ObjB2_Move_Leader_edge	;   2
-		offsetTableEntry.w ObjB2_Wait_for_plane		;   4
+		offsetTableEntry.w ObjB2_Wait_for_plane	;   4
 		offsetTableEntry.w ObjB2_Prepare_to_jump	;   6
-		offsetTableEntry.w ObjB2_Jump_to_plane		;   8
+		offsetTableEntry.w ObjB2_Jump_to_plane	;   8
 		offsetTableEntry.w ObjB2_Landed_on_plane	;  $A
 		offsetTableEntry.w ObjB2_Approaching_ship	;  $C
-		offsetTableEntry.w ObjB2_Jump_to_ship		;  $E
-		offsetTableEntry.w ObjB2_Dock_on_DEZ		; $10
-		offsetTableEntry.w ObjB2_Jumping_to_ship	; $12
+		offsetTableEntry.w ObjB2_Jump_to_ship	;  $E
+		offsetTableEntry.w ObjB2_Dock_on_DEZ	; $10
 ; ===========================================================================
 ; loc_3A982:
 ObjB2_Wait_Leader_position:
@@ -75664,6 +75692,7 @@ ObjB2_Wait_for_plane:
 	cmpi.w	#$380,(Camera_BG_X_offset).w
 	bhs.s	+
 	clr.w	(Ctrl_1_Logical).w
+	move.b	#1,(WFZ_cutscene).w
 	bra.w	ObjB2_Waiting_animation
 ; ===========================================================================
 + ; loc_3AA5C:
@@ -75677,8 +75706,15 @@ ObjB2_Wait_for_plane:
 ObjB2_Prepare_to_jump:
 	bsr.w	ObjB2_Waiting_animation
 	addq.w	#1,objoff_2A(a0)
-	cmpi.w	#$30,objoff_2A(a0)
+	cmpi.w	#3,(Player_mode).w
 	bne.s	+
+	cmpi.w	#$20,objoff_2A(a0)
+	bne.s	+++
+	bra.s	++
++
+	cmpi.w	#$30,objoff_2A(a0)
+	bne.s	++
++
 	addq.b	#2,routine_secondary(a0)
 	move.w	#(button_A_mask<<8)|button_A_mask,(Ctrl_1_Logical).w
 	move.w	#$38,objoff_2E(a0)
@@ -75695,7 +75731,7 @@ ObjB2_Jump_to_plane:
 	addq.w	#1,objoff_2A(a0)
 	subq.w	#1,objoff_2E(a0)
 	bmi.s	+
-	move.w	#(button_right_mask|button_A_mask)<<8,(Ctrl_1_Logical).w
+	move.w	#((button_right_mask|button_A_mask)<<8)|button_right_mask|button_A_mask,(Ctrl_1_Logical).w
 + ; loc_3AABC:
 	bsr.w	ObjB2_Align_plane
 	btst	#p1_standing_bit,status(a0)
@@ -75757,13 +75793,6 @@ ObjB2_Jump_to_ship:
 	cmpi.w	#$447,objoff_2A(a0)
 	bhs.s	loc_3AB8A
 	move.w	#(button_A_mask<<8)|button_A_mask,(Ctrl_1_Logical).w
-	addq.b	#2,routine_secondary(a0)
-	bra.s	loc_3AB8A
-
-ObjB2_Jumping_to_ship:
-	cmpi.w	#$447,objoff_2A(a0)
-	bcc.s	loc_3AB8A
-	move.w	#button_A_mask<<8,(Ctrl_1_Logical).w
 
 loc_3AB8A:
 	cmpi.w	#$460,objoff_2A(a0)
@@ -85841,14 +85870,14 @@ LevelArtPointers:
 	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ3, BM16_MTZ3, BM128_MTZ3 	;   5 ; MTZ3 ; METROPOLIS ZONE ACT 3 (2 PLAYER)
 	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ4, BM16_MTZ4, BM128_MTZ4 	;   5 ; MTZ4 ; METROPOLIS ZONE ACT 4
 	levartptrs PLCID_Mtz1,     PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ4, BM16_MTZ4, BM128_MTZ4 	;   5 ; MTZ4 ; METROPOLIS ZONE ACT 4 (2 PLAYER)
-	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	;   6 ; WFZ1 ; WING FORTRESS ZONE ACT 1
-	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	;   6 ; WFZ1 ; WING FORTRESS ZONE ACT 1 (2 PLAYER)
-	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	;   6 ; WFZ2 ; WING FORTRESS ZONE ACT 2
-	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	;   6 ; WFZ2 ; WING FORTRESS ZONE ACT 2 (2 PLAYER)
-	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   7 ; HTZ1 ; HILL TOP ZONE ACT 1
-	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ1, BM16_EHZ1, BM128_EHZ1 	;   7 ; HTZ1 ; HILL TOP ZONE ACT 1 (2 PLAYER)
-	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   7 ; HTZ2 ; HILL TOP ZONE ACT 2
-	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ2, BM16_EHZ2, BM128_EHZ2 	;   7 ; HTZ2 ; HILL TOP ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_WFZ1, BM16_WFZ1, BM128_WFZ1 	;   6 ; WFZ1 ; WING FORTRESS ZONE ACT 1
+	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_WFZ1, BM16_WFZ1, BM128_WFZ1 	;   6 ; WFZ1 ; WING FORTRESS ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_WFZ2, BM16_WFZ2, BM128_WFZ2 	;   6 ; WFZ2 ; WING FORTRESS ZONE ACT 2
+	levartptrs PLCID_Wfz1,     PLCID_Wfz2,      PalID_WFZ,  ArtKos_WFZ2, BM16_WFZ2, BM128_WFZ2 	;   6 ; WFZ2 ; WING FORTRESS ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_HTZ1, BM16_HTZ1, BM128_HTZ1 	;   7 ; HTZ1 ; HILL TOP ZONE ACT 1
+	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_HTZ1, BM16_HTZ1, BM128_HTZ1 	;   7 ; HTZ1 ; HILL TOP ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_HTZ2, BM16_HTZ2, BM128_HTZ2 	;   7 ; HTZ2 ; HILL TOP ZONE ACT 2
+	levartptrs PLCID_Htz1,     PLCID_Htz2,      PalID_HTZ,  ArtKos_HTZ2, BM16_HTZ2, BM128_HTZ2 	;   7 ; HTZ2 ; HILL TOP ZONE ACT 2 (2 PLAYER)
 	levartptrs PLCID_Hpz1,     PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ 	;   8 ; HPZ1 ; HIDDEN PALACE ZONE ACT 1 (UNUSED)
 	levartptrs PLCID_Hpz1,     PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ 	;   8 ; HPZ1 ; HIDDEN PALACE ZONE ACT 1 (UNUSED, 2 PLAYER)
 	levartptrs PLCID_Hpz1,     PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ 	;   8 ; HPZ2 ; HIDDEN PALACE ZONE ACT 2 (UNUSED)
@@ -85881,10 +85910,10 @@ LevelArtPointers:
 	levartptrs PLCID_Arz1,     PLCID_Arz2,      PalID_ARZ,  ArtKos_ARZ1, BM16_ARZ1, BM128_ARZ1 	;  $F ; ARZ1 ; AQUATIC RUIN ZONE ACT 1 (2 PLAYER)
 	levartptrs PLCID_Arz1,     PLCID_Arz2,      PalID_ARZ,  ArtKos_ARZ2, BM16_ARZ2, BM128_ARZ2 	;  $F ; ARZ2 ; AQUATIC RUIN ZONE ACT 2
 	levartptrs PLCID_Arz1,     PLCID_Arz2,      PalID_ARZ,  ArtKos_ARZ2, BM16_ARZ2, BM128_ARZ2 	;  $F ; ARZ2 ; AQUATIC RUIN ZONE ACT 2 (2 PLAYER)
-	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	; $10 ; SCZ1 ; SKY CHASE ZONE ACT 1
-	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	; $10 ; SCZ1 ; SKY CHASE ZONE ACT 1 (2 PLAYER)
-	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	; $10 ; SCZ2 ; SKY CHASE ZONE ACT 2
-	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ 	; $10 ; SCZ2 ; SKY CHASE ZONE ACT 2 (2 PLAYER)
+	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ1, BM16_SCZ1, BM128_SCZ1 	; $10 ; SCZ1 ; SKY CHASE ZONE ACT 1
+	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ1, BM16_SCZ1, BM128_SCZ1 	; $10 ; SCZ1 ; SKY CHASE ZONE ACT 1 (2 PLAYER)
+	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ2, BM16_SCZ2, BM128_SCZ2 	; $10 ; SCZ2 ; SKY CHASE ZONE ACT 2
+	levartptrs PLCID_Scz1,     PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ2, BM16_SCZ2, BM128_SCZ2 	; $10 ; SCZ2 ; SKY CHASE ZONE ACT 2 (2 PLAYER)
 
     if (cur_zone_off<>0)&&(MOMPASS=1)
     message "Warning: Table LevelArtPointers's last zone entry set is not complete"
@@ -88007,22 +88036,28 @@ ArtNem_EndingTitle:	BINCLUDE	"art/nemesis/Sonic the Hedgehog 2 image at end of c
 BM16_EHZ1:	BINCLUDE	"mappings/16x16/EHZ1.bin"
 BM16_EHZ2:	BINCLUDE	"mappings/16x16/EHZ2.bin"
 ;-----------------------------------------------------------------------------------
-; EHZ/HTZ main level patterns (Kosinski compression)
+; EHZ main level patterns (Kosinski compression)
 ; ArtKoz_95C24:
-ArtKos_EHZ1:	BINCLUDE	"art/kosinski/EHZ_HTZ1.bin"
-ArtKos_EHZ2:	BINCLUDE	"art/kosinski/EHZ_HTZ2.bin"
+ArtKos_EHZ1:	BINCLUDE	"art/kosinski/EHZ1.bin"
+ArtKos_EHZ2:	BINCLUDE	"art/kosinski/EHZ2.bin"
 ;-----------------------------------------------------------------------------------
-; EHZ/HTZ 128x128 block mappings (Kosinski compression)
-BM128_EHZ1:	BINCLUDE	"mappings/128x128/EHZ_HTZ1.bin"
-BM128_EHZ2:	BINCLUDE	"mappings/128x128/EHZ_HTZ2.bin"
+; EHZ 128x128 block mappings (Kosinski compression)
+BM128_EHZ1:	BINCLUDE	"mappings/128x128/EHZ1.bin"
+BM128_EHZ2:	BINCLUDE	"mappings/128x128/EHZ2.bin"
 
 ;-----------------------------------------------------------------------------------
 ; HTZ 16x16 block mappings (Kosinski compression)
-BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.bin"
+BM16_HTZ1:	BINCLUDE	"mappings/16x16/HTZ1.bin"
+BM16_HTZ2:	BINCLUDE	"mappings/16x16/HTZ2.bin"
 ;-----------------------------------------------------------------------------------
-; HTZ pattern suppliment to EHZ level patterns (Kosinski compression)
+; HTZ main level patterns (Kosinski compression)
 ; ArtKoz_98AB4:
-ArtKos_HTZ:	BINCLUDE	"art/kosinski/HTZ_Supp.bin"
+ArtKos_HTZ1:	BINCLUDE	"art/kosinski/HTZ1.bin"
+ArtKos_HTZ2:	BINCLUDE	"art/kosinski/HTZ2.bin"
+;-----------------------------------------------------------------------------------
+; HTZ 128x128 block mappings (Kosinski compression)
+BM128_HTZ1:	BINCLUDE	"mappings/128x128/HTZ1.bin"
+BM128_HTZ2:	BINCLUDE	"mappings/128x128/HTZ2.bin"
 
 ;-----------------------------------------------------------------------------------
 ; MTZ 16x16 block mappings (Kosinski compression)
@@ -88139,19 +88174,31 @@ BM128_ARZ1:	BINCLUDE	"mappings/128x128/ARZ1.bin"
 BM128_ARZ2:	BINCLUDE	"mappings/128x128/ARZ2.bin"
 
 ;-----------------------------------------------------------------------------------
-; WFZ/SCZ 16x16 block mappings (Kosinski compression)
-BM16_WFZ:	BINCLUDE	"mappings/16x16/WFZ_SCZ.bin"
+; SCZ 16x16 block mappings (Kosinski compression)
+BM16_SCZ1:	BINCLUDE	"mappings/16x16/SCZ1.bin"
+BM16_SCZ2:	BINCLUDE	"mappings/16x16/SCZ2.bin"
 ;-----------------------------------------------------------------------------------
-; WFZ/SCZ main level patterns (Kosinski compression)
+; SCZ main level patterns (Kosinski compression)
+ArtKos_SCZ1:	BINCLUDE	"art/kosinski/SCZ1.bin"
+ArtKos_SCZ2:	BINCLUDE	"art/kosinski/SCZ2.bin"
+;-----------------------------------------------------------------------------------
+; SCZ 128x128 block mappings (Kosinski compression)
+BM128_SCZ1:	BINCLUDE	"mappings/128x128/SCZ1.bin"
+BM128_SCZ2:	BINCLUDE	"mappings/128x128/SCZ2.bin"
+
+;-----------------------------------------------------------------------------------
+; WFZ 16x16 block mappings (Kosinski compression)
+BM16_WFZ1:	BINCLUDE	"mappings/16x16/WFZ1.bin"
+BM16_WFZ2:	BINCLUDE	"mappings/16x16/WFZ2.bin"
+;-----------------------------------------------------------------------------------
+; WFZ main level patterns (Kosinski compression)
 ; ArtKoz_C5004:
-ArtKos_SCZ:	BINCLUDE	"art/kosinski/WFZ_SCZ.bin"
+ArtKos_WFZ1:	BINCLUDE	"art/kosinski/WFZ1.bin"
+ArtKos_WFZ2:	BINCLUDE	"art/kosinski/WFZ2.bin"
 ;-----------------------------------------------------------------------------------
-; WFZ pattern suppliment to SCZ tiles (Kosinski compression)
-; ArtKoz_C7EC4:
-ArtKos_WFZ:	BINCLUDE	"art/kosinski/WFZ_Supp.bin"
-;-----------------------------------------------------------------------------------
-; WFZ/SCZ 128x128 block mappings (Kosinski compression)
-BM128_WFZ:	BINCLUDE	"mappings/128x128/WFZ_SCZ.bin"
+; WFZ 128x128 block mappings (Kosinski compression)
+BM128_WFZ1:	BINCLUDE	"mappings/128x128/WFZ1.bin"
+BM128_WFZ2:	BINCLUDE	"mappings/128x128/WFZ2.bin"
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ;-----------------------------------------------------------------------------------

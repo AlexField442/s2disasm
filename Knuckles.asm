@@ -37,17 +37,17 @@ Obj0C_Init:
 	move.w	#$600,(Sonic_top_speed).w
 	move.w	#$C,(Sonic_acceleration).w
 	move.w	#$80,(Sonic_deceleration).w
-	tst.b	($FFFFFE30).w
+	tst.b	(Last_star_pole_hit).w
 	bne.s	Obj0C_Init_Continued
 	; only happens when not starting at a checkpoint:
 	move.w	#make_art_tile(ArtTile_ArtUnc_Sonic,0,0),art_tile(a0)
 	jsr	(Adjust2PArtPointer).l
 	move.b	#$C,top_solid_bit(a0)
 	move.b	#$D,lrb_solid_bit(a0)
-	move.w	x_pos(a0),($FFFFFE32).w
-	move.w	y_pos(a0),($FFFFFE34).w
-	move.w	art_tile(a0),($FFFFFE3C).w
-	move.w	top_solid_bit(a0),($FFFFFE3E).w
+	move.w	x_pos(a0),(Saved_x_pos).w
+	move.w	y_pos(a0),(Saved_y_pos).w
+	move.w	art_tile(a0),(Saved_art_tile).w
+	move.w	top_solid_bit(a0),(Saved_Solid_bits).w
 
 Obj0C_Init_Continued:
 	move.b	#0,flips_remaining(a0)
@@ -56,7 +56,7 @@ Obj0C_Init_Continued:
 	move.b	#$1E,air_left(a0)
 	sub.w	#$20,x_pos(a0)
 	add.w	#4,y_pos(a0)
-	move.w	#0,($FFFFEED2).w
+	move.w	#0,(Sonic_Pos_Record_Index).w
 
 	move.w	#$3F,d2
 -	bsr.w	Knuckles_RecordPos
@@ -74,16 +74,16 @@ Obj0C_Init_Continued:
 Obj0C_Control:
 	tst.w	(Debug_mode_flag).w
 	beq.s	+
-	btst	#button_B,($FFFFF605).w
+	btst	#button_B,(Ctrl_1_Press).w
 	beq.s	+
 	move.w	#1,(Debug_placement_mode).w
-	clr.b	($FFFFF7CC).w
+	clr.b	(Control_Locked).w
 	rts
 ; ---------------------------------------------------------------------------
 +
-	tst.b	($FFFFF7CC).w
+	tst.b	(Control_Locked).w
 	bne.s	+
-	move.w	($FFFFF604).w,($FFFFF602).w
+	move.w	(Ctrl_1).w,(Ctrl_1_Logical).w
 +
 	btst	#0,obj_control(a0)
 	beq.s	+
@@ -96,7 +96,7 @@ Obj0C_Control:
 	move.w	Obj0C_Modes(pc,d0.w),d1
 	jsr	Obj0C_Modes(pc,d1.w)
 +
-	cmp.w	#-$100,($FFFFEECC).w
+	cmp.w	#-$100,(Camera_Min_Y_pos).w
 	bne.s	+
 	and.w	#$7FF,y_pos(a0)
 +
@@ -104,9 +104,9 @@ Obj0C_Control:
 	bsr.w	Knuckles_Super
 	bsr.w	Knuckles_RecordPos
 	bsr.w	Knuckles_Water
-	move.b	($FFFFF768).w,next_tilt(a0)
-	move.b	($FFFFF76A).w,tilt(a0)
-	tst.b	($FFFFF7C7).w
+	move.b	(Primary_Angle).w,next_tilt(a0)
+	move.b	(Secondary_Angle).w,tilt(a0)
+	tst.b	(WindTunnel_flag).w
 	beq.s	+
 	tst.b	anim(a0)
 	bne.s	+
@@ -148,7 +148,7 @@ Obj0C_CheckInvincibility:			  ; ...
 		beq.s	Obj0C_CheckSpeedShoes
 		subq.w	#1,invincibility_time(a0)
 		bne.s	Obj0C_CheckSpeedShoes
-		tst.b	($FFFFF7AA).w
+		tst.b	(Current_Boss_ID).w
 		bne.s	Obj0C_RemoveInvincibility
 		cmp.b	#$C,air_left(a0)
 		bcs.s	Obj0C_RemoveInvincibility
@@ -193,15 +193,15 @@ Obj0C_ExitCheck:				  ; ...
 
 ; Knuckles_RecordPositions:
 Knuckles_RecordPos:
-	move.w	($FFFFEED2).w,d0
-	lea	($FFFFE500).w,a1
+	move.w	(Sonic_Pos_Record_Index).w,d0
+	lea	(Sonic_Pos_Record_Buf).w,a1
 	lea	(a1,d0.w),a1
 	move.w	x_pos(a0),(a1)+
 	move.w	y_pos(a0),(a1)+
-	addq.b	#4,($FFFFEED3).w
-	lea	($FFFFE400).w,a1
+	addq.b	#4,(Sonic_Pos_Record_Index+1).w
+	lea	(Sonic_Stat_Record_Buf).w,a1
 	lea	(a1,d0.w),a1
-	move.w	($FFFFF602).w,(a1)+
+	move.w	(Ctrl_1_Logical).w,(a1)+
 	move.w	status(a0),(a1)+
 	rts
 ; End of function Knuckles_RecordPos
@@ -214,7 +214,7 @@ Knuckles_RecordPos:
 
 
 Knuckles_Water:
-		tst.b	($FFFFF730).w
+		tst.b	(Water_flag).w
 		bne.s	Obj0C_InWater
 
 return_31556C:
@@ -222,7 +222,7 @@ return_31556C:
 ; ---------------------------------------------------------------------------
 
 Obj0C_InWater:					  ; ...
-		move.w	($FFFFF646).w,d0
+		move.w	(Water_Level_1).w,d0
 		cmp.w	y_pos(a0),d0
 		bge.s	Obj0C_OutWater
 		bset	#6,status(a0)
@@ -356,13 +356,13 @@ Knuckles_NormalGlide:
 		move.b	#$A,y_radius(a0)
 		move.b	#$A,x_radius(a0)
 		bsr.w	Knuckles_DoLevelCollision2
-		btst	#5,($FFFFF7AC).w
+		btst	#5,(Knuckles_Gliding).w
 		bne.w	Knuckles_BeginClimb
 		move.b	#$13,y_radius(a0)
 		move.b	#9,x_radius(a0)
-		btst	#1,($FFFFF7AC).w
+		btst	#1,(Knuckles_Gliding).w
 		beq.s	Knuckles_BeginSlide
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		and.b	#$70,d0
 		bne.s	loc_31574C
 		move.b	#2,$21(a0)
@@ -407,15 +407,15 @@ loc_315780:					  ; ...
 		move.b	#0,anim_frame(a0)
 		cmp.b	#$C,air_left(a0)
 		bcs.s	return_3157AC
-		move.b	#6,($FFFFD124).w
-		move.b	#$15,($FFFFD11A).w
+		move.b	#6,(Sonic_Dust+routine).w
+		move.b	#$15,(Sonic_Dust+mapping_frame).w
 
 return_3157AC:					  ; ...
 		rts
 ; ---------------------------------------------------------------------------
 
 Knuckles_BeginClimb:				  ; ...
-		tst.b	($FFFFF7AD).w
+		tst.b	(Knuckles_Gliding+1).w
 		bmi.w	loc_31587A
 		move.b	lrb_solid_bit(a0),d5
 		move.b	$1F(a0),d0
@@ -491,7 +491,7 @@ loc_31587A:					  ; ...
 		move.b	#$21,anim(a0)
 		move.b	#$13,y_radius(a0)
 		move.b	#9,x_radius(a0)
-		bset	#1,($FFFFF7AC).w
+		bset	#1,(Knuckles_Gliding).w
 		rts
 ; ---------------------------------------------------------------------------
 
@@ -504,7 +504,7 @@ Knuckles_FallingFromGlide:			  ; ...
 
 loc_3158B2:					  ; ...
 		bsr.w	Knuckles_DoLevelCollision2
-		btst	#1,($FFFFF7AC).w
+		btst	#1,(Knuckles_Gliding).w
 		bne.s	return_315900
 		move.w	#0,inertia(a0)
 		move.w	#0,x_vel(a0)
@@ -532,7 +532,7 @@ return_315900:					  ; ...
 ; ---------------------------------------------------------------------------
 
 Knuckles_Sliding:				  ; ...
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		and.b	#$70,d0
 		beq.s	loc_315926
 		tst.w	x_vel(a0)
@@ -589,12 +589,12 @@ loc_315988:					  ; ...
 		move.b	#$21,anim(a0)
 		move.b	#$13,y_radius(a0)
 		move.b	#9,x_radius(a0)
-		bset	#1,($FFFFF7AC).w
+		bset	#1,(Knuckles_Gliding).w
 		rts
 ; ---------------------------------------------------------------------------
 
 Knuckles_Climbing_Wall:				  ; ...
-		tst.b	($FFFFF7AD).w
+		tst.b	(Knuckles_Gliding+1).w
 		bmi.w	loc_315BAE
 		move.w	x_pos(a0),d0
 		cmp.w	x_sub(a0),d0
@@ -604,17 +604,17 @@ Knuckles_Climbing_Wall:				  ; ...
 		move.w	#0,inertia(a0)
 		move.w	#0,x_vel(a0)
 		move.w	#0,y_vel(a0)
-		move.l	#$FFFFD600,($FFFFF796).w
+		move.l	#Primary_Collision,(Collision_addr).w
 		cmp.b	#$D,lrb_solid_bit(a0)
 		beq.s	loc_3159F0
-		move.l	#$FFFFD900,($FFFFF796).w
+		move.l	#Secondary_Collision,(Collision_addr).w
 
 loc_3159F0:					  ; ...
 		move.b	lrb_solid_bit(a0),d5
 		move.b	#$A,y_radius(a0)
 		move.b	#$A,x_radius(a0)
 		moveq	#0,d1
-		btst	#0,($FFFFF602).w
+		btst	#0,(Ctrl_1_Held_Logical).w
 		beq.w	loc_315A76
 		move.w	y_pos(a0),d2
 		sub.w	#$B,d2
@@ -643,7 +643,7 @@ loc_315A46:					  ; ...
 
 loc_315A54:					  ; ...
 		moveq	#1,d1
-		move.w	($FFFFEECC).w,d0
+		move.w	(Camera_Min_Y_pos).w,d0
 		cmp.w	#-$100,d0
 		beq.w	loc_315B04
 		add.w	#$10,d0
@@ -654,7 +654,7 @@ loc_315A54:					  ; ...
 ; ---------------------------------------------------------------------------
 
 loc_315A76:					  ; ...
-		btst	#1,($FFFFF602).w
+		btst	#1,(Ctrl_1_Held_Logical).w
 		beq.w	loc_315B04
 		cmp.b	#$BD,mapping_frame(a0)
 		bne.s	loc_315AA2
@@ -679,7 +679,7 @@ loc_315AA2:					  ; ...
 		tst.w	d1
 		bpl.s	loc_315AF4
 		add.w	d1,y_pos(a0)
-		move.b	($FFFFF768).w,angle(a0)
+		move.b	(Primary_Angle).w,angle(a0)
 		move.w	#0,inertia(a0)
 		move.w	#0,x_vel(a0)
 		move.w	#0,y_vel(a0)
@@ -721,7 +721,7 @@ loc_315B30:
 		move.b	#0,anim_frame(a0)
 		move.b	#$13,y_radius(a0)
 		move.b	#9,x_radius(a0)
-		move.w	($FFFFF602).w,d0
+		move.w	(Ctrl_1_Logical).w,d0
 		and.w	#$70,d0
 		beq.s	return_315B94
 		move.w	#$FC80,y_vel(a0)
@@ -893,7 +893,7 @@ loc_315CE2:					  ; ...
 loc_315CFC:					  ; ...
 		move.w	d0,inertia(a0)
 		move.b	$1F(a0),d0
-		btst	#2,($FFFFF602).w
+		btst	#2,(Ctrl_1_Held_Logical).w
 		beq.s	loc_315D1C
 		cmp.b	#$80,d0
 		beq.s	loc_315D1C
@@ -907,7 +907,7 @@ loc_315D18:					  ; ...
 ; ---------------------------------------------------------------------------
 
 loc_315D1C:					  ; ...
-		btst	#3,($FFFFF602).w
+		btst	#3,(Ctrl_1_Held_Logical).w
 		beq.s	loc_315D30
 		tst.b	d0
 		beq.s	loc_315D30
@@ -942,7 +942,7 @@ loc_315D62:					  ; ...
 		add.w	#$20,y_vel(a0)
 
 loc_315D68:					  ; ...
-		move.w	($FFFFEECC).w,d0
+		move.w	(Camera_Min_Y_pos).w,d0
 		cmp.w	#$FF00,d0
 		beq.w	loc_315D88
 		add.w	#$10,d0
@@ -952,13 +952,13 @@ loc_315D68:					  ; ...
 		asr	inertia(a0)
 
 loc_315D88:					  ; ...
-		cmp.w	#$60,($FFFFEED8).w
+		cmp.w	#$60,(Camera_Y_pos_bias).w
 		beq.s	return_315D9A
 		bcc.s	loc_315D96
-		addq.w	#4,($FFFFEED8).w
+		addq.w	#4,(Camera_Y_pos_bias).w
 
 loc_315D96:					  ; ...
-		subq.w	#2,($FFFFEED8).w
+		subq.w	#2,(Camera_Y_pos_bias).w
 
 return_315D9A:					  ; ...
 		rts
@@ -1006,12 +1006,12 @@ Knuckles_Move:					  ; ...
 		bmi.w	Obj0C_Traction
 		tst.w	move_lock(a0)
 		bne.w	Obj0C_ResetScreen
-		btst	#2,($FFFFF602).w
+		btst	#2,(Ctrl_1_Held_Logical).w
 		beq.s	Obj0C_NotLeft
 		bsr.w	Knuckles_MoveLeft
 
 Obj0C_NotLeft:					  ; ...
-		btst	#3,($FFFFF602).w
+		btst	#3,(Ctrl_1_Held_Logical).w
 		beq.s	Obj0C_NotRight
 		bsr.w	Knuckles_MoveRight
 
@@ -1028,8 +1028,12 @@ Obj0C_NotRight:					  ; ...
 		beq.w	Knuckles_Balance
 		moveq	#0,d0
 		move.b	interact(a0),d0
+    	if object_size=$40
 		lsl.w	#6,d0
-		lea	($FFFFB000).w,a1
+    	else
+		mulu.w	#object_size,d0
+    	endif
+		lea	(Object_RAM).w,a1
 		lea	(a1,d0.w),a1
 		tst.b	status(a1)
 		bmi.w	Knuckles_LookUp
@@ -1115,44 +1119,44 @@ loc_315F42:					  ; ...
 ; ---------------------------------------------------------------------------
 
 Knuckles_LookUp:				  ; ...
-		btst	#0,($FFFFF602).w
+		btst	#0,(Ctrl_1_Held_Logical).w
 		beq.s	Knuckles_Duck
 		move.b	#7,anim(a0)
-		addq.w	#1,($FFFFF66C).w
-		cmp.w	#$78,($FFFFF66C).w
+		addq.w	#1,(Sonic_Look_delay_counter).w
+		cmp.w	#$78,(Sonic_Look_delay_counter).w
 		bcs.s	Obj0C_ResetScreen_Part2
-		move.w	#$78,($FFFFF66C).w
-		cmp.w	#$C8,($FFFFEED8).w
+		move.w	#$78,(Sonic_Look_delay_counter).w
+		cmp.w	#$C8,(Camera_Y_pos_bias).w
 		beq.s	Obj0C_UpdateSpeedOnGround
-		addq.w	#2,($FFFFEED8).w
+		addq.w	#2,(Camera_Y_pos_bias).w
 		bra.s	Obj0C_UpdateSpeedOnGround
 ; ---------------------------------------------------------------------------
 
 Knuckles_Duck:					  ; ...
-		btst	#1,($FFFFF602).w
+		btst	#1,(Ctrl_1_Held_Logical).w
 		beq.s	Obj0C_ResetScreen
 		move.b	#8,anim(a0)
-		addq.w	#1,($FFFFF66C).w
-		cmp.w	#$78,($FFFFF66C).w
+		addq.w	#1,(Sonic_Look_delay_counter).w
+		cmp.w	#$78,(Sonic_Look_delay_counter).w
 		bcs.s	Obj0C_ResetScreen_Part2
-		move.w	#$78,($FFFFF66C).w
-		cmp.w	#8,($FFFFEED8).w
+		move.w	#$78,(Sonic_Look_delay_counter).w
+		cmp.w	#8,(Camera_Y_pos_bias).w
 		beq.s	Obj0C_UpdateSpeedOnGround
-		subq.w	#2,($FFFFEED8).w
+		subq.w	#2,(Camera_Y_pos_bias).w
 		bra.s	Obj0C_UpdateSpeedOnGround
 ; ---------------------------------------------------------------------------
 
 Obj0C_ResetScreen:				  ; ...
-		move.w	#0,($FFFFF66C).w
+		move.w	#0,(Sonic_Look_delay_counter).w
 
 Obj0C_ResetScreen_Part2:			  ; ...
-		cmp.w	#$60,($FFFFEED8).w
+		cmp.w	#$60,(Camera_Y_pos_bias).w
 		beq.s	Obj0C_UpdateSpeedOnGround
 		bcc.s	loc_315FCE
-		addq.w	#4,($FFFFEED8).w
+		addq.w	#4,(Camera_Y_pos_bias).w
 
 loc_315FCE:					  ; ...
-		subq.w	#2,($FFFFEED8).w
+		subq.w	#2,(Camera_Y_pos_bias).w
 
 Obj0C_UpdateSpeedOnGround:			  ; ...
 		tst.b	(Super_Sonic_flag).w
@@ -1160,7 +1164,7 @@ Obj0C_UpdateSpeedOnGround:			  ; ...
 		move.w	#$C,d5
 
 loc_315FDC:					  ; ...
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		and.b	#$C,d0
 		bne.s	Obj0C_Traction
 		move.w	inertia(a0),d0
@@ -1301,8 +1305,8 @@ loc_3160EA:					  ; ...
 		jsr	PlaySound
 		cmp.b	#$C,air_left(a0)
 		bcs.s	return_31612C
-		move.b	#6,($FFFFD124).w
-		move.b	#$15,($FFFFD11A).w
+		move.b	#6,(Sonic_Dust+routine).w
+		move.b	#$15,(Sonic_Dust+mapping_frame).w
 
 return_31612C:					  ; ...
 		rts
@@ -1354,8 +1358,8 @@ loc_31616A:					  ; ...
 		jsr	PlaySound
 		cmp.b	#$C,air_left(a0)
 		bcs.s	return_3161AC
-		move.b	#6,($FFFFD124).w
-		move.b	#$15,($FFFFD11A).w
+		move.b	#6,(Sonic_Dust+routine).w
+		move.b	#$15,(Sonic_Dust+mapping_frame).w
 
 return_3161AC:					  ; ...
 		rts
@@ -1375,12 +1379,12 @@ Knuckles_RollSpeed:				  ; ...
 		bmi.w	Obj0C_Roll_ResetScreen
 		tst.w	move_lock(a0)
 		bne.s	Knuckles_Apply_RollSpeed
-		btst	#2,($FFFFF602).w
+		btst	#2,(Ctrl_1_Held_Logical).w
 		beq.s	loc_3161D8
 		bsr.w	Knuckles_RollLeft
 
 loc_3161D8:					  ; ...
-		btst	#3,($FFFFF602).w
+		btst	#3,(Ctrl_1_Held_Logical).w
 		beq.s	Knuckles_Apply_RollSpeed
 		bsr.w	Knuckles_RollRight
 
@@ -1428,13 +1432,13 @@ Knuckles_KeepRolling:				  ; ...
 		neg.w	inertia(a0)
 
 Obj0C_Roll_ResetScreen:				  ; ...
-		cmp.w	#$60,($FFFFEED8).w
+		cmp.w	#$60,(Camera_Y_pos_bias).w
 		beq.s	Knuckles_SetRollSpeeds
 		bcc.s	loc_316250
-		addq.w	#4,($FFFFEED8).w
+		addq.w	#4,(Camera_Y_pos_bias).w
 
 loc_316250:					  ; ...
-		subq.w	#2,($FFFFEED8).w
+		subq.w	#2,(Camera_Y_pos_bias).w
 
 Knuckles_SetRollSpeeds:				  ; ...
 		move.b	angle(a0),d0
@@ -1519,7 +1523,7 @@ Knuckles_ChgJumpDir:				  ; ...
 		btst	#4,status(a0)
 		bne.s	Obj0C_Jump_ResetScreen
 		move.w	x_vel(a0),d0
-		btst	#2,($FFFFF602).w
+		btst	#2,(Ctrl_1_Held_Logical).w
 		beq.s	loc_31630E
 		bset	#0,status(a0)
 		sub.w	d5,d0
@@ -1537,7 +1541,7 @@ loc_31630C:					  ; ...
 		move.w	d1,d0
 
 loc_31630E:					  ; ...
-		btst	#3,($FFFFF602).w
+		btst	#3,(Ctrl_1_Held_Logical).w
 		beq.s	loc_316332
 		bclr	#0,status(a0)
 		add.w	d5,d0
@@ -1556,13 +1560,13 @@ loc_316332:					  ; ...
 		move.w	d0,x_vel(a0)
 
 Obj0C_Jump_ResetScreen:				  ; ...
-		cmp.w	#$60,($FFFFEED8).w
+		cmp.w	#$60,(Camera_Y_pos_bias).w
 		beq.s	Knuckles_JumpPeakDecelerate
 		bcc.s	loc_316344
-		addq.w	#4,($FFFFEED8).w
+		addq.w	#4,(Camera_Y_pos_bias).w
 
 loc_316344:					  ; ...
-		subq.w	#2,($FFFFEED8).w
+		subq.w	#2,(Camera_Y_pos_bias).w
 
 Knuckles_JumpPeakDecelerate:			  ; ...
 		cmp.w	#-$400,y_vel(a0)
@@ -1604,13 +1608,13 @@ Knuckles_LevelBoundaries:			  ; ...
 		asl.l	#8,d0
 		add.l	d0,d1
 		swap	d1
-		move.w	($FFFFEEC8).w,d0
+		move.w	(Camera_Min_X_pos).w,d0
 		add.w	#$10,d0
 		cmp.w	d1,d0
 		bhi.s	Knuckles_Boundary_Sides
-		move.w	($FFFFEECA).w,d0
+		move.w	(Camera_Max_X_pos).w,d0
 		add.w	#$128,d0
-		tst.b	($FFFFF7AA).w
+		tst.b	(Current_Boss_ID).w
 		bne.s	loc_3163A6
 		add.w	#$40,d0
 
@@ -1619,7 +1623,7 @@ loc_3163A6:					  ; ...
 		bls.s	Knuckles_Boundary_Sides
 
 Knuckles_Boundary_CheckBottom:			  ; ...
-		move.w	($FFFFEECE).w,d0
+		move.w	(Camera_Max_Y_pos_now).w,d0
 		add.w	#$E0,d0
 		cmp.w	y_pos(a0),d0
 		blt.s	Knuckles_Boundary_Bottom
@@ -1645,10 +1649,10 @@ Knuckles_Boundary_Sides:			  ; ...
 Knuckles_Roll:					  ; ...
 		tst.b	status_secondary(a0)
 		bmi.s	Obj0C_NoRoll
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		and.b	#$C,d0
 		bne.s	Obj0C_NoRoll
-		btst	#1,($FFFFF602).w
+		btst	#1,(Ctrl_1_Held_Logical).w
 		beq.s	Obj0C_ChkWalk
 		move.w	inertia(a0),d0
 		bpl.s	loc_3163E6
@@ -1699,7 +1703,7 @@ return_31643C:					  ; ...
 
 
 Knuckles_Jump:					  ; ...
-		move.b	($FFFFF603).w,d0
+		move.b	(Ctrl_1_Press_Logical).w,d0
 		and.b	#$70,d0
 		beq.w	return_3164EC
 		moveq	#0,d0
@@ -1713,12 +1717,7 @@ Knuckles_Jump:					  ; ...
 		beq.s	loc_316470
 		move.w	#$300,d2
 
-loc_316470:					  ; ...
-		cmpi.b	#wing_fortress_zone,(Current_Zone).w
-		bne.s	loc_31647A
-		add.w	#$80,d2
-
-loc_31647A:
+loc_316470:
 		moveq	#0,d0
 		move.b	angle(a0),d0
 		sub.b	#$40,d0
@@ -1772,7 +1771,7 @@ Knuckles_JumpHeight:				  ; ...
 loc_31650C:					  ; ...
 		cmp.w	y_vel(a0),d1
 		ble.w	Knuckles_CheckGlide	  ; Check if Knuckles should begin a glide
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		and.b	#$70,d0
 		bne.s	return_316522
 		move.w	d1,y_vel(a0)
@@ -1795,18 +1794,20 @@ return_316538:					  ; ...
 Knuckles_CheckGlide:				  ; ...
 		tst.w	(Demo_mode_flag).w		  ; Don't glide on demos
 		bne.w	return_3165D2
+		tst.b	(WFZ_cutscene).w
+		bne.w	return_3165D2
 		tst.b	$21(a0)
 		bne.w	return_3165D2
-		move.b	($FFFFF603).w,d0
+		move.b	(Ctrl_1_Press_Logical).w,d0
 		and.b	#$70,d0
 		beq.w	return_3165D2
 		tst.b	(Super_Sonic_flag).w
 		bne.s	Knuckles_BeginGlide
-		cmp.b	#7,($FFFFFFB1).w
+		cmp.b	#7,(Emerald_count).w
 		bcs.s	Knuckles_BeginGlide
-		cmp.w	#50,($FFFFFE20).w
+		cmp.w	#50,(Ring_count).w
 		bcs.s	Knuckles_BeginGlide
-		tst.b	($FFFFFE1E).w
+		tst.b	(Update_HUD_timer).w
 		bne.s	Knuckles_TurnSuper
 
 Knuckles_BeginGlide:				  ; ...
@@ -1832,8 +1833,8 @@ loc_3165B4:					  ; ...
 		move.w	d0,x_vel(a0)
 		move.b	d1,$1F(a0)
 		move.w	#0,angle(a0)
-		move.b	#0,($FFFFF7AC).w
-		bset	#1,($FFFFF7AC).w
+		move.b	#0,(Knuckles_Gliding).w
+		bset	#1,(Knuckles_Gliding).w
 		bsr.w	sub_315C7C
 
 return_3165D2:					  ; ...
@@ -1841,10 +1842,10 @@ return_3165D2:					  ; ...
 ; ---------------------------------------------------------------------------
 
 Knuckles_TurnSuper:				  ; ...
-		move.b	#1,($FFFFF65F).w
-		move.b	#$F,($FFFFF65E).w
+		move.b	#1,(Super_Sonic_palette).w
+		move.b	#$F,(Palette_timer).w
 		move.b	#1,(Super_Sonic_flag).w
-		move.w	#60,($FFFFF670).w
+		move.w	#60,(Super_Sonic_frame_count).w
 		move.b	#$81,obj_control(a0)
 		move.b	#$1F,anim(a0)
 		move.b	#ObjID_SuperSonicStars,(SuperSonicStars+id).w ; load Obj7E (super knuckles stars object) at $FFFFD040
@@ -1865,31 +1866,31 @@ Knuckles_TurnSuper:				  ; ...
 Knuckles_Super:					  ; ...
 		tst.b	(Super_Sonic_flag).w
 		beq.w	return_3166C8
-		tst.b	($FFFFFE1E).w
+		tst.b	(Update_HUD_timer).w
 		beq.s	loc_31667E
-		subq.w	#1,($FFFFF670).w
+		subq.w	#1,(Super_Sonic_frame_count).w
 		bpl.w	return_3166C8
-		move.w	#60,($FFFFF670).w
-		tst.w	($FFFFFE20).w
+		move.w	#60,(Super_Sonic_frame_count).w
+		tst.w	(Ring_count).w
 		beq.s	loc_31667E
-		or.b	#1,($FFFFFE1D).w
-		cmp.w	#1,($FFFFFE20).w
+		or.b	#1,(Update_HUD_rings).w
+		cmp.w	#1,(Ring_count).w
 		beq.s	loc_316672
-		cmp.w	#10,($FFFFFE20).w
+		cmp.w	#10,(Ring_count).w
 		beq.s	loc_316672
-		cmp.w	#100,($FFFFFE20).w
+		cmp.w	#100,(Ring_count).w
 		bne.s	loc_316678
 
 loc_316672:					  ; ...
-		or.b	#%10000000,($FFFFFE1D).w
+		or.b	#%10000000,(Update_HUD_rings).w
 
 loc_316678:					  ; ...
-		subq.w	#1,($FFFFFE20).w
+		subq.w	#1,(Ring_count).w
 		bne.s	return_3166C8
 
 loc_31667E:					  ; ...
-		move.b	#2,($FFFFF65F).w
-		move.w	#40,($FFFFF65C).w
+		move.b	#2,(Super_Sonic_palette).w
+		move.w	#40,(Palette_frame).w
 		move.b	#0,(Super_Sonic_flag).w
 		move.b	#1,prev_anim(a0)
 		move.w	#1,invincibility_time(a0)
@@ -1915,7 +1916,7 @@ Knuckles_Spindash:				  ; ...
 		bne.s	Knuckles_UpdateSpindash
 		cmp.b	#8,anim(a0)
 		bne.s	return_316718
-		move.b	($FFFFF603).w,d0
+		move.b	(Ctrl_1_Press_Logical).w,d0
 		and.b	#$70,d0
 		beq.w	return_316718
 		move.b	#9,anim(a0)
@@ -1926,7 +1927,7 @@ Knuckles_Spindash:				  ; ...
 		move.w	#0,spindash_counter(a0)
 		cmp.b	#$C,air_left(a0)
 		bcs.s	loc_316710
-		move.b	#2,($FFFFD11C).w
+		move.b	#2,(Sonic_Dust+anim).w
 
 loc_316710:					  ; ...
 		bsr.w	Knuckles_LevelBoundaries
@@ -1937,7 +1938,7 @@ return_316718:					  ; ...
 ; ---------------------------------------------------------------------------
 
 Knuckles_UpdateSpindash:			  ; ...
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		btst	#1,d0
 		bne.w	Knuckles_ChargingSpindash
 		move.b	#$E,y_radius(a0)
@@ -1960,14 +1961,14 @@ loc_31675C:					  ; ...
 		and.w	#$1F00,d0
 		neg.w	d0
 		add.w	#$2000,d0
-		move.w	d0,($FFFFEED0).w	  ; Lock camera	for a certain number of	frames
+		move.w	d0,(Horiz_scroll_delay_val).w	  ; Lock camera	for a certain number of	frames
 		btst	#0,status(a0)
 		beq.s	loc_316780
 		neg.w	inertia(a0)
 
 loc_316780:					  ; ...
 		bset	#2,status(a0)
-		move.b	#0,($FFFFD11C).w
+		move.b	#0,(Sonic_Dust+anim).w
 		move.w	#SndID_SpindashRelease,d0
 		jsr	PlaySound
 		bra.s	Obj0C_Spindash_ResetScreen
@@ -1988,7 +1989,7 @@ Knuckles_ChargingSpindash:			  ; ...
 		move.w	#0,spindash_counter(a0)
 
 loc_3167D4:					  ; ...
-		move.b	($FFFFF603).w,d0
+		move.b	(Ctrl_1_Press_Logical).w,d0
 		and.b	#$70,d0
 		beq.w	Obj0C_Spindash_ResetScreen
 		move.w	#$900,anim(a0)
@@ -2001,13 +2002,13 @@ loc_3167D4:					  ; ...
 
 Obj0C_Spindash_ResetScreen:			  ; ...
 		addq.l	#4,sp
-		cmp.w	#$60,($FFFFEED8).w
+		cmp.w	#$60,(Camera_Y_pos_bias).w
 		beq.s	loc_316818
 		bcc.s	loc_316814
-		addq.w	#4,($FFFFEED8).w
+		addq.w	#4,(Camera_Y_pos_bias).w
 
 loc_316814:					  ; ...
-		subq.w	#2,($FFFFEED8).w
+		subq.w	#2,(Camera_Y_pos_bias).w
 
 loc_316818:					  ; ...
 		bsr.w	Knuckles_LevelBoundaries
@@ -2182,10 +2183,10 @@ return_316934:					  ; ...
 
 
 Knuckles_DoLevelCollision2:			  ; ...
-		move.l	#$FFFFD600,($FFFFF796).w
+		move.l	#Primary_Collision,(Collision_addr).w
 		cmp.b	#$C,top_solid_bit(a0)
 		beq.s	loc_31694E
-		move.l	#$FFFFD900,($FFFFF796).w
+		move.l	#Secondary_Collision,(Collision_addr).w
 
 loc_31694E:					  ; ...
 		move.b	lrb_solid_bit(a0),d5
@@ -2205,7 +2206,7 @@ loc_31694E:					  ; ...
 		bpl.s	loc_316998
 		sub.w	d1,x_pos(a0)
 		move.w	#0,x_vel(a0)
-		bset	#5,($FFFFF7AC).w
+		bset	#5,(Knuckles_Gliding).w
 
 loc_316998:					  ; ...
 		bsr.w	CheckRightWallDist
@@ -2213,7 +2214,7 @@ loc_316998:					  ; ...
 		bpl.s	loc_3169B0
 		add.w	d1,x_pos(a0)
 		move.w	#0,x_vel(a0)
-		bset	#5,($FFFFF7AC).w
+		bset	#5,(Knuckles_Gliding).w
 
 loc_3169B0:					  ; ...
 		bsr.w	Sonic_CheckFloor
@@ -2222,7 +2223,7 @@ loc_3169B0:					  ; ...
 		add.w	d1,y_pos(a0)
 		move.b	d3,angle(a0)
 		move.w	#0,y_vel(a0)
-		bclr	#1,($FFFFF7AC).w
+		bclr	#1,(Knuckles_Gliding).w
 
 return_3169CC:					  ; ...
 		rts
@@ -2234,7 +2235,7 @@ Knuckles_HitLeftWall2:				  ; ...
 		bpl.s	Knuckles_HitCeilingAlt
 		sub.w	d1,x_pos(a0)
 		move.w	#0,x_vel(a0)
-		bset	#5,($FFFFF7AC).w
+		bset	#5,(Knuckles_Gliding).w
 
 Knuckles_HitCeilingAlt:				  ; ...
 		bsr.w	Sonic_CheckCeiling
@@ -2258,7 +2259,7 @@ loc_316A08:					  ; ...
 		bpl.s	return_316A20
 		add.w	d1,x_pos(a0)
 		move.w	#0,x_vel(a0)
-		bset	#5,($FFFFF7AC).w
+		bset	#5,(Knuckles_Gliding).w
 
 return_316A20:					  ; ...
 		rts
@@ -2273,7 +2274,7 @@ Knuckles_HitFloor:				  ; ...
 		add.w	d1,y_pos(a0)
 		move.b	d3,angle(a0)
 		move.w	#0,y_vel(a0)
-		bclr	#1,($FFFFF7AC).w
+		bclr	#1,(Knuckles_Gliding).w
 
 return_316A44:					  ; ...
 		rts
@@ -2285,7 +2286,7 @@ Knuckles_HitCeilingAndWalls2:			  ; ...
 		bpl.s	loc_316A5E
 		sub.w	d1,x_pos(a0)
 		move.w	#0,x_vel(a0)
-		bset	#5,($FFFFF7AC).w
+		bset	#5,(Knuckles_Gliding).w
 
 loc_316A5E:					  ; ...
 		bsr.w	CheckRightWallDist
@@ -2293,7 +2294,7 @@ loc_316A5E:					  ; ...
 		bpl.s	loc_316A76
 		add.w	d1,x_pos(a0)
 		move.w	#0,x_vel(a0)
-		bset	#5,($FFFFF7AC).w
+		bset	#5,(Knuckles_Gliding).w
 
 loc_316A76:					  ; ...
 		bsr.w	Sonic_CheckCeiling
@@ -2312,7 +2313,7 @@ Knuckles_HitRightWall2:				  ; ...
 		bpl.s	loc_316AA2
 		add.w	d1,x_pos(a0)
 		move.w	#0,x_vel(a0)
-		bset	#5,($FFFFF7AC).w
+		bset	#5,(Knuckles_Gliding).w
 
 loc_316AA2:					  ; ...
 		bsr.w	Sonic_CheckCeiling
@@ -2336,7 +2337,7 @@ loc_316ABC:					  ; ...
 		add.w	d1,y_pos(a0)
 		move.b	d3,angle(a0)
 		move.w	#0,y_vel(a0)
-		bclr	#1,($FFFFF7AC).w
+		bclr	#1,(Knuckles_Gliding).w
 
 return_316ADE:					  ; ...
 		rts
@@ -2347,10 +2348,10 @@ return_316ADE:					  ; ...
 
 
 Knuckles_DoLevelCollision:			  ; ...
-		move.l	#$FFFFD600,($FFFFF796).w
+		move.l	#Primary_Collision,(Collision_addr).w
 		cmp.b	#$C,top_solid_bit(a0)
 		beq.s	loc_316AF8
-		move.l	#$FFFFD900,($FFFFF796).w
+		move.l	#Secondary_Collision,(Collision_addr).w
 
 loc_316AF8:					  ; ...
 		move.b	lrb_solid_bit(a0),d5
@@ -2576,11 +2577,11 @@ Knuckles_ResetOnFloor_Part3:			  ; ...
 		bclr	#5,status(a0)
 		bclr	#4,status(a0)
 		move.b	#0,jumping(a0)
-		move.w	#0,($FFFFF7D0).w
+		move.w	#0,(Chain_Bonus_counter).w
 		move.b	#0,$27(a0)
 		move.b	#0,$29(a0)
 		move.b	#0,flips_remaining(a0)
-		move.w	#0,($FFFFF66C).w
+		move.w	#0,(Sonic_Look_delay_counter).w
 		move.b	#0,$21(a0)
 		cmp.b	#$20,anim(a0)
 		bcc.s	loc_316D5C
@@ -2604,10 +2605,10 @@ Obj0C_Hurt:					  ; ...
 
 		tst.w	(Debug_mode_flag).w
 		beq.s	Obj0C_Hurt_Normal
-		btst	#4,($FFFFF605).w
+		btst	#4,(Ctrl_1_Press).w
 		beq.s	Obj0C_Hurt_Normal
 		move.w	#1,(Debug_placement_mode).w
-		clr.b	($FFFFF7CC).w
+		clr.b	(Control_Locked).w
 		rts
 ; ---------------------------------------------------------------------------
 
@@ -2621,7 +2622,7 @@ Obj0C_Hurt_Normal:				  ; ...
 		sub.w	#$20,y_vel(a0)
 
 loc_316DA0:					  ; ...
-		cmp.w	#$FF00,($FFFFEECC).w
+		cmp.w	#$FF00,(Camera_Min_Y_pos).w
 		bne.s	loc_316DAE
 		and.w	#$7FF,y_pos(a0)
 
@@ -2639,7 +2640,7 @@ loc_316DAE:					  ; ...
 
 
 Knuckles_HurtStop:				  ; ...
-		move.w	($FFFFEECE).w,d0
+		move.w	(Camera_Max_Y_pos_now).w,d0
 		add.w	#$E0,d0
 		cmp.w	y_pos(a0),d0
 		blt.w	JmpToK_KillCharacter
@@ -2682,10 +2683,10 @@ Knuckles_HurtInstantRecover:			  ; ...
 Obj0C_Dead:					  ; ...
 		tst.w	(Debug_mode_flag).w
 		beq.s	loc_316E4A
-		btst	#4,($FFFFF605).w
+		btst	#4,(Ctrl_1_Press).w
 		beq.s	loc_316E4A
 		move.w	#1,(Debug_placement_mode).w
-		clr.b	($FFFFF7CC).w
+		clr.b	(Control_Locked).w
 		rts
 ; ---------------------------------------------------------------------------
 
@@ -2703,27 +2704,27 @@ loc_316E4A:					  ; ...
 
 
 Obj0C_CheckGameOver:					  ; ...
-		move.b	#1,($FFFFEEBE).w
+		move.b	#1,(Scroll_lock).w
 		move.b	#0,spindash_flag(a0)
-		move.w	($FFFFEECE).w,d0
+		move.w	(Camera_Max_Y_pos_now).w,d0
 		add.w	#$100,d0
 		cmp.w	y_pos(a0),d0
 		bge.w	return_316F64
 		move.b	#8,routine(a0)
 		move.w	#$3C,restart_countdown(a0)
-		addq.b	#1,($FFFFFE1C).w
-		subq.b	#1,($FFFFFE12).w
+		addq.b	#1,(Update_HUD_lives).w
+		subq.b	#1,(Life_count).w
 		bne.s	Obj0C_ResetLevel
 		move.w	#0,restart_countdown(a0)
-		move.b	#$39,($FFFFB080).w
-		move.b	#$39,($FFFFB0C0).w
-		move.b	#1,($FFFFB0DA).w
-		move.w	a0,($FFFFB0BE).w
-		clr.b	($FFFFFE1A).w
+		move.b	#ObjID_GameOver,(GameOver_GameText+id).w ; load Obj39 (game over text)
+		move.b	#ObjID_GameOver,(GameOver_OverText+id).w ; load Obj39 (game over text)
+		move.b	#1,(GameOver_OverText+mapping_frame).w
+		move.w	a0,(GameOver_GameText+parent).w
+		clr.b	(Time_Over_flag).w
 
 Obj0C_Finished:					  ; ...
-		clr.b	($FFFFFE1E).w
-		clr.b	($FFFFFECA).w
+		clr.b	(Update_HUD_timer).w
+		clr.b	(Update_HUD_timer_2P).w
 		move.b	#8,routine(a0)
 		move.w	#$9B,d0
 		jsr	PlayMusic
@@ -2732,28 +2733,28 @@ Obj0C_Finished:					  ; ...
 ; ---------------------------------------------------------------------------
 
 Obj0C_ResetLevel:				  ; ...
-		tst.b	($FFFFFE1A).w
+		tst.b	(Time_Over_flag).w
 		beq.s	Obj0C_ResetLevel_Part2
 		move.w	#0,restart_countdown(a0)
-		move.b	#$39,($FFFFB080).w
-		move.b	#$39,($FFFFB0C0).w
-		move.b	#2,($FFFFB09A).w
-		move.b	#3,($FFFFB0DA).w
-		move.w	a0,($FFFFB0BE).w
+		move.b	#ObjID_TimeOver,(TimeOver_TimeText+id).w ; load Obj39
+		move.b	#ObjID_TimeOver,(TimeOver_OverText+id).w ; load Obj39
+		move.b	#2,(TimeOver_TimeText+mapping_frame).w
+		move.b	#3,(TimeOver_OverText+mapping_frame).w
+		move.w	a0,(TimeOver_TimeText+parent).w
 		bra.s	Obj0C_Finished
 ; ---------------------------------------------------------------------------
 
 Obj0C_ResetLevel_Part2:				  ; ...
 		tst.w	(Two_player_mode).w
 		beq.s	return_316F64
-		move.b	#0,($FFFFEEBE).w
+		move.b	#0,(Scroll_lock).w
 		move.b	#$A,routine(a0)
-		move.w	($FFFFFE32).w,x_pos(a0)
-		move.w	($FFFFFE34).w,y_pos(a0)
-		move.w	($FFFFFE3C).w,art_tile(a0)
-		move.w	($FFFFFE3E).w,top_solid_bit(a0)
-		clr.w	($FFFFFE20).w
-		clr.b	($FFFFFE1B).w
+		move.w	(Saved_x_pos).w,x_pos(a0)
+		move.w	(Saved_y_pos).w,y_pos(a0)
+		move.w	(Saved_art_tile).w,art_tile(a0)
+		move.w	(Saved_Solid_bits).w,top_solid_bit(a0)
+		clr.w	(Ring_count).w
+		clr.b	(Extra_life_flags).w
 		move.b	#0,obj_control(a0)
 		move.b	#5,anim(a0)
 		move.w	#0,x_vel(a0)
@@ -2776,7 +2777,7 @@ Obj0C_Gone:					  ; ...
 		beq.s	return_316F78
 		subq.w	#1,restart_countdown(a0)
 		bne.s	return_316F78
-		move.w	#1,($FFFFFE02).w
+		move.w	#1,(Level_Inactive_flag).w
 
 return_316F78:					  ; ...
 		rts
@@ -2785,13 +2786,12 @@ return_316F78:					  ; ...
 ; ---------------------------------------------------------------------------
 
 Obj0C_Respawning:				  ; ...
-		tst.w	($FFFFEEB0).w
-		bne.s	loc_316F8C
-		tst.w	($FFFFEEB2).w
-		bne.s	loc_316F8C
-		move.b	#2,routine(a0)
-
-loc_316F8C:					  ; ...
+		tst.w	(Camera_X_pos_diff).w
+		bne.s	+
+		tst.w	(Camera_Y_pos_diff).w
+		bne.s	+
+		move.b	#2,routine(a0)	; => Obj0C_Control
++
 		bsr.w	Knuckles_Animate
 		bsr.w	LoadKnucklesDynPLC
 		jmp	DisplaySprite
@@ -3144,9 +3144,9 @@ LoadKnucklesDynPLC:				  ; ...
 ; START	OF FUNCTION CHUNK FOR sub_333D66
 
 LoadKnucklesDynPLC_Part2:			  ; ...
-	cmp.b	($FFFFF766).w,d0
+	cmp.b	(Sonic_LastLoadedDPLC).w,d0
 	beq.w	return_31753E
-	move.b	d0,($FFFFF766).w
+	move.b	d0,(Sonic_LastLoadedDPLC).w
 	lea	(MapRUnc_Knux).l,a2
 	add.w	d0,d0
 	add.w	(a2,d0.w),a2
@@ -3183,7 +3183,7 @@ sub_3192E6:					  ; ...
 		ext.w	d0
 		sub.w	d0,d2
 		eor.w	#$F,d2
-		lea	($FFFFF768).w,a4
+		lea	(Primary_Angle).w,a4
 		move.w	#-$10,a3
 		move.w	#$800,d6
 		bsr.w	FindFloor
@@ -3196,7 +3196,7 @@ loc_319306:
 ; START	OF FUNCTION CHUNK FOR CheckRightWallDist
 
 loc_318FE8:					  ; ...
-		move.b	($FFFFF768).w,d3
+		move.b	(Primary_Angle).w,d3
 		btst	#0,d3
 		beq.s	return_318FF4
 		move.b	d2,d3
@@ -3212,7 +3212,7 @@ sub_318FF6:					  ; ...
 		move.b	x_radius(a0),d0
 		ext.w	d0
 		add.w	d0,d2
-		lea	($FFFFF768).w,a4
+		lea	(Primary_Angle).w,a4
 		move.w	#$10,a3
 		move.w	#0,d6
 		bsr.w	FindFloor
@@ -3228,7 +3228,7 @@ loc_319208:					  ; ...
 		move.b	x_radius(a0),d0
 		ext.w	d0
 		add.w	d0,d3
-		lea	($FFFFF768).w,a4
+		lea	(Primary_Angle).w,a4
 		move.w	#$10,a3
 		move.w	#0,d6
 		bsr.w	FindWall
@@ -3244,7 +3244,7 @@ loc_3193D2:					  ; ...
 		ext.w	d0
 		sub.w	d0,d3
 		eor.w	#$F,d3
-		lea	($FFFFF768).w,a4
+		lea	(Primary_Angle).w,a4
 		move.w	#$FFF0,a3
 		move.w	#$400,d6
 		bsr.w	FindWall
