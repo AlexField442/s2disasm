@@ -415,6 +415,7 @@ PalID_Knux =	id(PalPtr_Knux) ; 28
 PalID_CPZ_K_U =	id(PalPtr_CPZ_K_U) ; 29
 PalID_ARZ_K_U =	id(PalPtr_ARZ_K_U) ; 30
 PalID_SS_K =	id(PalPtr_SS_K) ; 31
+PalID_HPZ_K_U =	id(PalPtr_HPZ_K_U) ; 32
 
 ; PLC IDs
 offset :=	ArtLoadCues
@@ -1393,7 +1394,7 @@ Collision_addr:			ds.l	1
 Boss_defeated_flag:		ds.b	1
 				ds.b	2	; $FFFFF7A8-$FFFFF7A9 ; seems unused
 Current_Boss_ID:		ds.b	1
-Bonus_stage_flag:		ds.b	1	; used so rings when exiting the special stage won't be retained after dying
+				ds.b	1	; $FFFFF7AB ; seems unused
 Knuckles_Gliding:		ds.w	1	; flag for Knuckles gliding
 				ds.b	2	; $FFFFF7AE-$FFFFF7AF ; seems unused
 MTZ_Platform_Cog_X:			ds.w	1	; X position of moving MTZ platform for cog animation.
@@ -1611,7 +1612,8 @@ Player_mode:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
 Player_option:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
 
 Two_player_items:		ds.w	1
-				ds.b	$A	; $FFFFFF76-$FFFFFF7F ; seems unused
+Bonus_stage_flag:		ds.b	1	; used so rings when exiting the special stage won't be retained after dying
+				ds.b	9	; $FFFFFF77-$FFFFFF7F ; seems unused
 
 LevSel_HoldTimer:		ds.w	1
 Level_select_zone:		ds.w	1

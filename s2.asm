@@ -3604,6 +3604,7 @@ PalPtr_Knux:	palptr Pal_Knux,  0
 PalPtr_CPZ_K_U:	palptr Pal_CPZ_K_U, 0
 PalPtr_ARZ_K_U:	palptr Pal_ARZ_K_U, 0
 PalPtr_SS_K:	palptr Pal_SS_K, 0
+PalPtr_HPZ_K_U:	palptr Pal_HPZ_K_U, 0
 
 ; ----------------------------------------------------------------------------
 ; This macro defines Pal_ABC and Pal_ABC_End, so palptr can compute the size of
@@ -3657,7 +3658,8 @@ Pal_Result:palette Special Stage Results Screen.bin ; Special Stage Results Scre
 Pal_Knux:  palette Knuckles.bin,SonicAndTails2.bin ; "Sonic and Miles" background palette (also usually the primary palette line)
 Pal_CPZ_K_U: palette CPZ Knux underwater.bin ; Chemical Plant Zone underwater palette
 Pal_ARZ_K_U: palette ARZ Knux underwater.bin ; Aquatic Ruin Zone underwater palette
-Pal_SS_K:    palette Special Stage Main (Knuckles).bin ; Special Stage palette (Knuckles
+Pal_SS_K:    palette Special Stage Main (Knuckles).bin ; Special Stage palette (Knuckles)
+Pal_HPZ_K_U: palette HPZ Knux underwater.bin ; Hidden Palace Zone underwater palette
 ; ===========================================================================
 
     if gameRevision<2
@@ -4521,6 +4523,10 @@ Level_LoadPal:
 	tst.b	(Water_flag).w	; does level have water?
 	beq.s	Level_GetBgm	; if not, branch
 	moveq	#PalID_HPZ_U,d0	; palette number $15
+	cmpi.w	#3,(Player_mode).w	; are you playing as Knuckles?
+	blt.s	+		; if not, branch
+	moveq	#PalID_HPZ_K_U,d0
++
 	cmpi.b	#hidden_palace_zone,(Current_Zone).w
 	beq.s	Level_WaterPal ; branch if level is HPZ
 	moveq	#PalID_CPZ_U,d0	; palette number $16
@@ -6080,10 +6086,6 @@ LoadZoneTiles:
 	lea	(Chunk_Table).l,a1
 	bsr.w	KosDec
 	move.w	a1,d3
-	cmpi.b	#death_egg_zone,(Current_Zone).w
-	bne.s	+
-	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_DEZ),d3
-+
 	move.w	d3,d7
 	andi.w	#$FFF,d3
 	lsr.w	#1,d3
@@ -12027,7 +12029,7 @@ MenuScreen_LevelSelect:
 	lea	(Chunk_Table).l,a1
 	lea	(MapEng_LevSel).l,a0	; 2 bytes per 8x8 tile, compressed
 	move.w	#make_art_tile(ArtTile_VRAM_Start,0,0),d0
-	bsr.w	EniDec
+	jsr	(EniDec).l
 
 	lea	(Chunk_Table).l,a1
 	move.l	#vdpComm(VRAM_Plane_A_Name_Table,VRAM,WRITE),d0
@@ -12043,7 +12045,7 @@ MenuScreen_LevelSelect:
 	lea	(Chunk_Table+$8C0).l,a1
 	lea	(MapEng_LevSelIcon).l,a0
 	move.w	#make_art_tile(ArtTile_ArtNem_LevelSelectPics,0,0),d0
-	bsr.w	EniDec
+	jsr	(EniDec).l
 
 	bsr.w	LevelSelect_DrawIcon
 
@@ -12798,7 +12800,7 @@ EndgameCredits:
 -
 	jsrto	(ClearScreen).l, JmpTo_ClearScreen
 	bsr.w	ShowCreditsScreen
-	bsr.w	Pal_FadeFromBlack
+	jsr	(Pal_FadeFromBlack).l
 
 	; Here's how to calculate new duration values for the below instructions.
 	; Each slide of the credits is displayed for $18E frames at 60 FPS, or $144 frames at 50 FPS.
@@ -12827,7 +12829,7 @@ EndgameCredits:
 	lsl.w	#2,d0
 	move.l	(a1,d0.w),d0
 	bpl.s	--
-	bsr.w	Pal_FadeToBlack
+	jsr	(Pal_FadeToBlack).l
 	jsrto	(ClearScreen).l, JmpTo_ClearScreen
 	move.l	#vdpComm($0000,VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_EndingTitle).l,a0
@@ -14144,7 +14146,7 @@ off_B4C4: creditsPtrs	byte_B55C,textLoc($0B,$06), byte_BAA2,textLoc($0A,$08), by
 off_B4F0: creditsPtrs	byte_BB58,textLoc($06,$06), byte_BB75,textLoc($12,$08), byte_BB7B,textLoc($06,$0C), byte_BC9F,textLoc($05,$0E), byte_BBD8,textLoc($08,$10), byte_BBF2,textLoc($08,$12), byte_BC0C,textLoc($09,$14)
 off_B51C: creditsPtrs	byte_BB58,textLoc($06,$06), byte_BB75,textLoc($12,$08), byte_BB98,textLoc($03,$0C), byte_BBBC,textLoc($07,$0E), byte_BCBE,textLoc($07,$10), byte_BCD9,textLoc($0D,$12), byte_BC25,textLoc($04,$14)
 off_B548: creditsPtrs	byte_BC7B,textLoc($0B,$09), byte_BC8F,textLoc($12,$0D), byte_BC95,textLoc($10,$11)
-KnuxPort: creditsPtrs	UpdatedDisassemblyYellow,textLoc($01,$09), SaxmanCredit,textLoc($0D,$0B), FredCredit,textLoc($09,$0D), MainMemoryCredit,textLoc($09,$0F), PutoCredit,textLoc($0F,$11), RalakimusCredit,textLoc($09,$13)
+KnuxPort: creditsPtrs	UpdatedDisassemblyYellow,textLoc($02,$09), SaxmanCredit,textLoc($0D,$0B), FredCredit,textLoc($09,$0D), MainMemoryCredit,textLoc($09,$0F), PutoCredit,textLoc($0F,$11), RalakimusCredit,textLoc($0A,$13), OtherCredits,textLoc($03,$15)
 
 
  ; temporarily remap characters to credit text format
@@ -14194,6 +14196,7 @@ FredCredit:		creditText 0,"FREDBRONZE"
 MainMemoryCredit:	creditText 0,"MAINMEMORY"
 PutoCredit:		creditText 0,"PUTO"
 RalakimusCredit:	creditText 0,"RALAKIMUS"
+OtherCredits:		creditText 1,"AND LOTS OF OTHERS"
 byte_B55C:	creditText 1,"EXECUTIVE"
 byte_B56F:	creditText 1,"PRODUCER"
 byte_B581:	creditText 0,"HAYAO  NAKAYAMA"
@@ -15030,8 +15033,10 @@ SwScrl_EHZ:
 	add.l	d0,d3
 	swap	d3
 	dbf	d1,-
-
-	; note there is a bug here. the bottom 8 pixels haven't had their hscroll values set. only the EHZ scrolling code has this bug.
+	move.w	d4,(a1)+
+	move.w	d3,(a1)+
+	move.w	d4,(a1)+
+	move.w	d3,(a1)+
 
 	rts
 ; ===========================================================================
@@ -41666,16 +41671,13 @@ Obj79_LoadData:
 	move.w	(Saved_y_pos).w,(MainCharacter+y_pos).w
 	move.w	(Saved_Ring_count).w,(Ring_count).w
 	move.b	(Saved_Extra_life_flags).w,(Extra_life_flags).w
+	tst.b	(Bonus_stage_flag).w		; have we died?
+	bne.s	Obj79_DontClearRings		; if not, branch
+	clr.w	(Ring_count).w			; clear rings after dying
+	clr.b	(Extra_life_flags).w		; clear extra life flags after dying
 
-	tst.b	(Bonus_stage_flag).w
-	bne.s	Exit_BonusStage
-
-	clr.w	(Ring_count).w
-	clr.b	(Extra_life_flags).w
-
-Exit_BonusStage:
+Obj79_DontClearRings:
 	clr.b	(Bonus_stage_flag).w
-
 	move.l	(Saved_Timer).w,(Timer).w
 	move.b	#59,(Timer_frame).w
 	subq.b	#1,(Timer_second).w
@@ -42541,6 +42543,7 @@ Obj03:
 	move.w	Obj03_Index(pc,d0.w),d1
 	jsr	Obj03_Index(pc,d1.w)
 	jmp	(MarkObjGone3).l
+
 ; ===========================================================================
 ; off_1FCF0:
 Obj03_Index:	offsetTable
@@ -42615,7 +42618,7 @@ Obj03_MainX:
 	lea	(Sidekick).w,a1 ; a1=character
 
 +	tst.b	(a2)+
-	bne.s	Obj03_MainX_Alt
+	bne.w	Obj03_MainX_Alt
 	cmp.w	x_pos(a1),d1
 	bhi.w	return_1FEAC
 	move.b	#1,-1(a2)
@@ -42645,9 +42648,9 @@ Obj03_MainX:
 +
 	andi.w	#drawing_mask,art_tile(a1)
 	btst	#5,d0
-	beq.s	return_1FEAC
+	beq.w	return_1FEAC
 	ori.w	#high_priority,art_tile(a1)
-	bra.s	return_1FEAC
+	bra.w	return_1FEAC
 ; ===========================================================================
 ; loc_1FE38:
 Obj03_MainX_Alt:
@@ -42697,7 +42700,7 @@ Obj03_MainY:
 	lea	(Sidekick).w,a1 ; a1=character
 
 +	tst.b	(a2)+
-	bne.s	Obj03_MainY_Alt
+	bne.w	Obj03_MainY_Alt
 	cmp.w	y_pos(a1),d1
 	bhi.w	return_1FFB6
 	move.b	#1,-1(a2)
@@ -42727,9 +42730,9 @@ Obj03_MainY:
 +
 	andi.w	#drawing_mask,art_tile(a1)
 	btst	#5,d0
-	beq.s	return_1FFB6
+	beq.w	return_1FFB6
 	ori.w	#high_priority,art_tile(a1)
-	bra.s	return_1FFB6
+	bra.w	return_1FFB6
 ; ===========================================================================
 ; loc_1FF42:
 Obj03_MainY_Alt:
@@ -43144,7 +43147,7 @@ Obj04_Index:	offsetTable
 Obj04_Init:
 	addq.b	#2,routine(a0) ; => Obj04_Action
 	move.l	#Obj04_MapUnc_20A0E,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_WaterSurface,0,1),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtNem_WaterSurface,1,1),art_tile(a0)
 	jsrto	(Adjust2PArtPointer).l, JmpTo12_Adjust2PArtPointer
 	move.b	#4,render_flags(a0)
 	move.b	#$80,width_pixels(a0)
@@ -86209,7 +86212,6 @@ PlrList_Htz1: plrlistheader
 	plreq ArtTile_ArtNem_HtzRock, ArtNem_HtzRock
 	plreq ArtTile_ArtNem_HtzSeeSaw, ArtNem_HtzSeeSaw
 	plreq ArtTile_ArtNem_Sol, ArtNem_Sol
-	plreq ArtTile_ArtNem_Rexon, ArtNem_Rexon
 	plreq ArtTile_ArtNem_Spiker, ArtNem_Spiker
 	plreq ArtTile_ArtNem_Spikes, ArtNem_Spikes
 	plreq ArtTile_ArtNem_DignlSprng, ArtNem_DignlSprng
@@ -86224,6 +86226,7 @@ PlrList_Htz2: plrlistheader
 	plreq ArtTile_ArtNem_HtzZipline, ArtNem_HtzZipline
 	plreq ArtTile_ArtNem_HtzFireball2, ArtNem_HtzFireball2
 	plreq ArtTile_ArtNem_HtzValveBarrier, ArtNem_HtzValveBarrier
+	plreq ArtTile_ArtNem_Rexon, ArtNem_Rexon
 PlrList_Htz2_End
 ;---------------------------------------------------------------------------------------
 ; Pattern load queue
@@ -86356,14 +86359,14 @@ PlrList_Cpz2_End
 ; DEZ Primary
 ;---------------------------------------------------------------------------------------
 PlrList_Dez1: plrlistheader
-	plreq ArtTile_ArtNem_ConstructionStripes_1, ArtNem_ConstructionStripes
+	plreq ArtTile_ArtNem_SilverSonic, ArtNem_SilverSonic
 PlrList_Dez1_End
 ;---------------------------------------------------------------------------------------
 ; Pattern load queue
 ; DEZ Secondary
 ;---------------------------------------------------------------------------------------
 PlrList_Dez2: plrlistheader
-	plreq ArtTile_ArtNem_SilverSonic, ArtNem_SilverSonic
+	plreq ArtTile_ArtNem_ConstructionStripes_1, ArtNem_ConstructionStripes
 	plreq ArtTile_ArtNem_DEZWindow, ArtNem_DEZWindow
 	plreq ArtTile_ArtNem_RobotnikRunning, ArtNem_RobotnikRunning
 	plreq ArtTile_ArtNem_RobotnikUpper, ArtNem_RobotnikUpper

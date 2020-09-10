@@ -1,3 +1,12 @@
+v1.30:
+* Rings aren't cleared after entering a Special Stage, like Sonic 3/Sonic 2 and Knuckles
+* The bottom two pixels in Emerald Hill Zone now scroll properly, like Sonic 2 & Knuckles
+* Game now uses the Knuckles in Sonic 2 object layouts (includes modifications such as new monitors)
+* Improved Knuckles underwater palettes (and made one for Hidden Palace Zone)
+* Made Aquatic Ruin's water use palette line 1 to make it look less awkward as Knuckles
+* Rexon's art now loads properly in Hill Top Zone
+* Optimized LoadZoneTiles
+
 v1.25:
 * Completely separated Emerald Hill/Hill Top and Sky Chase/Wing Fortress' graphics
 * Fully constanted Knuckles' code
@@ -6,16 +15,16 @@ v1.25:
 * Knuckles jump height during Wing Fortress is now consistent with the rest of the game (previously, it was higher so he could make the jump in the cutscene)
 * Optimized WFZ cutscene code (now Knuckles' gliding is disabled by setting a flag)
 
-v1.2:
+v1.20:
 * Gave every stage unique tiles for act 2 (also supports two player mode)
 * Expanded the level size, start location and title card letter indexies to support more
 * Optimized the ending code and fixed Knuckles being slightly broken before jumping off the Tornado
 
-v1.1:
+v1.10:
 * Updated Knuckles' code to be more consistent with the Sonic 2 Github disassembly
 * Fixed broken Casino Night PSG notes in credits theme
 
-v1.0 (inital release):
+v1.00 (inital release):
 * Ported Knuckles
 * Fixed Oil Ocean music bug
 * Updated credits to include Knuckles port thanks
