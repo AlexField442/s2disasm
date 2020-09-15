@@ -4296,85 +4296,78 @@ JmpTo_SwScrl_Title ; JmpTo
 
 
 ;----------------------------------------------------------------------------
-; 1P Music Playlist
+; Music Playlist
 ;----------------------------------------------------------------------------
 ; byte_3EA0:
-MusicList: zoneOrderedTable 1,2
+MusicList: zoneOrderedTable 1,4
 	zoneTableEntry.b MusID_EHZ	; 0 ; EHZ1
+	zoneTableEntry.b MusID_EHZ_2P	; 0 ; EHZ1 (2 player)
 	zoneTableEntry.b MusID_EHZ	; 0 ; EHZ2
+	zoneTableEntry.b MusID_EHZ_2P	; 0 ; EHZ2 (2 player)
 	zoneTableEntry.b MusID_EHZ	; 1
+	zoneTableEntry.b MusID_EHZ	; 1 (2 player)
 	zoneTableEntry.b MusID_EHZ	; 1
-	zoneTableEntry.b MusID_MTZ	; 2
-	zoneTableEntry.b MusID_MTZ	; 2
+	zoneTableEntry.b MusID_EHZ	; 1 (2 player)
+	zoneTableEntry.b MusID_MTZ	; 2 ; WZ1
+	zoneTableEntry.b MusID_MTZ	; 2 ; WZ1 (2 player)
+	zoneTableEntry.b MusID_MTZ	; 2 ; WZ2
+	zoneTableEntry.b MusID_MTZ	; 2 ; WZ2 (2 player)
 	zoneTableEntry.b MusID_OOZ	; 3
+	zoneTableEntry.b MusID_OOZ	; 3 (2 player)
 	zoneTableEntry.b MusID_OOZ	; 3
+	zoneTableEntry.b MusID_OOZ	; 3 (2 player)
 	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ1
+	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ1 (2 player)
 	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ2
+	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ2 (2 player)
 	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ3
+	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ3 (2 player)
 	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ4
+	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ4 (2 player)
 	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ1
+	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ1 (2 player)
 	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ2
+	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ2 (2 player)
 	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ1
+	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ1 (2 player)
 	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ2
+	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ2 (2 player)
 	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1
+	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1 (2 player)
 	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1
+	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1 (2 player)
 	zoneTableEntry.b MusID_SCZ	; 9
+	zoneTableEntry.b MusID_SCZ	; 9 (2 player)
 	zoneTableEntry.b MusID_SCZ	; 9
+	zoneTableEntry.b MusID_SCZ	; 9 (2 player)
 	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ1
+	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ1 (2 player)
 	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ2
+	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ2 (2 player)
 	zoneTableEntry.b MusID_MCZ	; 11 ; MCZ1
+	zoneTableEntry.b MusID_MCZ_2P	; 11 ; MCZ1 (2 player)
 	zoneTableEntry.b MusID_MCZ	; 11 ; MCZ2
+	zoneTableEntry.b MusID_MCZ_2P	; 11 ; MCZ2 (2 player)
 	zoneTableEntry.b MusID_CNZ	; 12 ; CNZ1
+	zoneTableEntry.b MusID_CNZ_2P	; 12 ; CNZ1 (2 player)
 	zoneTableEntry.b MusID_CNZ	; 12 ; CNZ2
+	zoneTableEntry.b MusID_CNZ_2P	; 12 ; CNZ2 (2 player)
 	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ1
+	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ1 (2 player)
 	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ2
+	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ2 (2 player)
 	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ1
+	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ1 (2 player)
 	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ2
+	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ2 (2 player)
 	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ1
+	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ1 (2 player)
 	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ2
+	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ2 (2 player)
 	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ1
+	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ1 (2 player)
 	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ2
-    zoneTableEnd
-	even
-;----------------------------------------------------------------------------
-; 2P Music Playlist
-;----------------------------------------------------------------------------
-; byte_3EB2:
-MusicList2: zoneOrderedTable 1,2
-	zoneTableEntry.b MusID_EHZ_2P	; 0 ; EHZ1
-	zoneTableEntry.b MusID_EHZ_2P	; 0 ; EHZ2
-	zoneTableEntry.b MusID_EHZ	; 1
-	zoneTableEntry.b MusID_EHZ	; 1
-	zoneTableEntry.b MusID_MTZ	; 2
-	zoneTableEntry.b MusID_MTZ	; 2
-	zoneTableEntry.b MusID_OOZ	; 3
-	zoneTableEntry.b MusID_OOZ	; 3
-	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ1
-	zoneTableEntry.b MusID_MTZ	; 4 ; MTZ2
-	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ3
-	zoneTableEntry.b MusID_MTZ	; 5 ; MTZ4
-	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ1
-	zoneTableEntry.b MusID_WFZ	; 6 ; WFZ2
-	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ1
-	zoneTableEntry.b MusID_HTZ	; 7 ; HTZ2
-	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1
-	zoneTableEntry.b MusID_HPZ	; 8 ; HPZ1
-	zoneTableEntry.b MusID_SCZ	; 9
-	zoneTableEntry.b MusID_SCZ	; 9
-	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ1
-	zoneTableEntry.b MusID_OOZ	; 10 ; OOZ2
-	zoneTableEntry.b MusID_MCZ_2P	; 11 ; MCZ1
-	zoneTableEntry.b MusID_MCZ_2P	; 11 ; MCZ2
-	zoneTableEntry.b MusID_CNZ_2P	; 12 ; CNZ1
-	zoneTableEntry.b MusID_CNZ_2P	; 12 ; CNZ2
-	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ1
-	zoneTableEntry.b MusID_CPZ	; 13 ; CPZ2
-	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ1
-	zoneTableEntry.b MusID_DEZ	; 14 ; DEZ2
-	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ1
-	zoneTableEntry.b MusID_ARZ	; 15 ; ARZ2
-	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ1
-	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ2
+	zoneTableEntry.b MusID_SCZ	; 16 ; SCZ2 (2 player)
     zoneTableEnd
 	even
 ; ===========================================================================
@@ -4554,14 +4547,9 @@ Level_GetBgm:
 	moveq	#0,d0
 	move.w	(Current_ZoneAndAct).w,d0
 	ror.b	#1,d0
-	lsr.w	#7,d0
+	lsr.w	#6,d0
+	add.w	(Two_player_mode).w,d0
 	lea	(MusicList).l,a1
-	tst.w	(Two_player_mode).w
-	beq.s	Level_PlayBgm
-	lea	(MusicList2).l,a1
-
-; loc_40C8:
-Level_PlayBgm:
 	move.b	(a1,d0.w),d0		; load from music playlist
 	move.w	d0,(Level_Music).w	; store level music
 	bsr.w	PlayMusic		; play level music
@@ -5485,14 +5473,14 @@ LoadCollisionIndexes:
 ; level. 1 pointer for each level, pointing the primary collision index.
 ; ---------------------------------------------------------------------------
 Off_ColP: zoneOrderedTable 4,1
-	zoneTableEntry.l ColP_EHZHTZ
+	zoneTableEntry.l ColP_EHZ
 	zoneTableEntry.l ColP_Invalid	; 1
 	zoneTableEntry.l ColP_MTZ	; 2
 	zoneTableEntry.l ColP_Invalid	; 3
 	zoneTableEntry.l ColP_MTZ	; 4
 	zoneTableEntry.l ColP_MTZ	; 5
 	zoneTableEntry.l ColP_WFZSCZ	; 6
-	zoneTableEntry.l ColP_EHZHTZ	; 7
+	zoneTableEntry.l ColP_HTZ	; 7
 	zoneTableEntry.l ColP_HPZ	; 8
 	zoneTableEntry.l ColP_Invalid	; 9
 	zoneTableEntry.l ColP_OOZ	; 10
@@ -5512,14 +5500,14 @@ Off_ColP: zoneOrderedTable 4,1
 ; index.
 ; ---------------------------------------------------------------------------
 Off_ColS: zoneOrderedTable 4,1
-	zoneTableEntry.l ColS_EHZHTZ
+	zoneTableEntry.l ColS_EHZ
 	zoneTableEntry.l ColP_Invalid	; 1
 	zoneTableEntry.l ColP_MTZ	; 2
 	zoneTableEntry.l ColP_Invalid	; 3
 	zoneTableEntry.l ColP_MTZ	; 4
 	zoneTableEntry.l ColP_MTZ	; 5
 	zoneTableEntry.l ColS_WFZSCZ	; 6
-	zoneTableEntry.l ColS_EHZHTZ	; 7
+	zoneTableEntry.l ColS_HTZ	; 7
 	zoneTableEntry.l ColS_HPZ	; 8
 	zoneTableEntry.l ColP_Invalid	; 9
 	zoneTableEntry.l ColP_OOZ	; 10
@@ -14560,7 +14548,10 @@ InitCameraValues:
 	move.w	d1,(Camera_BG3_X_pos_P2).w
 +
 	moveq	#0,d2
-	move.b	(Current_Zone).w,d2
+	move.w	(Current_ZoneAndAct).w,d2
+	ror.b	#1,d2
+	lsr.w	#6,d2
+	add.w	(Two_player_mode).w,d2
 	add.w	d2,d2
 	move.w	InitCam_Index(pc,d2.w),d2
 	jmp	InitCam_Index(pc,d2.w)
@@ -14568,23 +14559,74 @@ InitCameraValues:
 
 ; ===========================================================================
 ; off_C296:
-InitCam_Index: zoneOrderedOffsetTable 2,1
+InitCam_Index: zoneOrderedOffsetTable 2,4
+	zoneOffsetTableEntry.w InitCam_EHZ
+	zoneOffsetTableEntry.w InitCam_EHZ
+	zoneOffsetTableEntry.w InitCam_EHZ
 	zoneOffsetTableEntry.w InitCam_EHZ
 	zoneOffsetTableEntry.w InitCam_Null0	; 1
+	zoneOffsetTableEntry.w InitCam_Null0	; 1
+	zoneOffsetTableEntry.w InitCam_Null0	; 1
+	zoneOffsetTableEntry.w InitCam_Null0	; 1
+	zoneOffsetTableEntry.w InitCam_WZ	; 2
+	zoneOffsetTableEntry.w InitCam_WZ	; 2
+	zoneOffsetTableEntry.w InitCam_WZ	; 2
 	zoneOffsetTableEntry.w InitCam_WZ	; 2
 	zoneOffsetTableEntry.w InitCam_Null0	; 3
-	zoneOffsetTableEntry.w InitCam_Std	; 4 MTZ
-	zoneOffsetTableEntry.w InitCam_Std	; 5 MTZ3
+	zoneOffsetTableEntry.w InitCam_Null0	; 3
+	zoneOffsetTableEntry.w InitCam_Null0	; 3
+	zoneOffsetTableEntry.w InitCam_Null0	; 3
+	zoneOffsetTableEntry.w InitCam_Std	; 4
+	zoneOffsetTableEntry.w InitCam_Std	; 4
+	zoneOffsetTableEntry.w InitCam_Std	; 4
+	zoneOffsetTableEntry.w InitCam_Std	; 4
+	zoneOffsetTableEntry.w InitCam_Std	; 5
+	zoneOffsetTableEntry.w InitCam_Std	; 5
+	zoneOffsetTableEntry.w InitCam_Std	; 5
+	zoneOffsetTableEntry.w InitCam_Std	; 5
+	zoneOffsetTableEntry.w InitCam_Null1	; 6
+	zoneOffsetTableEntry.w InitCam_Null1	; 6
+	zoneOffsetTableEntry.w InitCam_Null1	; 6
 	zoneOffsetTableEntry.w InitCam_Null1	; 6
 	zoneOffsetTableEntry.w InitCam_HTZ	; 7
+	zoneOffsetTableEntry.w InitCam_HTZ	; 7
+	zoneOffsetTableEntry.w InitCam_HTZ	; 7
+	zoneOffsetTableEntry.w InitCam_HTZ	; 7
+	zoneOffsetTableEntry.w InitCam_HPZ	; 8
+	zoneOffsetTableEntry.w InitCam_HPZ	; 8
+	zoneOffsetTableEntry.w InitCam_HPZ	; 8
 	zoneOffsetTableEntry.w InitCam_HPZ	; 8
 	zoneOffsetTableEntry.w InitCam_Null2	; 9
+	zoneOffsetTableEntry.w InitCam_Null2	; 9
+	zoneOffsetTableEntry.w InitCam_Null2	; 9
+	zoneOffsetTableEntry.w InitCam_Null2	; 9
 	zoneOffsetTableEntry.w InitCam_OOZ	; 10
-	zoneOffsetTableEntry.w InitCam_MCZ	; 11
+	zoneOffsetTableEntry.w InitCam_OOZ	; 10
+	zoneOffsetTableEntry.w InitCam_OOZ	; 10
+	zoneOffsetTableEntry.w InitCam_OOZ	; 10
+	zoneOffsetTableEntry.w InitCam_MCZ1	; 11
+	zoneOffsetTableEntry.w InitCam_MCZ1	; 11
+	zoneOffsetTableEntry.w InitCam_MCZ2	; 11
+	zoneOffsetTableEntry.w InitCam_MCZ2	; 11
+	zoneOffsetTableEntry.w InitCam_CNZ	; 12
+	zoneOffsetTableEntry.w InitCam_CNZ	; 12
+	zoneOffsetTableEntry.w InitCam_CNZ	; 12
 	zoneOffsetTableEntry.w InitCam_CNZ	; 12
 	zoneOffsetTableEntry.w InitCam_CPZ	; 13
+	zoneOffsetTableEntry.w InitCam_CPZ	; 13
+	zoneOffsetTableEntry.w InitCam_CPZ	; 13
+	zoneOffsetTableEntry.w InitCam_CPZ	; 13
 	zoneOffsetTableEntry.w InitCam_Null3	; 14
-	zoneOffsetTableEntry.w InitCam_ARZ	; 15
+	zoneOffsetTableEntry.w InitCam_Null3	; 14
+	zoneOffsetTableEntry.w InitCam_Null3	; 14
+	zoneOffsetTableEntry.w InitCam_Null3	; 14
+	zoneOffsetTableEntry.w InitCam_ARZ1	; 15
+	zoneOffsetTableEntry.w InitCam_ARZ1	; 15
+	zoneOffsetTableEntry.w InitCam_ARZ2	; 15
+	zoneOffsetTableEntry.w InitCam_ARZ2	; 15
+	zoneOffsetTableEntry.w InitCam_SCZ	; 16
+	zoneOffsetTableEntry.w InitCam_SCZ	; 16
+	zoneOffsetTableEntry.w InitCam_SCZ	; 16
 	zoneOffsetTableEntry.w InitCam_SCZ	; 16
     zoneTableEnd
 ; ===========================================================================
@@ -14687,19 +14729,19 @@ InitCam_OOZ:
 	clr.l	(Camera_BG_X_pos).w
 	rts
 ; ===========================================================================
-;loc_C332:
-InitCam_MCZ:
+; loc_C332:
+InitCam_MCZ1:
 	clr.l	(Camera_BG_X_pos).w
 	clr.l	(Camera_BG_X_pos_P2).w
-	tst.b	(Current_Act).w
-	bne.s	+
 	divu.w	#3,d0
 	subi.w	#$140,d0
 	move.w	d0,(Camera_BG_Y_pos).w
 	move.w	d0,(Camera_BG_Y_pos_P2).w
 	rts
 ; ===========================================================================
-+
+InitCam_MCZ2:
+	clr.l	(Camera_BG_X_pos).w
+	clr.l	(Camera_BG_X_pos_P2).w
 	divu.w	#6,d0
 	subi.w	#$10,d0
 	move.w	d0,(Camera_BG_Y_pos).w
@@ -14728,20 +14770,24 @@ InitCam_CPZ:
 InitCam_Null3:
 	rts
 ; ===========================================================================
-;loc_C38C:
-InitCam_ARZ:
-	tst.b	(Current_Act).w
-	beq.s	+
+; loc_C38C:
+InitCam_ARZ1:
+	subi.w	#$180,d0
+	move.w	d0,(Camera_BG_Y_pos).w
+	muls.w	#$119,d1
+	asr.l	#8,d1
+	move.w	d1,(Camera_BG_X_pos).w
+	move.w	d1,(Camera_ARZ_BG_X_pos).w
+	clr.w	(Camera_BG_X_pos+2).w
+	clr.w	(Camera_ARZ_BG_X_pos+2).w
+	clr.l	(Camera_BG2_Y_pos).w
+	clr.l	(Camera_BG3_Y_pos).w
+	rts
+; ===========================================================================
+InitCam_ARZ2:
 	subi.w	#$E0,d0
 	lsr.w	#1,d0
 	move.w	d0,(Camera_BG_Y_pos).w
-	bra.s	loc_C3A6
-; ===========================================================================
-+
-	subi.w	#$180,d0
-	move.w	d0,(Camera_BG_Y_pos).w
-
-loc_C3A6:
 	muls.w	#$119,d1
 	asr.l	#8,d1
 	move.w	d1,(Camera_BG_X_pos).w
@@ -14842,8 +14888,11 @@ loc_C4D0:
 	move.l	(Camera_X_pos).w,(Camera_X_pos_copy).w
 	move.l	(Camera_Y_pos).w,(Camera_Y_pos_copy).w
 	moveq	#0,d0
-	move.b	(Current_Zone).w,d0
-	add.w	d0,d0
+	move.w	(Current_ZoneAndAct).w,d0
+	ror.b	#1,d0
+	lsr.w	#6,d0
+	add.w	(Two_player_mode).w,d0
+	add.b	d0,d0
 	move.w	SwScrl_Index(pc,d0.w),d0
 	jmp	SwScrl_Index(pc,d0.w)
 ; End of function DeformBgLayer
@@ -14861,24 +14910,75 @@ loc_C4D0:
 ; They are also used for things like controlling the parallax scrolling and
 ; water ripple effects in EHZ, and moving the clouds in HTZ and the stars in DEZ.
 ; ---------------------------------------------------------------------------
-SwScrl_Index: zoneOrderedOffsetTable 2,1	; JmpTbl_SwScrlMgr
-	zoneOffsetTableEntry.w SwScrl_EHZ	; $00
-	zoneOffsetTableEntry.w SwScrl_Minimal	; $01
-	zoneOffsetTableEntry.w SwScrl_Lev2	; $02
-	zoneOffsetTableEntry.w SwScrl_Minimal	; $03
-	zoneOffsetTableEntry.w SwScrl_MTZ	; $04
-	zoneOffsetTableEntry.w SwScrl_MTZ	; $05
-	zoneOffsetTableEntry.w SwScrl_WFZ	; $06
-	zoneOffsetTableEntry.w SwScrl_HTZ	; $07
-	zoneOffsetTableEntry.w SwScrl_HPZ	; $08
-	zoneOffsetTableEntry.w SwScrl_Minimal	; $09
-	zoneOffsetTableEntry.w SwScrl_OOZ	; $0A
-	zoneOffsetTableEntry.w SwScrl_MCZ	; $0B
-	zoneOffsetTableEntry.w SwScrl_CNZ	; $0C
-	zoneOffsetTableEntry.w SwScrl_CPZ	; $0D
-	zoneOffsetTableEntry.w SwScrl_DEZ	; $0E
-	zoneOffsetTableEntry.w SwScrl_ARZ	; $0F
-	zoneOffsetTableEntry.w SwScrl_SCZ	; $10
+SwScrl_Index: zoneOrderedOffsetTable 2,4	; JmpTbl_SwScrlMgr
+	zoneOffsetTableEntry.w SwScrl_EHZ	; EHZ1
+	zoneOffsetTableEntry.w SwScrl_EHZ_2P	; EHZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_EHZ	; EHZ2
+	zoneOffsetTableEntry.w SwScrl_EHZ_2P	; EHZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 1 act 1
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 1 act 1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 1 act 2
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 1 act 2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_Lev2	; WZ1
+	zoneOffsetTableEntry.w SwScrl_Lev2	; WZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_Lev2	; WZ2
+	zoneOffsetTableEntry.w SwScrl_Lev2	; WZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 3 act 1
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 3 act 1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 3 act 2
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 3 act 2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_MTZ	; MTZ1
+	zoneOffsetTableEntry.w SwScrl_MTZ	; MTZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_MTZ	; MTZ2
+	zoneOffsetTableEntry.w SwScrl_MTZ	; MTZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_MTZ	; MTZ3
+	zoneOffsetTableEntry.w SwScrl_MTZ	; MTZ3 (2 player)
+	zoneOffsetTableEntry.w SwScrl_MTZ	; MTZ4
+	zoneOffsetTableEntry.w SwScrl_MTZ	; MTZ4 (2 player)
+	zoneOffsetTableEntry.w SwScrl_WFZ	; WFZ1
+	zoneOffsetTableEntry.w SwScrl_WFZ	; WFZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_WFZ	; WFZ2
+	zoneOffsetTableEntry.w SwScrl_WFZ	; WFZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_HTZ	; HTZ1
+	zoneOffsetTableEntry.w SwScrl_HTZ	; HTZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_HTZ	; HTZ2
+	zoneOffsetTableEntry.w SwScrl_HTZ	; HTZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_HPZ	; HPZ1
+	zoneOffsetTableEntry.w SwScrl_HPZ	; HPZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_HPZ	; HPZ2
+	zoneOffsetTableEntry.w SwScrl_HPZ	; HPZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 9 act 1
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 9 act 1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 9 act 2
+	zoneOffsetTableEntry.w SwScrl_Minimal	; Zone 9 act 2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_OOZ	; OOZ1
+	zoneOffsetTableEntry.w SwScrl_OOZ	; OOZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_OOZ	; OOZ2
+	zoneOffsetTableEntry.w SwScrl_OOZ	; OOZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_MCZ1	; MCZ1
+	zoneOffsetTableEntry.w SwScrl_MCZ1_2P	; MCZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_MCZ2	; MCZ2
+	zoneOffsetTableEntry.w SwScrl_MCZ2_2P	; MCZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_CNZ	; CNZ1
+	zoneOffsetTableEntry.w SwScrl_CNZ_2P	; CNZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_CNZ	; CNZ2
+	zoneOffsetTableEntry.w SwScrl_CNZ_2P	; CNZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_CPZ	; CPZ1
+	zoneOffsetTableEntry.w SwScrl_CPZ	; CPZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_CPZ	; CPZ2
+	zoneOffsetTableEntry.w SwScrl_CPZ	; CPZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_DEZ	; DEZ1
+	zoneOffsetTableEntry.w SwScrl_DEZ	; DEZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_DEZ	; DEZ2
+	zoneOffsetTableEntry.w SwScrl_DEZ	; DEZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_ARZ1	; ARZ1
+	zoneOffsetTableEntry.w SwScrl_ARZ1	; ARZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_ARZ2	; ARZ2
+	zoneOffsetTableEntry.w SwScrl_ARZ2	; ARZ2 (2 player)
+	zoneOffsetTableEntry.w SwScrl_SCZ	; SCZ1
+	zoneOffsetTableEntry.w SwScrl_SCZ	; SCZ1 (2 player)
+	zoneOffsetTableEntry.w SwScrl_SCZ	; SCZ2
+	zoneOffsetTableEntry.w SwScrl_SCZ	; SCZ2 (2 player)
     zoneTableEnd
 ; ===========================================================================
 ; loc_C51E:
@@ -14923,8 +15023,6 @@ SwScrl_Title:
 ; ===========================================================================
 ; loc_C57E:
 SwScrl_EHZ:
-	tst.w	(Two_player_mode).w
-	bne.w	SwScrl_EHZ_2P
 	move.w	(Camera_BG_Y_pos).w,(Vscroll_Factor_BG).w
 	lea	(Horiz_Scroll_Buf).w,a1
 	move.w	(Camera_X_pos).w,d0
@@ -15298,8 +15396,6 @@ SwScrl_WFZ_Normal_Array:
 ; ===========================================================================
 ; loc_C964:
 SwScrl_HTZ:
-	tst.w	(Two_player_mode).w
-	bne.w	SwScrl_HTZ_2P	; never used in normal gameplay
 	tst.b	(Screen_Shaking_Flag_HTZ).w
 	bne.w	HTZ_Screen_Shake
 	move.w	(Camera_BG_Y_pos).w,(Vscroll_Factor_BG).w
@@ -15739,21 +15835,11 @@ OOZ_BGScroll_Lines:
 
 ; ===========================================================================
 ; loc_CD2C:
-SwScrl_MCZ:
-	tst.w	(Two_player_mode).w
-	bne.w	SwScrl_MCZ_2P
+SwScrl_MCZ1:
 	move.w	(Camera_Y_pos).w,d0
 	move.l	(Camera_BG_Y_pos).w,d3
-	tst.b	(Current_Act).w
-	bne.s	+
 	divu.w	#3,d0
 	subi.w	#$140,d0
-	bra.s	++
-; ===========================================================================
-+
-	divu.w	#6,d0
-	subi.w	#$10,d0
-+
 	swap	d0
 	moveq	#6,d6
 	bsr.w	SetVertiScrollFlagsBG2
@@ -15891,20 +15977,153 @@ SwScrl_MCZ_RowHeights:
 	dc.b $25	; 23
 	even
 ; ===========================================================================
-; loc_CE84:
-SwScrl_MCZ_2P:
-	moveq	#0,d0
+SwScrl_MCZ2:
 	move.w	(Camera_Y_pos).w,d0
-	tst.b	(Current_Act).w
-	bne.s	+
-	divu.w	#3,d0
-	subi.w	#$140,d0
-	bra.s	++
-; ===========================================================================
-+
+	move.l	(Camera_BG_Y_pos).w,d3
 	divu.w	#6,d0
 	subi.w	#$10,d0
+	swap	d0
+	moveq	#6,d6
+	bsr.w	SetVertiScrollFlagsBG2
+	move.w	(Camera_BG_Y_pos).w,(Vscroll_Factor_BG).w
+	moveq	#0,d2
+	tst.b	(Screen_Shaking_Flag).w
+	beq.s	+
+
+	move.w	(Timer_frames).w,d0
+	andi.w	#$3F,d0
+	lea_	SwScrl_RippleData,a1
+	lea	(a1,d0.w),a1
+	moveq	#0,d0
+	move.b	(a1)+,d0
+	add.w	d0,(Vscroll_Factor_FG).w
+	add.w	d0,(Vscroll_Factor_BG).w
+	add.w	d0,(Camera_Y_pos_copy).w
+	move.b	(a1)+,d2
+	add.w	d2,(Camera_X_pos_copy).w
 +
+	lea	(TempArray_LayerDef).w,a2
+	lea	$1E(a2),a3
+	move.w	(Camera_X_pos).w,d0
+	ext.l	d0
+	asl.l	#4,d0
+	divs.w	#$A,d0
+	ext.l	d0
+	asl.l	#4,d0
+	asl.l	#8,d0
+	move.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,$E(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,$C(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,$A(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,8(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,6(a2)
+	move.w	d1,$10(a2)
+	move.w	d1,$1C(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,4(a2)
+	move.w	d1,$12(a2)
+	move.w	d1,$1A(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,2(a2)
+	move.w	d1,$14(a2)
+	move.w	d1,$18(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,(a2)
+	move.w	d1,$16(a2)
+	lea	(SwScrl_MCZ2_RowHeights).l,a3
+	lea	(TempArray_LayerDef).w,a2
+	lea	(Horiz_Scroll_Buf).w,a1
+	move.w	(Camera_BG_Y_pos).w,d1
+	moveq	#0,d0
+
+-	move.b	(a3)+,d0
+	addq.w	#2,a2
+	sub.w	d0,d1
+	bcc.s	-
+
+	neg.w	d1
+	subq.w	#2,a2
+	move.w	#bytesToLcnt($380),d2
+	move.w	(Camera_X_pos).w,d0
+	neg.w	d0
+	swap	d0
+	move.w	(a2)+,d0
+	neg.w	d0
+
+-	move.l	d0,(a1)+
+	subq.w	#1,d1
+	bne.s	+
+	move.b	(a3)+,d1
+	move.w	(a2)+,d0
+	neg.w	d0
++	dbf	d2,-
+
+	rts
+; ===========================================================================
+SwScrl_MCZ2_RowHeights:
+	dc.b $25
+	dc.b $17	; 1
+	dc.b $12	; 2
+	dc.b   7	; 3
+	dc.b   7	; 4
+	dc.b   2	; 5
+	dc.b   2	; 6
+	dc.b $30	; 7
+	dc.b  $D	; 8
+	dc.b $13	; 9
+	dc.b $20	; 10
+	dc.b $40	; 11
+	dc.b $20	; 12
+	dc.b $13	; 13
+	dc.b  $D	; 14
+	dc.b $30	; 15
+	dc.b   2	; 16
+	dc.b   2	; 17
+	dc.b   7	; 18
+	dc.b   7	; 19
+	dc.b $20	; 20
+	dc.b $12	; 21
+	dc.b $17	; 22
+	dc.b $25	; 23
+	even
+; ===========================================================================
+; loc_CE84:
+SwScrl_MCZ1_2P:
+	moveq	#0,d0
+	move.w	(Camera_Y_pos).w,d0
+	divu.w	#3,d0
+	subi.w	#$140,d0
 	move.w	d0,(Camera_BG_Y_pos).w
 	move.w	d0,(Vscroll_Factor_BG).w
 	andi.l	#$FFFEFFFE,(Vscroll_Factor).w
@@ -16029,16 +16248,8 @@ SwScrl_MCZ2P_RowHeights:
 +
 	moveq	#0,d0
 	move.w	(Camera_Y_pos_P2).w,d0
-	tst.b	(Current_Act).w
-	bne.s	+
 	divu.w	#3,d0
 	subi.w	#$140,d0
-	bra.s	++
-; ===========================================================================
-+
-	divu.w	#6,d0
-	subi.w	#$10,d0
-+
 	move.w	d0,(Camera_BG_Y_pos_P2).w
 	move.w	d0,(Vscroll_Factor_P2_BG).w
 	subi.w	#$E0,(Vscroll_Factor_P2_BG).w
@@ -16138,10 +16349,235 @@ SwScrl_MCZ2P_RowHeights:
 
 	rts
 ; ===========================================================================
+; loc_CE84:
+SwScrl_MCZ2_2P:
+	moveq	#0,d0
+	move.w	(Camera_Y_pos).w,d0
+	divu.w	#6,d0
+	subi.w	#$10,d0
+	move.w	d0,(Camera_BG_Y_pos).w
+	move.w	d0,(Vscroll_Factor_BG).w
+	andi.l	#$FFFEFFFE,(Vscroll_Factor).w
+	lea	(TempArray_LayerDef).w,a2
+	lea	$1E(a2),a3
+	move.w	(Camera_X_pos).w,d0
+	ext.l	d0
+	asl.l	#4,d0
+	divs.w	#$A,d0
+	ext.l	d0
+	asl.l	#4,d0
+	asl.l	#8,d0
+	move.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,$E(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,$C(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,$A(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,8(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,6(a2)
+	move.w	d1,$10(a2)
+	move.w	d1,$1C(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,4(a2)
+	move.w	d1,$12(a2)
+	move.w	d1,$1A(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,2(a2)
+	move.w	d1,$14(a2)
+	move.w	d1,$18(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,(a2)
+	move.w	d1,$16(a2)
+	lea	(SwScrl_MCZ2P2_RowHeights).l,a3
+	lea	(TempArray_LayerDef).w,a2
+	lea	(Horiz_Scroll_Buf).w,a1
+	move.w	(Camera_BG_Y_pos).w,d1
+	lsr.w	#1,d1
+	moveq	#0,d0
+
+-	move.b	(a3)+,d0
+	addq.w	#2,a2
+	sub.w	d0,d1
+	bcc.s	-
+
+	neg.w	d1
+	subq.w	#2,a2
+	move.w	#bytesToLcnt($1C0),d2
+	move.w	(Camera_X_pos).w,d0
+	neg.w	d0
+	swap	d0
+	move.w	(a2)+,d0
+	neg.w	d0
+
+-	move.l	d0,(a1)+
+	subq.w	#1,d1
+	bne.s	+
+	move.b	(a3)+,d1
+	move.w	(a2)+,d0
+	neg.w	d0
++	dbf	d2,-
+	moveq	#0,d0
+	move.w	(Camera_Y_pos_P2).w,d0
+	divu.w	#6,d0
+	subi.w	#$10,d0
+	move.w	d0,(Camera_BG_Y_pos_P2).w
+	move.w	d0,(Vscroll_Factor_P2_BG).w
+	subi.w	#$E0,(Vscroll_Factor_P2_BG).w
+	move.w	(Camera_Y_pos_P2).w,(Vscroll_Factor_P2_FG).w
+	subi.w	#$E0,(Vscroll_Factor_P2_FG).w
+	andi.l	#$FFFEFFFE,(Vscroll_Factor_P2).w
+	lea	(TempArray_LayerDef).w,a2
+	lea	$1E(a2),a3
+	move.w	(Camera_X_pos_P2).w,d0
+	ext.l	d0
+	asl.l	#4,d0
+	divs.w	#$A,d0
+	ext.l	d0
+	asl.l	#4,d0
+	asl.l	#8,d0
+	move.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,$E(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,$C(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,$A(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,8(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,6(a2)
+	move.w	d1,$10(a2)
+	move.w	d1,$1C(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,4(a2)
+	move.w	d1,$12(a2)
+	move.w	d1,$1A(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,2(a2)
+	move.w	d1,$14(a2)
+	move.w	d1,$18(a2)
+	swap	d1
+	add.l	d0,d1
+	swap	d1
+	move.w	d1,(a3)+
+	move.w	d1,(a2)
+	move.w	d1,$16(a2)
+	lea_	SwScrl_MCZ2P2_RowHeights+1,a3
+	lea	(TempArray_LayerDef).w,a2
+	lea	(Horiz_Scroll_Buf+$1B0).w,a1
+	move.w	(Camera_BG_Y_pos_P2).w,d1
+	lsr.w	#1,d1
+	moveq	#$17,d0
+	bra.s	+
+; ===========================================================================
+; byte_CF90:
+SwScrl_MCZ2P2_RowHeights:
+	dc.b $13
+	dc.b  $B
+	dc.b   9	; 1
+	dc.b   4	; 2
+	dc.b   3	; 3
+	dc.b   1	; 4
+	dc.b   1	; 5
+	dc.b $18	; 6
+	dc.b   6	; 7
+	dc.b  $A	; 8
+	dc.b $10	; 9
+	dc.b $20	; 10
+	dc.b $10	; 11
+	dc.b  $A	; 12
+	dc.b   6	; 13
+	dc.b $18	; 14
+	dc.b   1	; 15
+	dc.b   1	; 16
+	dc.b   3	; 17
+	dc.b   4	; 18
+	dc.b $10	; 19
+	dc.b   9	; 20
+	dc.b  $B	; 21
+	dc.b $13	; 22
+	even
+; ===========================================================================
+-
+	move.b	(a3)+,d0
++
+	addq.w	#2,a2
+	sub.w	d0,d1
+	bcc.s	-
+
+	neg.w	d1
+	subq.w	#2,a2
+	move.w	#bytesToLcnt($1D0),d2
+	move.w	(Camera_X_pos_P2).w,d0
+	neg.w	d0
+	swap	d0
+	move.w	(a2)+,d0
+	neg.w	d0
+
+-	move.l	d0,(a1)+
+	subq.w	#1,d1
+	bne.s	+
+	move.b	(a3)+,d1
+	move.w	(a2)+,d0
+	neg.w	d0
++	dbf	d2,-
+
+	rts
+; ===========================================================================
 ; loc_D0C6:
 SwScrl_CNZ:
-	tst.w	(Two_player_mode).w
-	bne.w	SwScrl_CNZ_2P
 	move.w	(Camera_Y_pos).w,d0
 	lsr.w	#6,d0
 	move.w	d0,(Camera_BG_Y_pos).w
@@ -16598,7 +17034,7 @@ SwScrl_DEZ_RowHeights:
 	even
 ; ===========================================================================
 ; loc_D4AE:
-SwScrl_ARZ:
+SwScrl_ARZ1:
 	move.w	(Camera_X_pos_diff).w,d4
 	ext.l	d4
 	muls.w	#$119,d4
@@ -16606,11 +17042,7 @@ SwScrl_ARZ:
 	bsr.w	SetHorizScrollFlagsBG_ARZ
 	move.w	(Camera_Y_pos_diff).w,d5
 	ext.l	d5
-	asl.l	#7,d5
-	tst.b	(Current_Act).w
-	bne.s	+
-	asl.l	#1,d5
-+
+	asl.l	#8,d5
 	moveq	#6,d6
 	bsr.w	SetVertiScrollFlagsBG
 
@@ -16722,6 +17154,145 @@ SwScrl_ARZ:
 ; ===========================================================================
 ; byte_D5CE:
 SwScrl_ARZ_RowHeights:
+	dc.b $B0
+	dc.b $70	; 1
+	dc.b $30	; 2
+	dc.b $60	; 3
+	dc.b $15	; 4
+	dc.b  $C	; 5
+	dc.b  $E	; 6
+	dc.b   6	; 7
+	dc.b  $C	; 8
+	dc.b $1F	; 9
+	dc.b $30	; 10
+	dc.b $C0	; 11
+	dc.b $F0	; 12
+	dc.b $F0	; 13
+	dc.b $F0	; 14
+	dc.b $F0	; 15
+	even
+; ===========================================================================
+; loc_D4AE:
+SwScrl_ARZ2:
+	move.w	(Camera_X_pos_diff).w,d4
+	ext.l	d4
+	muls.w	#$119,d4
+	moveq	#2,d6
+	bsr.w	SetHorizScrollFlagsBG_ARZ
+	move.w	(Camera_Y_pos_diff).w,d5
+	ext.l	d5
+	asl.l	#7,d5
+	moveq	#6,d6
+	bsr.w	SetVertiScrollFlagsBG
+
+	move.w	(Camera_BG_Y_pos).w,(Vscroll_Factor_BG).w
+
+	moveq	#0,d2
+	tst.b	(Screen_Shaking_Flag).w
+	beq.s	.screenNotShaking2
+
+	move.w	(Timer_frames).w,d0
+	andi.w	#$3F,d0
+	lea_	SwScrl_RippleData,a1
+	lea	(a1,d0.w),a1
+	moveq	#0,d0
+	; Shake camera Y-pos (note that BG scrolling is not affected by this, causing it to distort)
+	move.b	(a1)+,d0
+	add.w	d0,(Vscroll_Factor_FG).w
+	add.w	d0,(Vscroll_Factor_BG).w
+	add.w	d0,(Camera_Y_pos_copy).w
+	; Shake camera X-pos
+	move.b	(a1)+,d2
+	add.w	d2,(Camera_X_pos_copy).w
+
+.screenNotShaking2:
+	lea	(TempArray_LayerDef).w,a2	; Starts at BG scroll row 1
+	lea	6(a2),a3			; Starts at BG scroll row 4
+
+	; Set up the speed of each row (there are 16 rows in total)
+	move.w	(Camera_X_pos).w,d0
+	ext.l	d0
+	asl.l	#4,d0
+	divs.w	#$A,d0
+	ext.l	d0
+	asl.l	#4,d0
+	asl.l	#8,d0
+	move.l	d0,d1
+
+	; Set row 4's speed
+	swap	d1
+	move.w	d1,(a3)+	; Top row of background moves 10 ($A) times slower than foreground
+	swap	d1
+	add.l	d1,d1
+	add.l	d0,d1
+	; Set rows 5-10's speed
+    rept 6
+	swap	d1
+	move.w	d1,(a3)+	; Next row moves 3 times faster than top row, then next row is 4 times faster, then 5, etc.
+	swap	d1
+	add.l	d0,d1
+    endm
+	; Set row 11's speed
+	swap	d1
+	move.w	d1,(a3)+
+
+	; These instructions reveal that ARZ had slightly different scrolling,
+	; at one point:
+	; Above the background's mountains is a row of leaves, which is actually
+	; composed of three separately-scrolling rows. According to this code,
+	; the first and third rows were meant to scroll at a different speed to the
+	; second. Possibly due to how bad it looks, the speed values are overwritten
+	; a few instructions later, so all three move at the same speed.
+	; This code seems to pre-date the Simon Wai build, which uses the final's
+	; scrolling.
+	move.w	d1,(a2)		; Set row 1's speed
+	move.w	d1,4(a2)	; Set row 3's speed
+
+	move.w	(Camera_BG_X_pos).w,d0
+	move.w	d0,2(a2)	; Set row 2's speed
+	move.w	d0,$16(a2)	; Set row 12's speed
+	_move.w	d0,0(a2)	; Overwrite row 1's speed (now same as row 2's)
+	move.w	d0,4(a2)	; Overwrite row 3's speed (now same as row 2's)
+	move.w	d0,$18(a2)	; Set row 13's speed
+	move.w	d0,$1A(a2)	; Set row 14's speed
+	move.w	d0,$1C(a2)	; Set row 15's speed
+	move.w	d0,$1E(a2)	; Set row 16's speed
+
+	lea	(SwScrl_ARZ2_RowHeights).l,a3
+	lea	(TempArray_LayerDef).w,a2
+	lea	(Horiz_Scroll_Buf).w,a1
+	move.w	(Camera_BG_Y_pos).w,d1
+	moveq	#0,d0
+
+	; Find which row of background is visible at the top of the screen
+.findTopRowLoop2:
+	move.b	(a3)+,d0	; Get row height
+	addq.w	#2,a2		; Next row speed (note: is off by 2. This is fixed below)
+	sub.w	d0,d1
+	bcc.s	.findTopRowLoop2		; If current row is above the screen, loop and do next row
+
+	neg.w	d1	; d1 now contains how many pixels of the row is currently on-screen
+	subq.w	#2,a2	; Get correct row speed
+
+	move.w	#224-1,d2 ; Height of screen
+	move.w	(Camera_X_pos).w,d0
+	neg.w	d0
+	swap	d0		; Store FG X-pos in upper 16-bits...
+	move.w	(a2)+,d0	; ...and BG X-pos in lower 16 bits, as Horiz_Scroll_Buf expects it
+	neg.w	d0
+
+-	move.l	d0,(a1)+	; Write 1 FG Horizontal Scroll value, and 1 BG Horizontal Scroll value
+	subq.w	#1,d1		; Loop until row at top of screen is done
+	bne.s	+
+	move.b	(a3)+,d1	; Once that row is done, go to next row...
+	move.w	(a2)+,d0	; ...and use next speed
+	neg.w	d0
++	dbf	d2,-		; Loop until Horiz_Scroll_Buf is full
+
+	rts
+; ===========================================================================
+; byte_D5CE:
+SwScrl_ARZ2_RowHeights:
 	dc.b $B0
 	dc.b $70	; 1
 	dc.b $30	; 2
@@ -18583,6 +19154,8 @@ loadLevelLayout:
 	move.w	(Current_ZoneAndAct).w,d0
 	ror.b	#1,d0
 	lsr.w	#6,d0
+	add.w	(Two_player_mode).w,d0
+	add.w	d0,d0
 	lea	(Off_Level).l,a0
 	move.w	(a0,d0.w),d0
 	lea	(a0,d0.l),a0
@@ -23321,8 +23894,7 @@ Obj37_Init:
 +
 	_move.b	#ObjID_LostRings,id(a1) ; load obj37
 	addq.b	#2,routine(a1)
-	move.b	#8,y_radius(a1)
-	move.b	#8,x_radius(a1)
+	move.w	#$808,y_radius(a1)	; also covers x radius
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	move.l	#Obj25_MapUnc_12382,mappings(a1)
@@ -24644,6 +25216,7 @@ off_13074:	offsetTable
 
 Obj0E_Tails_Init:
 	addq.b	#2,routine_secondary(a0)
+	move.b	#3,priority(a0)
 	move.w	#$D8,x_pixel(a0)
 	move.w	#$D8,y_pixel(a0)
 	move.b	#1,anim(a0)
@@ -25327,6 +25900,7 @@ Obj34_Init:
 	move.w	(a2)+,titlecard_x_target(a1)
 	move.w	(a2)+,y_pixel(a1)
 	move.b	#0,render_flags(a1)
+
 	lea	next_object(a1),a1 ; a1=object
 	dbf	d1,-
 
@@ -26118,6 +26692,9 @@ byte_14380_K:
 	results_screen_object  $320, $120,  $F0,   4, $A
 	results_screen_object  $330, $120, $100,   4, $B
 	results_screen_object  $340, $120, $110, $16, $E
+
+ArtNem_KnucklesK:	BINCLUDE	"art/nemesis/S2KnuxK.bin"
+
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 6F - End of special stage results screen
@@ -26159,19 +26736,32 @@ Obj6F_Index:	offsetTable
 		offsetTableEntry.w Obj6F_InitAndMoveSuperMsg	; $30
 		offsetTableEntry.w Obj6F_MoveToTargetPos	; $32
 		offsetTableEntry.w Obj6F_MoveAndDisplay	; $34
+		offsetTableEntry.w loc_311710		; $38	; From Knuckles in Sonic 2
 ; ===========================================================================
 ;loc_14406
 Obj6F_Init:
 	tst.l	(Plc_Buffer).w
 	beq.s	+
+
+	move	#$2700,sr
+	move.l	#$47C00000,(VDP_control_port).l
+	lea	ArtNem_KnucklesK(pc),a1
+	moveq	#$1F,d0
+-
+	move.l	(a1)+,(VDP_data_port).l
+	dbf	d0,-
 	rts
 ; ===========================================================================
 +
 	movea.l	a0,a1
 	lea	byte_14752(pc),a2
 	moveq	#$C,d1
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	lea	byte_14752k(pc),a2
+	moveq	#$D,d1
 
--	_move.b	id(a0),id(a1) ; load obj6F
+/	_move.b	id(a0),id(a1) ; load obj6F
 	move.w	(a2),x_pixel(a1)
 	move.w	(a2)+,objoff_32(a1)
 	move.w	(a2)+,objoff_30(a1)
@@ -26179,6 +26769,10 @@ Obj6F_Init:
 	move.b	(a2)+,routine(a1)
 	move.b	(a2)+,mapping_frame(a1)
 	move.l	#Obj6F_MapUnc_14ED0,mappings(a1)
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	move.l	#Obj6F_MapUnc_14ED0k,mappings(a1)
++
 	move.b	#$78,width_pixels(a1)
 	move.b	#0,render_flags(a1)
 	lea	next_object(a1),a1 ; go to next object ; a1=object
@@ -26433,6 +27027,12 @@ Obj6F_InitAndMoveSuperMsg:
 	move.b	#$14,next_object+routine(a0)			; => BranchTo3_Obj34_MoveTowardsTargetPosition
 	subq.w	#8,next_object+y_pixel(a0)
 	move.b	#$1A,next_object+mapping_frame(a0)		; "Now Sonic can"
+
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	sub.w	#4,$48(a0)
+	move.w	#$120,$70(a0)
++
 	move.b	#$34,routine(a0)						; => Obj6F_MoveAndDisplay
 	subq.w	#8,y_pixel(a0)
 	move.b	#$1B,mapping_frame(a0)					; "Change into"
@@ -26444,6 +27044,10 @@ Obj6F_InitAndMoveSuperMsg:
 	move.b	#$14,routine(a1)						; => BranchTo3_Obj34_MoveTowardsTargetPosition
 	move.b	#$1C,mapping_frame(a1)					; "Super Sonic"
 	move.l	#Obj6F_MapUnc_14ED0,mappings(a1)
+	cmpi.w	#3,(Player_mode).w
+	bne.s	+
+	move.l	#Obj6F_MapUnc_14ED0k,mappings(a1)
++
 	move.b	#$78,width_pixels(a1)
 	move.b	#0,render_flags(a1)
 	bra.w	DisplaySprite
@@ -26476,6 +27080,58 @@ Obj6F_MoveAndDisplay:
 	move.b	#$20,routine(a0)	; => Obj6F_TimedDisplay
 	bra.w	DisplaySprite
 ; ===========================================================================
+loc_311710:					  ; ...
+		cmp.b	#$30,($FFFFB800+routine).w
+		bcs.s	loc_31172C
+		sub.w	#$20,x_pos(a0)
+		cmp.w	#$20,x_pos(a0)
+		bhi.w	DisplaySprite
+		bra.w	DeleteObject
+; ---------------------------------------------------------------------------
+
+loc_31172C:					  ; ...
+		tst.b	objoff_2E(a0)
+		bne.s	loc_31175C
+		tst.b	(Got_Emerald).w
+		beq.s	loc_31178A
+		cmp.b	#7,(Emerald_count).w
+		bcs.s	loc_31175C
+		moveq	#$2C,d0
+		sub.w	d0,x_pos(a0)
+		sub.w	d0,objoff_30(a0)
+		sub.w	d0,objoff_32(a0)
+		moveq	#$C,d0
+		sub.w	d0,-$2F8(a0)
+		sub.w	d0,-$2D0(a0)
+		sub.w	d0,-$2CE(a0)
+
+loc_31175C:					  ; ...
+		st	objoff_2E(a0)
+		moveq	#$10,d0
+		move.w	x_pos(a0),d1
+		cmp.w	objoff_30(a0),d1
+		beq.s	loc_31177C
+		bgt.s	loc_311770
+		neg.w	d0
+
+loc_311770:					  ; ...
+		sub.w	d0,x_pos(a0)
+		cmp.w	#$200,x_pos(a0)
+		bgt.s	return_311788
+
+loc_31177C:					  ; ...
+		cmp.w	#$50,x_pos(a0)
+		blt.s	return_311788
+		bra.w	DisplaySprite
+; ---------------------------------------------------------------------------
+
+return_311788:					  ; ...
+		rts
+; ---------------------------------------------------------------------------
+
+loc_31178A:					  ; ...
+		bra.w	DeleteObject
+; ===========================================================================
 byte_14752:
 	;      startx  targx   starty  routine   map frame
 	results_screen_object  $240, $120,  $AA,   2,   0		; "Special Stage"
@@ -26491,6 +27147,23 @@ byte_14752:
 	results_screen_object  $340, $120, $118, $16,  $D		; Sonic Rings
 	results_screen_object  $350, $120, $128, $18,  $E		; Miles Rings
 	results_screen_object  $360, $120, $138, $1A, $10		; Gems Bonus
+
+byte_14752k:
+	;      startx  targx   starty  routine   map frame
+	dc.b   2,$40,  1,$20,  0,$AA,     2,         0		; "Special Stage"
+	dc.b   0,$50,  1,$70,  0,$98,     4,         1		; "Knuckles got a"
+	dc.b   1,$18,  0,  0,  0,$C4,     6,         5		; Emerald 0
+	dc.b   1,$30,  0,  0,  0,$D0,     8,         6		; Emerald 1
+	dc.b   1,$30,  0,  0,  0,$E8,    $A,         7		; Emerald 2
+	dc.b   1,$18,  0,  0,  0,$F4,    $C,         8		; Emerald 3
+	dc.b   1,  0,  0,  0,  0,$E8,    $E,         9		; Emerald 4
+	dc.b   1,  0,  0,  0,  0,$D0,   $10,        $A		; Emerald 5
+	dc.b   1,$18,  0,  0,  0,$DC,   $12,        $B		; Emerald 6
+	dc.b   3,$30,  1,$20,  1,  8,   $14,        $C		; Score
+	dc.b   3,$40,  1,$20,  1,$18,   $16,        $D		; Sonic Rings
+	dc.b   3,$50,  1,$20,  1,$28,   $18,        $E		; Miles Rings
+	dc.b   3,$60,  1,$20,  1,$38,   $1A,       $10		; Gems Bonus
+	dc.b   0,  8,  1,$28,  0,$98,   $36,       $1D		; ?
 ; -------------------------------------------------------------------------------
 ; sprite mappings
 ; -------------------------------------------------------------------------------
@@ -26804,6 +27477,8 @@ word_311BF6:	dc.w $B
 ; sprite mappings
 ; -------------------------------------------------------------------------------
 Obj6F_MapUnc_14ED0:	BINCLUDE "mappings/sprite/obj6F.bin"
+
+Obj6F_MapUnc_14ED0k:	BINCLUDE "mappings/sprite/obj6F_Knuckles.bin"
 ; ===========================================================================
 
 ;loc_15584: ; level title card drawing function called from Vint
@@ -26989,7 +27664,7 @@ loc_15714:
 	move.w	d1,d4
 	moveq	#-$10,d5
 	moveq	#$1F,d6
-	bsr.w	DrawBlockRow
+	jsr	(DrawBlockRow).l
 	movem.l	(sp)+,d4-d6
 	addi.w	#$10,d4
 	dbf	d6,-
@@ -27008,7 +27683,7 @@ loc_15758:
 	move.w	d1,d4
 	moveq	#-$10,d5
 	moveq	#$1F,d6
-	bsr.w	DrawBlockRow
+	jsr	(DrawBlockRow).l
 	movem.l	(sp)+,d4-d6
 	addi.w	#$10,d4
 	dbf	d6,-
@@ -30500,21 +31175,14 @@ ObjectsManager_States: offsetTable
 ; loc_17AB8
 ObjectsManager_Init:
 	addq.b	#2,(Obj_placement_routine).w
-	move.w	(Current_ZoneAndAct).w,d0 ; If level == $0F01 (ARZ 2)...
-	ror.b	#1,d0			; then this yields $0F80...
-	lsr.w	#6,d0			; and this yields $003E.
+	move.w	(Current_ZoneAndAct).w,d0
+	ror.b	#1,d0
+	lsr.w	#6,d0
+	add.w	(Two_player_mode).w,d0
+	add.w	d0,d0
 	lea	(Off_Objects).l,a0	; Next, we load the first pointer in the object layout list pointer index,
 	movea.l	a0,a1			; then copy it for quicker use later.
 	adda.w	(a0,d0.w),a0		; (Point1 * 2) + $003E
-	tst.w	(Two_player_mode).w	; skip if not in 2-player vs mode
-	beq.s	+
-	cmpi.b	#casino_night_zone,(Current_Zone).w	; skip if not Casino Night Zone
-	bne.s	+
-	lea	(Objects_CNZ1_2P).l,a0	; CNZ 1 2-player object layout
-	tst.b	(Current_Act).w		; skip if not past act 1
-	beq.s	+
-	lea	(Objects_CNZ2_2P).l,a0	; CNZ 2 2-player object layout
-+
 	; initialize each object load address with the first object in the layout
 	move.l	a0,(Obj_load_addr_right).w
 	move.l	a0,(Obj_load_addr_left).w
@@ -31229,44 +31897,6 @@ SingleObjLoad3:
 
 return_18028:
 	rts
-; ===========================================================================
-
-;---------------------------------------------------------------------------------------
-; CNZ object layouts for 2-player mode (various objects were deleted)
-;---------------------------------------------------------------------------------------
-
-; Macro for marking the boundaries of an object layout file
-ObjectLayoutBoundary macro
-	dc.w	$FFFF, $0000, $0000
-    endm
-
-	; [Bug] Sonic Team forgot to put a boundary marker here,
-	; meaning the game could potentially read past the start
-	; of the file and load random objects.
-	;ObjectLayoutBoundary
-
-; byte_1802A;
-    if gameRevision=0
-Objects_CNZ1_2P:	BINCLUDE	"level/objects/CNZ_1_2P (REV00).bin"
-    else
-    ; a Crawl badnik was moved slightly further away from a ledge
-    ; 2 flippers were moved closer to a wall
-Objects_CNZ1_2P:	BINCLUDE	"level/objects/CNZ_1_2P.bin"
-    endif
-
-	ObjectLayoutBoundary
-
-; byte_18492:
-    if gameRevision=0
-Objects_CNZ2_2P:	BINCLUDE	"level/objects/CNZ_2_2P (REV00).bin"
-    else
-    ; 4 Crawl badniks were slightly moved, placing them closer/farther away from ledges
-    ; 2 flippers were moved away from a wall to keep players from getting stuck behind them
-Objects_CNZ2_2P:	BINCLUDE	"level/objects/CNZ_2_2P.bin"
-    endif
-
-	ObjectLayoutBoundary
-
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 41 - Spring
@@ -86728,12 +87358,20 @@ ColArray:	BINCLUDE	"collision/Collision array 1.bin"
 ColArray2:	BINCLUDE	"collision/Collision array 2.bin"
 	even
 ;---------------------------------------------------------------------------------------
-; EHZ and HTZ primary 16x16 collision index (Kosinski compression)
-ColP_EHZHTZ:	BINCLUDE	"collision/EHZ and HTZ primary 16x16 collision index.bin"
+; EHZ primary 16x16 collision index (Kosinski compression)
+ColP_EHZ:	BINCLUDE	"collision/EHZ primary 16x16 collision index.bin"
 	even
 ;---------------------------------------------------------------------------------------
-; EHZ and HTZ secondary 16x16 collision index (Kosinski compression)
-ColS_EHZHTZ:	BINCLUDE	"collision/EHZ and HTZ secondary 16x16 collision index.bin"
+; EHZ secondary 16x16 collision index (Kosinski compression)
+ColS_EHZ:	BINCLUDE	"collision/EHZ secondary 16x16 collision index.bin"
+	even
+;---------------------------------------------------------------------------------------
+; HTZ primary 16x16 collision index (Kosinski compression)
+ColP_HTZ:	BINCLUDE	"collision/HTZ primary 16x16 collision index.bin"
+	even
+;---------------------------------------------------------------------------------------
+; HTZ secondary 16x16 collision index (Kosinski compression)
+ColS_HTZ:	BINCLUDE	"collision/HTZ secondary 16x16 collision index.bin"
 	even
 ;---------------------------------------------------------------------------------------
 ; MTZ primary 16x16 collision index (Kosinski compression)
@@ -86799,40 +87437,74 @@ ColP_Invalid:
 ; Two entries per zone, pointing to the level layouts for acts 1 and 2 of each zone
 ; respectively.
 ;---------------------------------------------------------------------------------------
-Off_Level: zoneOrderedOffsetTable 2,2
+Off_Level: zoneOrderedOffsetTable 2,4
+	zoneOffsetTableEntry.w Level_EHZ1
 	zoneOffsetTableEntry.w Level_EHZ1
 	zoneOffsetTableEntry.w Level_EHZ2	; 1
+	zoneOffsetTableEntry.w Level_EHZ2	; 1
+	zoneOffsetTableEntry.w Level_EHZ1	; 2
 	zoneOffsetTableEntry.w Level_EHZ1	; 2
 	zoneOffsetTableEntry.w Level_EHZ1	; 3
+	zoneOffsetTableEntry.w Level_EHZ1	; 3
+	zoneOffsetTableEntry.w Level_EHZ1	; 4
 	zoneOffsetTableEntry.w Level_EHZ1	; 4
 	zoneOffsetTableEntry.w Level_EHZ1	; 5
+	zoneOffsetTableEntry.w Level_EHZ1	; 5
+	zoneOffsetTableEntry.w Level_EHZ1	; 6
 	zoneOffsetTableEntry.w Level_EHZ1	; 6
 	zoneOffsetTableEntry.w Level_EHZ1	; 7
+	zoneOffsetTableEntry.w Level_EHZ1	; 7
+	zoneOffsetTableEntry.w Level_MTZ1	; 8
 	zoneOffsetTableEntry.w Level_MTZ1	; 8
 	zoneOffsetTableEntry.w Level_MTZ2	; 9
+	zoneOffsetTableEntry.w Level_MTZ2	; 9
+	zoneOffsetTableEntry.w Level_MTZ3	; 10
 	zoneOffsetTableEntry.w Level_MTZ3	; 10
 	zoneOffsetTableEntry.w Level_MTZ3	; 11
+	zoneOffsetTableEntry.w Level_MTZ3	; 11
+	zoneOffsetTableEntry.w Level_WFZ	; 12
 	zoneOffsetTableEntry.w Level_WFZ	; 12
 	zoneOffsetTableEntry.w Level_WFZ	; 13
+	zoneOffsetTableEntry.w Level_WFZ	; 13
+	zoneOffsetTableEntry.w Level_HTZ1	; 14
 	zoneOffsetTableEntry.w Level_HTZ1	; 14
 	zoneOffsetTableEntry.w Level_HTZ2	; 15
+	zoneOffsetTableEntry.w Level_HTZ2	; 15
+	zoneOffsetTableEntry.w Level_HPZ1	; 16
 	zoneOffsetTableEntry.w Level_HPZ1	; 16
 	zoneOffsetTableEntry.w Level_HPZ1	; 17
+	zoneOffsetTableEntry.w Level_HPZ1	; 17
+	zoneOffsetTableEntry.w Level_EHZ1	; 18
 	zoneOffsetTableEntry.w Level_EHZ1	; 18
 	zoneOffsetTableEntry.w Level_EHZ1	; 19
+	zoneOffsetTableEntry.w Level_EHZ1	; 19
+	zoneOffsetTableEntry.w Level_OOZ1	; 20
 	zoneOffsetTableEntry.w Level_OOZ1	; 20
 	zoneOffsetTableEntry.w Level_OOZ2	; 21
+	zoneOffsetTableEntry.w Level_OOZ2	; 21
+	zoneOffsetTableEntry.w Level_MCZ1	; 22
 	zoneOffsetTableEntry.w Level_MCZ1	; 22
 	zoneOffsetTableEntry.w Level_MCZ2	; 23
+	zoneOffsetTableEntry.w Level_MCZ2	; 23
+	zoneOffsetTableEntry.w Level_CNZ1	; 24
 	zoneOffsetTableEntry.w Level_CNZ1	; 24
 	zoneOffsetTableEntry.w Level_CNZ2	; 25
+	zoneOffsetTableEntry.w Level_CNZ2	; 25
+	zoneOffsetTableEntry.w Level_CPZ1	; 26
 	zoneOffsetTableEntry.w Level_CPZ1	; 26
 	zoneOffsetTableEntry.w Level_CPZ2	; 27
+	zoneOffsetTableEntry.w Level_CPZ2	; 27
+	zoneOffsetTableEntry.w Level_DEZ	; 28
 	zoneOffsetTableEntry.w Level_DEZ	; 28
 	zoneOffsetTableEntry.w Level_DEZ	; 29
+	zoneOffsetTableEntry.w Level_DEZ	; 29
+	zoneOffsetTableEntry.w Level_ARZ1	; 30
 	zoneOffsetTableEntry.w Level_ARZ1	; 30
 	zoneOffsetTableEntry.w Level_ARZ2	; 31
+	zoneOffsetTableEntry.w Level_ARZ2	; 31
 	zoneOffsetTableEntry.w Level_SCZ	; 32
+	zoneOffsetTableEntry.w Level_SCZ	; 32
+	zoneOffsetTableEntry.w Level_SCZ	; 33
 	zoneOffsetTableEntry.w Level_SCZ	; 33
     zoneTableEnd
 ;---------------------------------------------------------------------------------------
@@ -87268,8 +87940,6 @@ ArtNem_TitleCard:	BINCLUDE	"art/nemesis/Title card.bin"
 ; Alphabet for font using large broken letters	; ArtNem_7D58A:
 	even
 ArtNem_TitleCard2:	BINCLUDE	"art/nemesis/Font using large broken letters.bin"
-	even
-ArtNem_KnucklesK:	BINCLUDE	"art/nemesis/S2KnuxK.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art (21 blocks)
 ; A menu box with a shadow	; ArtNem_7D990:
@@ -88610,40 +89280,81 @@ Rings_SCZ_2:	BINCLUDE	"level/rings/SCZ_2.bin"
 ; --------------------------------------------------------------------------------------
 ; Offset index of object locations
 ; --------------------------------------------------------------------------------------
-Off_Objects: zoneOrderedOffsetTable 2,2
+
+; Macro for marking the boundaries of an object layout file
+ObjectLayoutBoundary macro
+	dc.w	$FFFF, $0000, $0000
+    endm
+
+
+Off_Objects: zoneOrderedOffsetTable 2,4
 	zoneOffsetTableEntry.w  Objects_EHZ_1	; 0  $00
+	zoneOffsetTableEntry.w  Objects_EHZ_1	; 0
+	zoneOffsetTableEntry.w  Objects_EHZ_2	; 1
 	zoneOffsetTableEntry.w  Objects_EHZ_2	; 1
 	zoneOffsetTableEntry.w  Objects_Null	; 2  $01
+	zoneOffsetTableEntry.w  Objects_Null	; 2
+	zoneOffsetTableEntry.w  Objects_Null	; 3
 	zoneOffsetTableEntry.w  Objects_Null	; 3
 	zoneOffsetTableEntry.w  Objects_Null	; 4  $02
+	zoneOffsetTableEntry.w  Objects_Null	; 4
+	zoneOffsetTableEntry.w  Objects_Null	; 5
 	zoneOffsetTableEntry.w  Objects_Null	; 5
 	zoneOffsetTableEntry.w  Objects_Null	; 6  $03
+	zoneOffsetTableEntry.w  Objects_Null	; 6
+	zoneOffsetTableEntry.w  Objects_Null	; 7
 	zoneOffsetTableEntry.w  Objects_Null	; 7
 	zoneOffsetTableEntry.w  Objects_MTZ_1	; 8  $04
+	zoneOffsetTableEntry.w  Objects_MTZ_1	; 8
+	zoneOffsetTableEntry.w  Objects_MTZ_2	; 9
 	zoneOffsetTableEntry.w  Objects_MTZ_2	; 9
 	zoneOffsetTableEntry.w  Objects_MTZ_3	; 10 $05
+	zoneOffsetTableEntry.w  Objects_MTZ_3	; 10
+	zoneOffsetTableEntry.w  Objects_MTZ_3	; 11
 	zoneOffsetTableEntry.w  Objects_MTZ_3	; 11
 	zoneOffsetTableEntry.w  Objects_WFZ_1	; 12 $06
+	zoneOffsetTableEntry.w  Objects_WFZ_1	; 12
+	zoneOffsetTableEntry.w  Objects_WFZ_2	; 13
 	zoneOffsetTableEntry.w  Objects_WFZ_2	; 13
 	zoneOffsetTableEntry.w  Objects_HTZ_1	; 14 $07
+	zoneOffsetTableEntry.w  Objects_HTZ_1	; 14
+	zoneOffsetTableEntry.w  Objects_HTZ_2	; 15
 	zoneOffsetTableEntry.w  Objects_HTZ_2	; 15
 	zoneOffsetTableEntry.w  Objects_HPZ_1	; 16 $08
+	zoneOffsetTableEntry.w  Objects_HPZ_1	; 16
+	zoneOffsetTableEntry.w  Objects_HPZ_2	; 17
 	zoneOffsetTableEntry.w  Objects_HPZ_2	; 17
 	zoneOffsetTableEntry.w  Objects_Null	; 18 $09
+	zoneOffsetTableEntry.w  Objects_Null	; 18
+	zoneOffsetTableEntry.w  Objects_Null	; 19
 	zoneOffsetTableEntry.w  Objects_Null	; 19
 	zoneOffsetTableEntry.w  Objects_OOZ_1	; 20 $0A
+	zoneOffsetTableEntry.w  Objects_OOZ_1	; 20
+	zoneOffsetTableEntry.w  Objects_OOZ_2	; 21
 	zoneOffsetTableEntry.w  Objects_OOZ_2	; 21
 	zoneOffsetTableEntry.w  Objects_MCZ_1	; 22 $0B
+	zoneOffsetTableEntry.w  Objects_MCZ_1	; 22
+	zoneOffsetTableEntry.w  Objects_MCZ_2	; 23
 	zoneOffsetTableEntry.w  Objects_MCZ_2	; 23
 	zoneOffsetTableEntry.w  Objects_CNZ_1	; 24 $0C
+	zoneOffsetTableEntry.w  Objects_CNZ1_2P	; 24
 	zoneOffsetTableEntry.w  Objects_CNZ_2	; 25
+	zoneOffsetTableEntry.w  Objects_CNZ2_2P	; 25
 	zoneOffsetTableEntry.w  Objects_CPZ_1	; 26 $0D
+	zoneOffsetTableEntry.w  Objects_CPZ_1	; 26
+	zoneOffsetTableEntry.w  Objects_CPZ_2	; 27
 	zoneOffsetTableEntry.w  Objects_CPZ_2	; 27
 	zoneOffsetTableEntry.w  Objects_DEZ_1	; 28 $0E
+	zoneOffsetTableEntry.w  Objects_DEZ_1	; 28
+	zoneOffsetTableEntry.w  Objects_DEZ_2	; 29
 	zoneOffsetTableEntry.w  Objects_DEZ_2	; 29
 	zoneOffsetTableEntry.w  Objects_ARZ_1	; 30 $0F
+	zoneOffsetTableEntry.w  Objects_ARZ_1	; 30
+	zoneOffsetTableEntry.w  Objects_ARZ_2	; 31
 	zoneOffsetTableEntry.w  Objects_ARZ_2	; 31
 	zoneOffsetTableEntry.w  Objects_SCZ_1	; 32 $10
+	zoneOffsetTableEntry.w  Objects_SCZ_1	; 32
+	zoneOffsetTableEntry.w  Objects_SCZ_2	; 33
 	zoneOffsetTableEntry.w  Objects_SCZ_2	; 33
     zoneTableEnd
 
@@ -88651,14 +89362,7 @@ Off_Objects: zoneOrderedOffsetTable 2,2
 	ObjectLayoutBoundary
 Objects_EHZ_1:	BINCLUDE	"level/objects/EHZ_1.bin"
 	ObjectLayoutBoundary
-
-    if gameRevision=0
-; A collision switcher was improperly placed
-Objects_EHZ_2:	BINCLUDE	"level/objects/EHZ_2 (REV00).bin"
-    else
 Objects_EHZ_2:	BINCLUDE	"level/objects/EHZ_2.bin"
-    endif
-
 	ObjectLayoutBoundary
 Objects_MTZ_1:	BINCLUDE	"level/objects/MTZ_1.bin"
 	ObjectLayoutBoundary
@@ -88666,14 +89370,7 @@ Objects_MTZ_2:	BINCLUDE	"level/objects/MTZ_2.bin"
 	ObjectLayoutBoundary
 Objects_MTZ_3:	BINCLUDE	"level/objects/MTZ_3.bin"
 	ObjectLayoutBoundary
-
-    if gameRevision=0
-; The lampposts were bugged: their 'remember state' flags weren't set
-Objects_WFZ_1:	BINCLUDE	"level/objects/WFZ_1 (REV00).bin"
-    else
 Objects_WFZ_1:	BINCLUDE	"level/objects/WFZ_1.bin"
-    endif
-
 	ObjectLayoutBoundary
 Objects_WFZ_2:	BINCLUDE	"level/objects/WFZ_2.bin"
 	ObjectLayoutBoundary
@@ -88685,8 +89382,6 @@ Objects_HPZ_1:	BINCLUDE	"level/objects/HPZ_1.bin"
 	ObjectLayoutBoundary
 Objects_HPZ_2:	BINCLUDE	"level/objects/HPZ_2.bin"
 	ObjectLayoutBoundary
-	; Oddly, there's a gap for another layout here
-	ObjectLayoutBoundary
 Objects_OOZ_1:	BINCLUDE	"level/objects/OOZ_1.bin"
 	ObjectLayoutBoundary
 Objects_OOZ_2:	BINCLUDE	"level/objects/OOZ_2.bin"
@@ -88695,18 +89390,9 @@ Objects_MCZ_1:	BINCLUDE	"level/objects/MCZ_1.bin"
 	ObjectLayoutBoundary
 Objects_MCZ_2:	BINCLUDE	"level/objects/MCZ_2.bin"
 	ObjectLayoutBoundary
-
-    if gameRevision=0
-; The signposts are too low, causing them to poke out the bottom of the ground
-Objects_CNZ_1:	BINCLUDE	"level/objects/CNZ_1 (REV00).bin"
-	ObjectLayoutBoundary
-Objects_CNZ_2:	BINCLUDE	"level/objects/CNZ_2 (REV00).bin"
-    else
 Objects_CNZ_1:	BINCLUDE	"level/objects/CNZ_1.bin"
 	ObjectLayoutBoundary
 Objects_CNZ_2:	BINCLUDE	"level/objects/CNZ_2.bin"
-    endif
-
 	ObjectLayoutBoundary
 Objects_CPZ_1:	BINCLUDE	"level/objects/CPZ_1.bin"
 	ObjectLayoutBoundary
@@ -88726,12 +89412,11 @@ Objects_SCZ_2:	BINCLUDE	"level/objects/SCZ_2.bin"
 	ObjectLayoutBoundary
 Objects_Null:
 	ObjectLayoutBoundary
-	; Another strange space for a layout
+Objects_CNZ1_2P:	BINCLUDE	"level/objects/CNZ_1_2P.bin"
 	ObjectLayoutBoundary
-	; And another
+Objects_CNZ2_2P:	BINCLUDE	"level/objects/CNZ_2_2P.bin"
 	ObjectLayoutBoundary
-	; And another
-	ObjectLayoutBoundary
+
 
 ; --------------------------------------------------------------------------------------
 ; Filler (free space) (unnecessary; could be replaced with "even")

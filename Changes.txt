@@ -1,3 +1,11 @@
+v1.40:
+* Unique music per act now, also combined both music tables
+* Added support for unique background scrolling per act (and two player mode, which has EHZ, CNZ and MCZ done automatically)
+* Tails' priority is now set during the title screen fade-in (which previously hid some of his pixels behind Sonic)
+* Special Stage results now change for Knuckles
+* Added support for unique layouts for two player mode (Sonic 2 has a unique Casino Night 2 player object layout, but it was quite a hackish fix)
+* Made a minor optimization for the ring loss process
+
 v1.30:
 * Rings aren't cleared after entering a Special Stage, like Sonic 3/Sonic 2 and Knuckles
 * The bottom two pixels in Emerald Hill Zone now scroll properly, like Sonic 2 & Knuckles
