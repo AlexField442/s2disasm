@@ -60251,6 +60251,9 @@ Obj50_Init:
 	move.b	#4,priority(a0)
 	move.b	#$10,width_pixels(a0)
 	move.w	#-$100,x_vel(a0)
+	; This entire block is a remnant of its behavior in older builds. There:
+	; - The lower four bits of subtype were (X*16) for its movement range.
+	; - The upper four bits of subtype were (Y*256) for how long until it fires.
 	move.b	subtype(a0),d0
 	move.b	d0,d1
 	andi.w	#$F0,d1
@@ -60263,7 +60266,8 @@ Obj50_Init:
 	move.w	d0,Obj50_unknown3(a0)	; unused
 	move.w	d0,Obj50_unknown4(a0)	; unused
 	move.w	y_pos(a0),Obj50_unknown1(a0)	; unused
-	move.w	(Water_Level_1).w,Obj50_unknown5(a0)
+
+	move.w	(Water_Level_1).w,Obj50_unknown5(a0)	; ???
 	move.b	#3,Obj50_shots_remaining(a0)	; hardcoded to three shots
 
 	; creat wing child object
