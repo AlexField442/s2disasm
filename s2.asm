@@ -2571,120 +2571,9 @@ EniDec_ChkGetNextByte:
 .return:
 	rts
 
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-; ---------------------------------------------------------------------------
-; KOSINSKI DECOMPRESSION PROCEDURE
-; (sometimes called KOZINSKI decompression)
-
-; This is the only procedure in the game that stores variables on the stack.
-
-; ARGUMENTS:
-; a0 = source address
-; a1 = destination address
-
-; For format explanation, see http://info.sonicretro.org/Kosinski_compression
-; ---------------------------------------------------------------------------
-; KozDec_193A:
-KosDec:
-	subq.l	#2,sp
-	move.b	(a0)+,1(sp)
-	move.b	(a0)+,(sp)
-	move.w	(sp),d5	; copy first description field
-	moveq	#$F,d4	; 16 bits in a byte
-
-Kos_Loop:
-	lsr.w	#1,d5	; bit which is shifted out goes into C flag
-	move	sr,d6
-	dbf	d4,.chkbit
-	move.b	(a0)+,1(sp)
-	move.b	(a0)+,(sp)
-	move.w	(sp),d5	; get next description field if needed
-	moveq	#$F,d4	; reset bit counter
-
-.chkbit:
-	move	d6,ccr
-	bcc.s	Kos_RLE
-
-	; bit was set - copy byte as-is
-	move.b	(a0)+,(a1)+
-	bra.s	Kos_Loop
-; ---------------------------------------------------------------------------
-Kos_RLE:
-	moveq	#0,d3
-	lsr.w	#1,d5	; get next bit
-	move	sr,d6
-	dbf	d4,.chkbit
-	move.b	(a0)+,1(sp)
-	move.b	(a0)+,(sp)
-	move.w	(sp),d5
-	moveq	#$F,d4
-
-.chkbit:
-	move	d6,ccr	; was bit set ?
-	bcs.s	Kos_SeparateRLE	; if it was, branch
-	lsr.w	#1,d5	; bit which is shifted out goes into X flag
-	dbf	d4,.loop1
-	move.b	(a0)+,1(sp)
-	move.b	(a0)+,(sp)
-	move.w	(sp),d5
-	moveq	#$F,d4
-
-.loop1:
-	roxl.w	#1,d3	; get high repeat count bit by shifting X flag in
-	lsr.w	#1,d5
-	dbf	d4,.loop2
-	move.b	(a0)+,1(sp)
-	move.b	(a0)+,(sp)
-	move.w	(sp),d5
-	moveq	#$F,d4
-
-.loop2:
-	roxl.w	#1,d3	; get low repeat count bit
-	addq.w	#1,d3	; increment repeat count
-	moveq	#-1,d2
-	move.b	(a0)+,d2	; calculate offset
-	bra.s	Kos_RLELoop
-; ---------------------------------------------------------------------------
-Kos_SeparateRLE:
-	move.b	(a0)+,d0	; get first byte
-	move.b	(a0)+,d1	; get second byte
-	moveq	#-1,d2
-	move.b	d1,d2
-	lsl.w	#5,d2
-	move.b	d0,d2	; calculate offset
-	andi.w	#7,d1	; does a third byte need to be read ?
-	beq.s	Kos_SeparateRLE2	; if so, branch
-	move.b	d1,d3	; copy repeat count
-	addq.w	#1,d3	; and increment it
-
-Kos_RLELoop:
-	move.b	(a1,d2.w),d0
-	move.b	d0,(a1)+	; copy appropriate byte as many times as needed
-	dbf	d3,Kos_RLELoop
-	bra.s	Kos_Loop
-; ---------------------------------------------------------------------------
-Kos_SeparateRLE2:
-	move.b	(a0)+,d1
-	beq.s	Kos_Done	; 0 indicates end of compressed data
-	cmpi.b	#1,d1
-	beq.w	Kos_Loop	; 1 indicates a new description needs to be read
-	move.b	d1,d3	; otherwise, copy repeat count
-	bra.s	Kos_RLELoop
-; ---------------------------------------------------------------------------
-Kos_Done:
-	addq.l	#2,sp	; restore stack pointer
-	rts
-; End of function KosDec
+	include	"_inc/KosinskiPlus Decompression.asm"
 
 ; ===========================================================================
-
-	jmpTos ; Empty
-
-
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
 ; sub_19DC:
 PalCycle_Load:
 	bsr.w	PalCycle_SuperSonic
@@ -5902,11 +5791,11 @@ LoadCollisionIndexes:
 	move.w	d0,-(sp)
 	movea.l	Off_ColP(pc,d0.w),a0
 	lea	(Primary_Collision).w,a1
-	bsr.w	KosDec
+	bsr.w	KosPlusDec
 	move.w	(sp)+,d0
 	movea.l	Off_ColS(pc,d0.w),a0
 	lea	(Secondary_Collision).w,a1
-	bra.w	KosDec
+	bra.w	KosPlusDec
 ; End of function LoadCollisionIndexes
 
 ; ===========================================================================
@@ -6482,25 +6371,25 @@ LoadZoneTiles:
 	andi.l	#$FFFFFF,d0	; 8x8 tile pointer
 	movea.l	d0,a0
 	lea	(Chunk_Table).l,a1
-	bsr.w	KosDec
+	bsr.w	KosPlusDec
 	move.w	a1,d3
 	cmpi.b	#hill_top_zone,(Current_Zone).w
 	bne.s	+
-	lea	(ArtKos_HTZ).l,a0
-	lea	(Chunk_Table+tiles_to_bytes(ArtTile_ArtKos_NumTiles_HTZ_Main)).l,a1
-	bsr.w	KosDec	; patch for HTZ
-	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_HTZ),d3
+	lea	(ArtKosP_HTZ).l,a0
+	lea	(Chunk_Table+tiles_to_bytes(ArtTile_ArtKosP_NumTiles_HTZ_Main)).l,a1
+	bsr.w	KosPlusDec	; patch for HTZ
+	move.w	#tiles_to_bytes(ArtTile_ArtKosP_NumTiles_HTZ),d3
 +
 	cmpi.b	#wing_fortress_zone,(Current_Zone).w
 	bne.s	+
-	lea	(ArtKos_WFZ).l,a0
-	lea	(Chunk_Table+tiles_to_bytes(ArtTile_ArtKos_NumTiles_WFZ_Main)).l,a1
-	bsr.w	KosDec	; patch for WFZ
-	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_WFZ),d3
+	lea	(ArtKosP_WFZ).l,a0
+	lea	(Chunk_Table+tiles_to_bytes(ArtTile_ArtKosP_NumTiles_WFZ_Main)).l,a1
+	bsr.w	KosPlusDec	; patch for WFZ
+	move.w	#tiles_to_bytes(ArtTile_ArtKosP_NumTiles_WFZ),d3
 +
 	cmpi.b	#death_egg_zone,(Current_Zone).w
 	bne.s	+
-	move.w	#tiles_to_bytes(ArtTile_ArtKos_NumTiles_DEZ),d3
+	move.w	#tiles_to_bytes(ArtTile_ArtKosP_NumTiles_DEZ),d3
 +
 	move.w	d3,d7
 	andi.w	#$FFF,d3
@@ -6918,7 +6807,7 @@ SSCheckpoint_rainbow:
 SSLoadCurrentPerspective:
 	cmpi.b	#4,(SSTrack_drawing_index).w
 	bne.s	+	; rts
-	movea.l	#SSRAM_MiscKoz_SpecialPerspective,a0
+	movea.l	#SSRAM_MiscKozP_SpecialPerspective,a0
 	moveq	#0,d0
 	move.b	(SSTrack_mapping_frame).w,d0
 	add.w	d0,d0
@@ -9124,9 +9013,9 @@ ssInitTableBuffers:
 ; Load compressed special stage data into RAM, or VRAM for the art.
 
 ssLdComprsdData:
-	lea	(ArtKos_Special).l,a0
+	lea	(ArtKosP_Special).l,a0
 	lea	(Chunk_Table).l,a1
-	bsr.w	KosDec
+	bsr.w	KosPlusDec
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_VRAM_Start),VRAM,WRITE),(VDP_control_port).l
 	lea	(VDP_data_port).l,a1
 	movea.l	#Chunk_Table,a0
@@ -9139,15 +9028,15 @@ ssLdComprsdData:
 	move.l	(a0)+,(a1)
 	dbf	d0,-
 
-	lea	(MiscKoz_SpecialPerspective).l,a0
-	lea	(SSRAM_MiscKoz_SpecialPerspective).l,a1
-	bsr.w	KosDec
+	lea	(MiscKozP_SpecialPerspective).l,a0
+	lea	(SSRAM_MiscKozP_SpecialPerspective).l,a1
+	bsr.w	KosPlusDec
 	lea	(MiscNem_SpecialLevelLayout).l,a0
 	lea	(SSRAM_MiscNem_SpecialLevelLayout).w,a4
 	bsr.w	NemDecToRAM
-	lea	(MiscKoz_SpecialObjectLocations).l,a0
-	lea	(SSRAM_MiscKoz_SpecialObjectLocations).w,a1
-	bsr.w	KosDec
+	lea	(MiscKozP_SpecialObjectLocations).l,a0
+	lea	(SSRAM_MiscKozP_SpecialObjectLocations).w,a1
+	bsr.w	KosPlusDec
 	rts
 ; End of function ssLdComprsdData
 
@@ -10260,7 +10149,7 @@ SSInitPalAndData:
 +
 	move.w	(a1,d0.w),d0
 	bsr.w	PalLoad_ForFade
-	lea	(SSRAM_MiscKoz_SpecialObjectLocations).w,a0
+	lea	(SSRAM_MiscKozP_SpecialObjectLocations).w,a0
 	adda.w	(a0,d1.w),a0
 	move.l	a0,(SS_CurrentLevelObjectLocations).w
 	lea	(SSRAM_MiscNem_SpecialLevelLayout).w,a0
@@ -13634,7 +13523,7 @@ loc_A4B6:
 	clr.b	anim_frame(a0)
 	clr.b	anim_frame_duration(a0)
 	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),art_tile(a0)
 	jsr	(Adjust2PArtPointer).l
 	subi.w	#$14,x_pos(a0)
 	addi.w	#$14,y_pos(a0)
@@ -13929,14 +13818,14 @@ ObjCE_Init:
 	lea	(ObjB3_SubObjData).l,a1
 	jsrto	JmpTo_LoadSubObject_Part3
 	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,1),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,1),art_tile(a0)
 	move.b	#1,priority(a0)
 	jsr	(Adjust2PArtPointer).l
 	move.b	#$C,mapping_frame(a0)
 	cmpi.w	#4,(Ending_Routine).w
 	bne.s	+
 	move.b	#$F,mapping_frame(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,1,1),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,1,1),art_tile(a0)
 +
 	move.w	#$E8,d0
 	move.w	d0,x_pos(a0)
@@ -14024,7 +13913,7 @@ ObjCF_Init:
 	lea	(ObjB3_SubObjData).l,a1
 	jsrto	JmpTo_LoadSubObject_Part3
 	move.l	#ObjCF_MapUnc_ADA2,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,1),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,1),art_tile(a0)
 	move.b	#3,priority(a0)
 	jsr	(Adjust2PArtPointer).l
 	move.b	#5,mapping_frame(a0)
@@ -20074,12 +19963,12 @@ loadZoneBlockMaps:
 	andi.l	#$FFFFFF,d0	; pointer to block mappings
 	movea.l	d0,a0
 	lea	(Block_Table).w,a1
-	jsrto	JmpTo_KosDec	; load block maps
+	jsr	(KosPlusDec).l	; load block maps
 	cmpi.b	#hill_top_zone,(Current_Zone).w
 	bne.s	+
 	lea	(Block_Table+$980).w,a1
 	lea	(BM16_HTZ).l,a0
-	jsrto	JmpTo_KosDec	; patch for Hill Top Zone block map
+	jsr	(KosPlusDec).l	; patch for Hill Top Zone block map
 +
 	tst.w	(Two_player_mode).w
 	beq.s	+
@@ -20100,7 +19989,7 @@ loadZoneBlockMaps:
 	andi.l	#$FFFFFF,d0	; pointer to chunk mappings
 	movea.l	d0,a0
 	lea	(Chunk_Table).l,a1
-	jsrto	JmpTo_KosDec
+	jsr	(KosPlusDec).l
 	bsr.w	loadLevelLayout
 	movea.l	(sp)+,a2	; zone specific pointer in LevelArtPointers
 	addq.w	#4,a2
@@ -20127,7 +20016,7 @@ loadLevelLayout:
 	move.w	(a0,d0.w),d0
 	lea	(a0,d0.l),a0
 	lea	(Level_Layout).w,a1
-	jmpto	JmpTo_KosDec
+	jmp	(KosPlusDec).l
 ; End of function loadLevelLayout
 
 ; ===========================================================================
@@ -20316,7 +20205,7 @@ ConvertHalfOf256x256ChunkToTwo128x128Chunks:
 
 ; ===========================================================================
 
-	jmpTos JmpTo_PalLoad_Now,JmpTo_LoadPLC,JmpTo_KosDec
+	jmpTos JmpTo_PalLoad_Now,JmpTo_LoadPLC
 
 
 
@@ -22476,14 +22365,14 @@ Obj15_Init:
 	cmpi.b	#mystic_cave_zone,(Current_Zone).w
 	bne.s	+
 	move.l	#Obj15_Obj7A_MapUnc_10256,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),art_tile(a0)
 	move.b	#$18,width_pixels(a0)
 	move.b	#8,y_radius(a0)
 +
 	cmpi.b	#aquatic_ruin_zone,(Current_Zone).w
 	bne.s	+
 	move.l	#Obj15_Obj83_MapUnc_1021E,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),art_tile(a0)
 	move.b	#$20,width_pixels(a0)
 	move.b	#8,y_radius(a0)
 +
@@ -23169,11 +23058,11 @@ Obj18_Init:
 	move.b	(a2)+,width_pixels(a0)
 	move.b	(a2)+,mapping_frame(a0)
 	move.l	#Obj18_MapUnc_107F6,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,2,0),art_tile(a0)
 	cmpi.b	#aquatic_ruin_zone,(Current_Zone).w
 	bne.s	+
 	move.l	#Obj18_MapUnc_1084E,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,2,0),art_tile(a0)
 +
 	bsr.w	Adjust2PArtPointer
 	move.b	#1<<render_flags.level_fg,render_flags(a0)
@@ -23546,7 +23435,7 @@ collapsing_platform_slope_pointer = objoff_3C
 Obj1A_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj1A_MapUnc_10C6C,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,2,0),art_tile(a0)
 	bsr.w	Adjust2PArtPointer
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#4,priority(a0)
@@ -23698,7 +23587,7 @@ Obj1F_Init:
 	cmpi.b	#aquatic_ruin_zone,(Current_Zone).w
 	bne.s	Obj1F_Main
 	move.l	#Obj1F_MapUnc_1115E,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,2,0),art_tile(a0)
 	bsr.w	Adjust2PArtPointer
 	move.b	#$20,width_pixels(a0)
 	move.l	#Obj1F_ARZ_DelayData,collapsing_platform_delay_pointer(a0)
@@ -23927,8 +23816,8 @@ Obj1C_InitData:
 	objsubdecl 3, Obj16_MapUnc_21F14, make_art_tile(ArtTile_ArtNem_HtzZipline,2,0), 8, 4
 	objsubdecl 4, Obj16_MapUnc_21F14, make_art_tile(ArtTile_ArtNem_HtzZipline,2,0), 8, 4
 	objsubdecl 1, Obj16_MapUnc_21F14, make_art_tile(ArtTile_ArtNem_HtzZipline,2,0), $20, 1
-	objsubdecl 0, Obj1C_MapUnc_113D6, make_art_tile(ArtTile_ArtKos_LevelArt,2,0), 8, 1
-	objsubdecl 1, Obj1C_MapUnc_113D6, make_art_tile(ArtTile_ArtKos_LevelArt,2,0), 8, 1
+	objsubdecl 0, Obj1C_MapUnc_113D6, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0), 8, 1
+	objsubdecl 1, Obj1C_MapUnc_113D6, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0), 8, 1
 	objsubdecl 0, Obj1C_MapUnc_113EE, make_art_tile(ArtTile_ArtUnc_Waterfall3,2,0), 4, 4
 	objsubdecl 0, Obj1C_MapUnc_11406, make_art_tile(ArtTile_ArtNem_Oilfall2,2,0), 4, 4
 	objsubdecl 1, Obj1C_MapUnc_11406, make_art_tile(ArtTile_ArtNem_Oilfall2,2,0), 4, 4
@@ -24115,7 +24004,7 @@ Obj2A_Index:	offsetTable
 Obj2A_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj2A_MapUnc_11666,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,2,0),art_tile(a0)
 	bsr.w	Adjust2PArtPointer
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
@@ -24184,7 +24073,7 @@ Obj2D_Init:
 	cmpi.b	#metropolis_zone_2,(Current_Zone).w
 	bne.s	++
 +
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,3,0),art_tile(a0)
 	move.b	#$C,width_pixels(a0)
 +
 	cmpi.b	#chemical_plant_zone,(Current_Zone).w
@@ -48854,7 +48743,7 @@ Obj2F_Properties:
 Obj2F_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj2F_MapUnc_236FA,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,2,1),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,2,1),art_tile(a0)
 	jsrto	JmpTo18_Adjust2PArtPointer
 	move.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
@@ -51380,7 +51269,7 @@ Obj23_Index:	offsetTable
 Obj23_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj23_MapUnc_259E6,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,1,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,1,0),art_tile(a0)
 	jsrto	JmpTo25_Adjust2PArtPointer
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
@@ -51522,7 +51411,7 @@ Obj2B_Index:	offsetTable
 Obj2B_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj2B_MapUnc_25C6E,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,1,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,1,0),art_tile(a0)
 	jsrto	JmpTo25_Adjust2PArtPointer
     if fixBugs
 	ori.b	#1<<render_flags.level_fg|1<<render_flags.explicit_height,render_flags(a0)
@@ -52201,7 +52090,7 @@ Obj42_Index:	offsetTable
 Obj42_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj42_MapUnc_2686C,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,3,0),art_tile(a0)
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#$10,width_pixels(a0)
 	move.b	#4,priority(a0)
@@ -52424,7 +52313,7 @@ Obj64_Init:
 	bset	#render_flags.explicit_height,render_flags(a0)
 +
 	move.l	#Obj64_MapUnc_26A5C,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,1,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,1,0),art_tile(a0)
 	jsrto	JmpTo28_Adjust2PArtPointer
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#4,priority(a0)
@@ -52563,7 +52452,7 @@ Obj65_Properties:
 Obj65_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj65_Obj6A_Obj6B_MapUnc_26EC8,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,3,0),art_tile(a0)
 	jsrto	JmpTo29_Adjust2PArtPointer
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#4,priority(a0)
@@ -53871,7 +53760,7 @@ Obj6A_Index:	offsetTable
 Obj6A_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj65_Obj6A_Obj6B_MapUnc_26EC8,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,3,0),art_tile(a0)
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#4,priority(a0)
 	move.b	#$20,width_pixels(a0)
@@ -54094,7 +53983,7 @@ Obj6B_Properties:
 Obj6B_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj65_Obj6A_Obj6B_MapUnc_26EC8,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,3,0),art_tile(a0)
 	cmpi.b	#chemical_plant_zone,(Current_Zone).w
 	bne.s	+
 	move.l	#Obj6B_MapUnc_2800E,mappings(a0)
@@ -54664,7 +54553,7 @@ byte_283C0:
 Obj6E_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj6E_MapUnc_2852C,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,3,0),art_tile(a0)
 	jsrto	JmpTo36_Adjust2PArtPointer
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#4,priority(a0)
@@ -55270,7 +55159,7 @@ Obj75_Index:	offsetTable
 Obj75_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj75_MapUnc_28D8A,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,1,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,1,0),art_tile(a0)
 	jsrto	JmpTo38_Adjust2PArtPointer
 	move.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#5,priority(a0)
@@ -55438,7 +55327,7 @@ Obj76_InitData:
 Obj76_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj76_MapUnc_28F3A,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),art_tile(a0)
 	jsrto	JmpTo39_Adjust2PArtPointer
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#4,priority(a0)
@@ -55890,7 +55779,7 @@ Obj7A_Init:
 	cmpi.b	#mystic_cave_zone,(Current_Zone).w
 	bne.s	+
 	move.l	#Obj15_Obj7A_MapUnc_10256,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),art_tile(a0)
 +
 	jsrto	JmpTo41_Adjust2PArtPointer
 	moveq	#0,d1
@@ -56871,7 +56760,7 @@ Obj82_Properties:
 Obj82_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj82_MapUnc_2A476,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),art_tile(a0)
 	jsrto	JmpTo46_Adjust2PArtPointer
     if fixBugs
 	ori.b	#1<<render_flags.level_fg|1<<render_flags.explicit_height,render_flags(a0)
@@ -57123,7 +57012,7 @@ Obj83_Index:	offsetTable
 Obj83_Init:
 	addq.b	#2,routine(a0)
 	move.l	#Obj15_Obj83_MapUnc_1021E,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),art_tile(a0)
 	jsrto	JmpTo47_Adjust2PArtPointer
 	move.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#4,priority(a0)
@@ -73275,7 +73164,7 @@ Obj8D_SubObjData:
 	subObjData Obj8D_MapUnc_36CF0,make_art_tile(ArtTile_ArtNem_Grounder,1,1),1<<render_flags.level_fg,5,$10,2
 ; off_36CCE:
 Obj90_SubObjData:
-	subObjData Obj90_MapUnc_36D00,make_art_tile(ArtTile_ArtKos_LevelArt,0,0),1<<render_flags.on_screen|1<<render_flags.level_fg,4,$10,0
+	subObjData Obj90_MapUnc_36D00,make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),1<<render_flags.on_screen|1<<render_flags.level_fg,4,$10,0
 ; off_36CD8:
 Obj90_SubObjData2:
 	subObjData Obj90_MapUnc_36CFA,make_art_tile(ArtTile_ArtNem_Grounder,1,1),1<<render_flags.on_screen|1<<render_flags.level_fg,4,8,0
@@ -73690,7 +73579,7 @@ loc_37066:
 ; ===========================================================================
 ; off_3707C:
 Obj92_SubObjData:
-	subObjData Obj92_Obj93_MapUnc_37092,make_art_tile(ArtTile_ArtKos_LevelArt,0,0),1<<render_flags.level_fg,4,$10,$12
+	subObjData Obj92_Obj93_MapUnc_37092,make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),1<<render_flags.level_fg,4,$10,$12
 ; animation script
 ; off_37086:
 Ani_obj92:	offsetTable
@@ -73725,7 +73614,7 @@ Obj95_Index:	offsetTable
 ; loc_37116:
 Obj95_Init:
 	move.l	#Obj95_MapUnc_372E6,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,0,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),art_tile(a0)
 	jsrto	JmpTo64_Adjust2PArtPointer
 	ori.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#4,priority(a0)
@@ -81750,7 +81639,7 @@ ObjC5_SubObjData3:		; Platforms, platform releaser, laser and laser shooter
 	subObjData ObjC5_MapUnc_3CCD8,make_art_tile(ArtTile_ArtNem_WFZBoss,0,0),1<<render_flags.level_fg,5,$10,0
 ; off_3CC9E:
 ObjC6_SubObjData2:		; Robotnik
-	subObjData ObjC6_MapUnc_3D0EE,make_art_tile(ArtTile_ArtKos_LevelArt,0,0),1<<render_flags.level_fg,5,$20,0
+	subObjData ObjC6_MapUnc_3D0EE,make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),1<<render_flags.level_fg,5,$20,0
 ; off_3CCA8:
 ObjC5_SubObjData4:		; Robotnik platform
 	subObjData ObjC5_MapUnc_3CEBC,make_art_tile(ArtTile_ArtNem_WfzFloatingPlatform,1,1),1<<render_flags.level_fg,5,$20,0
@@ -81970,13 +81859,13 @@ ObjC6_State4:
 ; ===========================================================================
 ; off_3D0B2:
 ObjC6_SubObjData3:
-	subObjData ObjC6_MapUnc_3D0EE,make_art_tile(ArtTile_ArtKos_LevelArt,0,0),1<<render_flags.level_fg,5,$18,0
+	subObjData ObjC6_MapUnc_3D0EE,make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),1<<render_flags.level_fg,5,$18,0
 ; off_3D0BC:
 ObjC6_SubObjData4:
 	subObjData ObjC6_MapUnc_3D1DE,make_art_tile(ArtTile_ArtNem_ConstructionStripes_1,1,0),1<<render_flags.level_fg,1,8,0
 ; off_3D0C6:
 ObjC6_SubObjData:
-	subObjData ObjC6_MapUnc_3D0EE,make_art_tile(ArtTile_ArtKos_LevelArt,0,0),1<<render_flags.level_fg,5,4,0
+	subObjData ObjC6_MapUnc_3D0EE,make_art_tile(ArtTile_ArtKosP_LevelArt,0,0),1<<render_flags.level_fg,5,4,0
 ChildObject_3D0D0:	childObjectData objoff_3E, ObjID_Eggman, $A8
 ChildObject_3D0D4:	childObjectData objoff_3C, ObjID_Eggman, $AA
 ; animation script
@@ -86509,11 +86398,11 @@ APM_EHZ:	begin_animpat
 	dc.w make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$0,1,0,2,0)
 	dc.w make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$1,0,0,2,0),make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$1,1,0,2,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_Checkers+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtKos_Checkers+$1,0,0,2,0),make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$1,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_Checkers+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_Checkers+$1,0,0,2,0),make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$1,0,0,2,0)
 
-	dc.w make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$0,1,0,2,0),make_block_tile(ArtTile_ArtKos_Checkers+$0,1,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$1,1,0,2,0),make_block_tile(ArtTile_ArtKos_Checkers+$1,1,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$0,1,0,2,0),make_block_tile(ArtTile_ArtKosP_Checkers+$0,1,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_EHZPulseBall+$1,1,0,2,0),make_block_tile(ArtTile_ArtKosP_Checkers+$1,1,0,2,0)
 
 	dc.w make_block_tile(ArtTile_ArtUnc_Flowers1+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_Flowers1+$0,1,0,3,0)
 	dc.w make_block_tile(ArtTile_ArtUnc_Flowers1+$1,0,0,3,0),make_block_tile(ArtTile_ArtUnc_Flowers1+$1,1,0,3,0)
@@ -86574,10 +86463,10 @@ APM_MTZ:	begin_animpat
 	dc.w make_block_tile(ArtTile_ArtUnc_MTZAnimBack_2+$4,0,0,1,0),make_block_tile(ArtTile_ArtUnc_MTZAnimBack_2+$4,1,0,1,0)
 	dc.w make_block_tile(ArtTile_ArtUnc_MTZAnimBack_2+$5,0,0,1,0),make_block_tile(ArtTile_ArtUnc_MTZAnimBack_2+$5,1,0,1,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,1),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,1)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,1),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,1)
 	dc.w make_block_tile(ArtTile_ArtUnc_Lava+$0    ,0,0,2,1),make_block_tile(ArtTile_ArtUnc_Lava+$1    ,0,0,2,1)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,1),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,1)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,1),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,1)
 	dc.w make_block_tile(ArtTile_ArtUnc_Lava+$2    ,0,0,2,1),make_block_tile(ArtTile_ArtUnc_Lava+$3    ,0,0,2,1)
 
 	dc.w make_block_tile(ArtTile_ArtUnc_Lava+$4    ,0,0,2,1),make_block_tile(ArtTile_ArtUnc_Lava+$5    ,0,0,2,1)
@@ -86655,107 +86544,107 @@ APM_HPZ:	begin_animpat
 	; In REV02, for some reason these blank tiles' palette line was changed to lines 3 and 4.
 	; This is consistent with MTZ's blank tiles.
 	; Notably, the new palette lines' first entry always happens to match the current VDP background colour.
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$2,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$2,0,0,3,0)
     else
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$2,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$2,0,0,3,0)
     endif
 
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$1,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$4,0,0,3,0)
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$3,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$6,0,0,3,0)
 
     if gameRevision<2
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$5,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$7,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$5,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$7,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$2,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$2,0,0,3,0)
     else
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$5,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$7,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$5,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$7,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$2,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$2,0,0,3,0)
     endif
 
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$1,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$4,0,0,3,0)
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$3,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$6,0,0,3,0)
 
     if gameRevision<2
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$5,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$7,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$5,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$7,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$2,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$2,0,0,3,0)
     else
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$5,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$7,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$5,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$7,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$2,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$2,0,0,3,0)
     endif
 
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$1,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$4,0,0,3,0)
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$3,0,0,3,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$6,0,0,3,0)
 
     if gameRevision<2
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$5,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$7,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$5,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$7,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$2,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$2,0,0,2,0)
     else
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$5,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$7,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$5,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$7,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,3,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$2,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$2,0,0,2,0)
     endif
 
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$1,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$4,0,0,2,0)
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$3,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$6,0,0,2,0)
 
     if gameRevision<2
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$5,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$7,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$5,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$7,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$2,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$2,0,0,2,0)
     else
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$5,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$7,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$5,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_1+$7,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$2,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$2,0,0,2,0)
     endif
 
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$1,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$4,0,0,2,0)
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$3,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$6,0,0,2,0)
 
     if gameRevision<2
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$5,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$7,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$5,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$7,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$2,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$2,0,0,2,0)
     else
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$5,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$7,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$5,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_2+$7,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0)
 
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$2,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$2,0,0,2,0)
     endif
 
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$1,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$4,0,0,2,0)
 	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$3,0,0,2,0),make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$6,0,0,2,0)
 
     if gameRevision<2
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$5,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$7,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$5,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$7,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
     else
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$5,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$7,0,0,2,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$5,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_HPZPulseOrb_3+$7,0,0,2,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0)
     endif
 APM_HPZ_End:
 
@@ -86770,17 +86659,17 @@ APM_OOZ:	begin_animpat
 	dc.w make_block_tile(ArtTile_ArtUnc_OOZSquareBall1+$2,0,0,3,1),make_block_tile(ArtTile_ArtUnc_OOZSquareBall1+$3,0,0,3,1)
 
     if gameRevision<2
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$2,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0),make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$2,0,0,3,0)
 
-	dc.w make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$1,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$3,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$1,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$3,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,0,0)
     else
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$0,0,0,3,0)
-	dc.w make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$2,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$0,0,0,3,0)
+	dc.w make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0),make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$2,0,0,3,0)
 
-	dc.w make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$1,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0)
-	dc.w make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$3,0,0,3,0),make_block_tile(ArtTile_ArtKos_LevelArt+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$1,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0)
+	dc.w make_block_tile(ArtTile_ArtUnc_OOZSquareBall2+$3,0,0,3,0),make_block_tile(ArtTile_ArtKosP_LevelArt+$0,0,0,2,0)
     endif
 
 	dc.w make_block_tile(ArtTile_ArtUnc_Oil1+$0,0,0,2,1),make_block_tile(ArtTile_ArtUnc_Oil1+$1,0,0,2,1)
@@ -88464,8 +88353,8 @@ DbgObjList_EHZ: dbglistheader
 	dbglistobj ObjID_EHZWaterfall,	Obj49_MapUnc_20C50,   0,   0, make_art_tile(ArtTile_ArtNem_Waterfall,1,0)
 	dbglistobj ObjID_EHZWaterfall,	Obj49_MapUnc_20C50,   2,   3, make_art_tile(ArtTile_ArtNem_Waterfall,1,0)
 	dbglistobj ObjID_EHZWaterfall,	Obj49_MapUnc_20C50,   4,   5, make_art_tile(ArtTile_ArtNem_Waterfall,1,0)
-	dbglistobj ObjID_EHZPlatform,	Obj18_MapUnc_107F6,   1,   0, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
-	dbglistobj ObjID_EHZPlatform,	Obj18_MapUnc_107F6, $9A,   1, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
+	dbglistobj ObjID_EHZPlatform,	Obj18_MapUnc_107F6,   1,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
+	dbglistobj ObjID_EHZPlatform,	Obj18_MapUnc_107F6, $9A,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
 	dbglistobj ObjID_Spikes,	Obj36_MapUnc_15B68,   0,   0, make_art_tile(ArtTile_ArtNem_Spikes,1,0)
 	dbglistobj ObjID_Spring,	Obj41_MapUnc_1901C, $81,   0, make_art_tile(ArtTile_ArtNem_VrtclSprng,0,0)
 	dbglistobj ObjID_Spring,	Obj41_MapUnc_1901C, $90,   3, make_art_tile(ArtTile_ArtNem_HrzntlSprng,0,0)
@@ -88483,29 +88372,29 @@ DbgObjList_MTZ: dbglistheader
 	dbglistobj ObjID_Monitor,	Obj26_MapUnc_12D36,   8,   0, make_art_tile(ArtTile_ArtNem_Powerups,0,0)
 	dbglistobj ObjID_Starpost,	Obj79_MapUnc_1F424,   1,   0, make_art_tile(ArtTile_ArtNem_Checkpoint,0,0)
 	dbglistobj ObjID_PlaneSwitcher,	Obj03_MapUnc_1FFB8,   9,   1, make_art_tile(ArtTile_ArtNem_Ring,1,0)
-	dbglistobj ObjID_SteamSpring,	Obj42_MapUnc_2686C,   1,   7, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
-	dbglistobj ObjID_MTZTwinStompers, Obj64_MapUnc_26A5C,   1,   0, make_art_tile(ArtTile_ArtKos_LevelArt,1,0)
-	dbglistobj ObjID_MTZTwinStompers, Obj64_MapUnc_26A5C, $11,   1, make_art_tile(ArtTile_ArtKos_LevelArt,1,0)
-	dbglistobj ObjID_MTZLongPlatform, Obj65_Obj6A_Obj6B_MapUnc_26EC8, $80,   0, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
-	dbglistobj ObjID_MTZLongPlatform, Obj65_Obj6A_Obj6B_MapUnc_26EC8, $13,   1, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
+	dbglistobj ObjID_SteamSpring,	Obj42_MapUnc_2686C,   1,   7, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
+	dbglistobj ObjID_MTZTwinStompers, Obj64_MapUnc_26A5C,   1,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,1,0)
+	dbglistobj ObjID_MTZTwinStompers, Obj64_MapUnc_26A5C, $11,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,1,0)
+	dbglistobj ObjID_MTZLongPlatform, Obj65_Obj6A_Obj6B_MapUnc_26EC8, $80,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
+	dbglistobj ObjID_MTZLongPlatform, Obj65_Obj6A_Obj6B_MapUnc_26EC8, $13,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
 	dbglistobj ObjID_Button,	Obj47_MapUnc_24D96,   0,   2, make_art_tile(ArtTile_ArtNem_Button,0,0)
-	dbglistobj ObjID_Barrier,	Obj2D_MapUnc_11822,   1,   1, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
+	dbglistobj ObjID_Barrier,	Obj2D_MapUnc_11822,   1,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
 	dbglistobj ObjID_MTZSpringWall,	Obj66_MapUnc_27120,   1,   0, make_art_tile(ArtTile_ArtNem_Powerups,0,1)
 	dbglistobj ObjID_MTZSpringWall,	Obj66_MapUnc_27120, $11,   1, make_art_tile(ArtTile_ArtNem_Powerups,0,1)
 	dbglistobj ObjID_SpikyBlock,	Obj68_Obj6D_MapUnc_27750,   0,   4, make_art_tile(ArtTile_ArtNem_MtzSpikeBlock,3,0)
 	dbglistobj ObjID_Nut,		Obj69_MapUnc_27A26,   4,   0, make_art_tile(ArtTile_ArtNem_MtzAsstBlocks,1,0)
-	dbglistobj ObjID_MTZMovingPforms, Obj65_Obj6A_Obj6B_MapUnc_26EC8,   0,   1, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
-	dbglistobj ObjID_MTZPlatform,	Obj65_Obj6A_Obj6B_MapUnc_26EC8,   7,   1, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
+	dbglistobj ObjID_MTZMovingPforms, Obj65_Obj6A_Obj6B_MapUnc_26EC8,   0,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
+	dbglistobj ObjID_MTZPlatform,	Obj65_Obj6A_Obj6B_MapUnc_26EC8,   7,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
 	dbglistobj ObjID_FloorSpike,	Obj68_Obj6D_MapUnc_27750,   0,   0, make_art_tile(ArtTile_ArtNem_MtzSpike,1,0)
-	dbglistobj ObjID_LargeRotPform,	Obj6E_MapUnc_2852C,   0,   0, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
-	dbglistobj ObjID_LargeRotPform,	Obj6E_MapUnc_2852C, $10,   1, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
-	dbglistobj ObjID_LargeRotPform,	Obj6E_MapUnc_2852C, $20,   2, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
+	dbglistobj ObjID_LargeRotPform,	Obj6E_MapUnc_2852C,   0,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
+	dbglistobj ObjID_LargeRotPform,	Obj6E_MapUnc_2852C, $10,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
+	dbglistobj ObjID_LargeRotPform,	Obj6E_MapUnc_2852C, $20,   2, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
 	dbglistobj ObjID_Cog,		Obj70_MapUnc_28786, $10,   0, make_art_tile(ArtTile_ArtNem_MtzWheel,3,1)
 	dbglistobj ObjID_MTZLavaBubble,	Obj71_MapUnc_11576, $22,   5, make_art_tile(ArtTile_ArtNem_MtzLavaBubble,2,0)
 	dbglistobj ObjID_Scenery,	Obj1C_MapUnc_11552,   0,   0, make_art_tile(ArtTile_ArtNem_BoltEnd_Rope,2,0)
 	dbglistobj ObjID_Scenery,	Obj1C_MapUnc_11552,   1,   1, make_art_tile(ArtTile_ArtNem_BoltEnd_Rope,2,0)
 	dbglistobj ObjID_Scenery,	Obj1C_MapUnc_11552,   3,   2, make_art_tile(ArtTile_ArtNem_BoltEnd_Rope,1,0)
-	dbglistobj ObjID_MTZLongPlatform, Obj65_Obj6A_Obj6B_MapUnc_26EC8, $B0,   0, make_art_tile(ArtTile_ArtKos_LevelArt,3,0)
+	dbglistobj ObjID_MTZLongPlatform, Obj65_Obj6A_Obj6B_MapUnc_26EC8, $B0,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,3,0)
 	dbglistobj ObjID_Shellcracker,	Obj9F_MapUnc_38314, $24,   0, make_art_tile(ArtTile_ArtNem_Shellcracker,0,0)
 	dbglistobj ObjID_Asteron,	ObjA4_Obj98_MapUnc_38A96, $2E,   0, make_art_tile(ArtTile_ArtNem_MtzSupernova,0,1)
 	dbglistobj ObjID_Slicer,	ObjA1_MapUnc_385E2, $28,   0, make_art_tile(ArtTile_ArtNem_MtzMantis,1,0)
@@ -88557,12 +88446,12 @@ DbgObjList_HTZ: dbglistheader
 	dbglistobj ObjID_ForcedSpin,	Obj03_MapUnc_1FFB8,   0,   0, make_art_tile(ArtTile_ArtNem_Ring,0,0)
 	dbglistobj ObjID_ForcedSpin,	Obj03_MapUnc_1FFB8,   4,   4, make_art_tile(ArtTile_ArtNem_Ring,0,0)
 	dbglistobj ObjID_PlaneSwitcher,	Obj03_MapUnc_1FFB8,   9,   1, make_art_tile(ArtTile_ArtNem_Ring,1,0)
-	dbglistobj ObjID_EHZPlatform,	Obj18_MapUnc_107F6,   1,   0, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
-	dbglistobj ObjID_EHZPlatform,	Obj18_MapUnc_107F6, $9A,   1, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
+	dbglistobj ObjID_EHZPlatform,	Obj18_MapUnc_107F6,   1,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
+	dbglistobj ObjID_EHZPlatform,	Obj18_MapUnc_107F6, $9A,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
 	dbglistobj ObjID_Spikes,	Obj36_MapUnc_15B68,   0,   0, make_art_tile(ArtTile_ArtNem_Spikes,1,0)
 	dbglistobj ObjID_Seesaw,	Obj14_MapUnc_21CF0,   0,   0, make_art_tile(ArtTile_ArtNem_HtzSeeSaw,0,0)
 	dbglistobj ObjID_Barrier,	Obj2D_MapUnc_11822,   0,   0, make_art_tile(ArtTile_ArtNem_HtzValveBarrier,1,0)
-	dbglistobj ObjID_SmashableGround, Obj2F_MapUnc_236FA,   0,   0, make_art_tile(ArtTile_ArtKos_LevelArt,2,1)
+	dbglistobj ObjID_SmashableGround, Obj2F_MapUnc_236FA,   0,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,2,1)
 	dbglistobj ObjID_LavaBubble,	Obj20_MapUnc_23254, $44,   2, make_art_tile(ArtTile_ArtNem_HtzFireball2,0,1)
 	dbglistobj ObjID_Spring,	Obj41_MapUnc_1901C, $81,   0, make_art_tile(ArtTile_ArtNem_VrtclSprng,0,0)
 	dbglistobj ObjID_Spring,	Obj41_MapUnc_1901C, $90,   3, make_art_tile(ArtTile_ArtNem_HrzntlSprng,0,0)
@@ -88572,15 +88461,15 @@ DbgObjList_HTZ: dbglistheader
 	dbglistobj ObjID_HTZLift,	Obj16_MapUnc_21F14,   0,   0, make_art_tile(ArtTile_ArtNem_HtzZipline,2,0)
 	dbglistobj ObjID_BridgeStake,	Obj16_MapUnc_21F14,   4,   3, make_art_tile(ArtTile_ArtNem_HtzZipline,2,0)
 	dbglistobj ObjID_BridgeStake,	Obj16_MapUnc_21F14,   5,   4, make_art_tile(ArtTile_ArtNem_HtzZipline,2,0)
-	dbglistobj ObjID_Scenery,	Obj1C_MapUnc_113D6,   7,   0, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
-	dbglistobj ObjID_Scenery,	Obj1C_MapUnc_113D6,   8,   1, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
+	dbglistobj ObjID_Scenery,	Obj1C_MapUnc_113D6,   7,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
+	dbglistobj ObjID_Scenery,	Obj1C_MapUnc_113D6,   8,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
 	dbglistobj ObjID_BreakableRock,	Obj32_MapUnc_23852,   0,   0, make_art_tile(ArtTile_ArtNem_HtzRock,2,0)
 	dbglistobj ObjID_LavaMarker,	Obj31_MapUnc_20E74,   0,   0, make_art_tile(ArtTile_ArtNem_Powerups,0,1)
 	dbglistobj ObjID_LavaMarker,	Obj31_MapUnc_20E74,   1,   1, make_art_tile(ArtTile_ArtNem_Powerups,0,1)
 	dbglistobj ObjID_LavaMarker,	Obj31_MapUnc_20E74,   2,   2, make_art_tile(ArtTile_ArtNem_Powerups,0,1)
 	dbglistobj ObjID_Rexon2,	Obj94_Obj98_MapUnc_37678,  $E,   2, make_art_tile(ArtTile_ArtNem_Rexon,3,0)
-	dbglistobj ObjID_Spiker,	Obj92_Obj93_MapUnc_37092,  $A,   0, make_art_tile(ArtTile_ArtKos_LevelArt,0,0)
-	dbglistobj ObjID_Sol,		Obj95_MapUnc_372E6,   0,   0, make_art_tile(ArtTile_ArtKos_LevelArt,0,0)
+	dbglistobj ObjID_Spiker,	Obj92_Obj93_MapUnc_37092,  $A,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,0,0)
+	dbglistobj ObjID_Sol,		Obj95_MapUnc_372E6,   0,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,0,0)
 	dbglistobj ObjID_EggPrison,	Obj3E_MapUnc_3F436,   0,   0, make_art_tile(ArtTile_ArtNem_Capsule,1,0)
 DbgObjList_HTZ_End
 
@@ -88629,24 +88518,24 @@ DbgObjList_MCZ: dbglistheader
 	dbglistobj ObjID_Ring,		Obj25_MapUnc_12382,   0,   0, make_art_tile(ArtTile_ArtNem_Ring,1,0)
 	dbglistobj ObjID_Monitor,	Obj26_MapUnc_12D36,   8,   0, make_art_tile(ArtTile_ArtNem_Powerups,0,0)
 	dbglistobj ObjID_Starpost,	Obj79_MapUnc_1F424,   1,   0, make_art_tile(ArtTile_ArtNem_Checkpoint,0,0)
-	dbglistobj ObjID_SwingingPlatform, Obj15_Obj7A_MapUnc_10256, $48,   2, make_art_tile(ArtTile_ArtKos_LevelArt,0,0)
+	dbglistobj ObjID_SwingingPlatform, Obj15_Obj7A_MapUnc_10256, $48,   2, make_art_tile(ArtTile_ArtKosP_LevelArt,0,0)
 	dbglistobj ObjID_CollapsPform,	Obj1F_MapUnc_11106,   0,   0, make_art_tile(ArtTile_ArtNem_MCZCollapsePlat,3,0)
 	dbglistobj ObjID_RotatingRings,	Obj73_MapUnc_28B9C, $F5,   0, make_art_tile(ArtTile_ArtNem_Ring,1,0)
 	dbglistobj ObjID_MCZRotPforms,	Obj6A_MapUnc_27D30, $18,   0, make_art_tile(ArtTile_ArtNem_Crate,3,0)
-	dbglistobj ObjID_Stomper,	Obj2A_MapUnc_11666,   0,   0, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
+	dbglistobj ObjID_Stomper,	Obj2A_MapUnc_11666,   0,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
 	dbglistobj ObjID_Spikes,	Obj36_MapUnc_15B68,   0,   0, make_art_tile(ArtTile_ArtNem_Spikes,1,0)
 	dbglistobj ObjID_Spikes,	Obj36_MapUnc_15B68, $40,   4, make_art_tile(ArtTile_ArtNem_HorizSpike,1,0)
 	dbglistobj ObjID_Spring,	Obj41_MapUnc_1901C, $81,   0, make_art_tile(ArtTile_ArtNem_VrtclSprng,0,0)
 	dbglistobj ObjID_Spring,	Obj41_MapUnc_1901C, $90,   3, make_art_tile(ArtTile_ArtNem_HrzntlSprng,0,0)
 	dbglistobj ObjID_Springboard,	Obj40_MapUnc_265F4,   1,   0, make_art_tile(ArtTile_ArtNem_LeverSpring,0,0)
 	dbglistobj ObjID_InvisibleBlock, Obj74_MapUnc_20F66, $11,   0, make_art_tile(ArtTile_ArtNem_Powerups,0,1)
-	dbglistobj ObjID_MCZBrick,	Obj75_MapUnc_28D8A, $18,   2, make_art_tile(ArtTile_ArtKos_LevelArt,1,0)
-	dbglistobj ObjID_SlidingSpikes,	Obj76_MapUnc_28F3A,   0,   0, make_art_tile(ArtTile_ArtKos_LevelArt,0,0)
+	dbglistobj ObjID_MCZBrick,	Obj75_MapUnc_28D8A, $18,   2, make_art_tile(ArtTile_ArtKosP_LevelArt,1,0)
+	dbglistobj ObjID_SlidingSpikes,	Obj76_MapUnc_28F3A,   0,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,0,0)
 	dbglistobj ObjID_MCZBridge,	Obj77_MapUnc_29064,   1,   0, make_art_tile(ArtTile_ArtNem_MCZGateLog,3,0)
 	dbglistobj ObjID_VineSwitch,	Obj7F_MapUnc_29938,   0,   0, make_art_tile(ArtTile_ArtNem_VineSwitch,3,0)
 	dbglistobj ObjID_MovingVine,	Obj80_MapUnc_29C64,   0,   0, make_art_tile(ArtTile_ArtNem_VinePulley,3,0)
 	dbglistobj ObjID_MCZDrawbridge,	Obj81_MapUnc_2A24E,   0,   1, make_art_tile(ArtTile_ArtNem_MCZGateLog,3,0)
-	dbglistobj ObjID_SidewaysPform,	Obj15_Obj7A_MapUnc_10256, $12,   0, make_art_tile(ArtTile_ArtKos_LevelArt,0,0)
+	dbglistobj ObjID_SidewaysPform,	Obj15_Obj7A_MapUnc_10256, $12,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,0,0)
 	dbglistobj ObjID_Flasher,	ObjA3_MapUnc_388F0, $2C,   0, make_art_tile(ArtTile_ArtNem_Flasher,0,1)
 	dbglistobj ObjID_Crawlton,	Obj9E_MapUnc_37FF2, $22,   0, make_art_tile(ArtTile_ArtNem_Crawlton,1,0)
 	dbglistobj ObjID_EggPrison,	Obj3E_MapUnc_3F436,   0,   0, make_art_tile(ArtTile_ArtNem_Capsule,1,0)
@@ -88710,12 +88599,12 @@ DbgObjList_ARZ: dbglistheader
 	dbglistobj ObjID_Ring,		Obj25_MapUnc_12382,   0,   0, make_art_tile(ArtTile_ArtNem_Ring,1,0)
 	dbglistobj ObjID_Monitor,	Obj26_MapUnc_12D36,   8,   0, make_art_tile(ArtTile_ArtNem_Powerups,0,0)
 	dbglistobj ObjID_Starpost,	Obj79_MapUnc_1F424,   1,   0, make_art_tile(ArtTile_ArtNem_Checkpoint,0,0)
-	dbglistobj ObjID_SwingingPlatform, Obj15_Obj83_MapUnc_1021E, $88,   2, make_art_tile(ArtTile_ArtKos_LevelArt,0,0)
-	dbglistobj ObjID_ARZPlatform,	Obj18_MapUnc_1084E,   1,   0, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
-	dbglistobj ObjID_ARZPlatform,	Obj18_MapUnc_1084E, $9A,   1, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
+	dbglistobj ObjID_SwingingPlatform, Obj15_Obj83_MapUnc_1021E, $88,   2, make_art_tile(ArtTile_ArtKosP_LevelArt,0,0)
+	dbglistobj ObjID_ARZPlatform,	Obj18_MapUnc_1084E,   1,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
+	dbglistobj ObjID_ARZPlatform,	Obj18_MapUnc_1084E, $9A,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
 	dbglistobj ObjID_ArrowShooter,	Obj22_MapUnc_25804,   0,   1, make_art_tile(ArtTile_ArtNem_ArrowAndShooter,0,0)
-	dbglistobj ObjID_FallingPillar,	Obj23_MapUnc_259E6,   0,   0, make_art_tile(ArtTile_ArtKos_LevelArt,1,0)
-	dbglistobj ObjID_RisingPillar,	Obj2B_MapUnc_25C6E,   0,   0, make_art_tile(ArtTile_ArtKos_LevelArt,1,0)
+	dbglistobj ObjID_FallingPillar,	Obj23_MapUnc_259E6,   0,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,1,0)
+	dbglistobj ObjID_RisingPillar,	Obj2B_MapUnc_25C6E,   0,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,1,0)
 	dbglistobj ObjID_LeavesGenerator, Obj31_MapUnc_20E74,   0,   0, make_art_tile(ArtTile_ArtNem_Powerups,0,1)
 	dbglistobj ObjID_LeavesGenerator, Obj31_MapUnc_20E74,   1,   1, make_art_tile(ArtTile_ArtNem_Powerups,0,1)
 	dbglistobj ObjID_LeavesGenerator, Obj31_MapUnc_20E74,   2,   2, make_art_tile(ArtTile_ArtNem_Powerups,0,1)
@@ -88726,10 +88615,10 @@ DbgObjList_ARZ: dbglistheader
 	dbglistobj ObjID_PlaneSwitcher,	Obj03_MapUnc_1FFB8,   9,   1, make_art_tile(ArtTile_ArtNem_Ring,1,0)
 	dbglistobj ObjID_Spikes,	Obj36_MapUnc_15B68,   0,   0, make_art_tile(ArtTile_ArtNem_Spikes,1,0)
 	dbglistobj ObjID_Barrier,	Obj2D_MapUnc_11822,   3,   3, make_art_tile(ArtTile_ArtNem_ARZBarrierThing,1,0)
-	dbglistobj ObjID_CollapsPform,	Obj1F_MapUnc_1115E,   0,   0, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
-	dbglistobj ObjID_SwingingPform,	Obj82_MapUnc_2A476,   3,   0, make_art_tile(ArtTile_ArtKos_LevelArt,0,0)
-	dbglistobj ObjID_SwingingPform,	Obj82_MapUnc_2A476, $11,   1, make_art_tile(ArtTile_ArtKos_LevelArt,0,0)
-	dbglistobj ObjID_ARZRotPforms,	Obj15_Obj83_MapUnc_1021E, $10,   1, make_art_tile(ArtTile_ArtKos_LevelArt,0,0)
+	dbglistobj ObjID_CollapsPform,	Obj1F_MapUnc_1115E,   0,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,2,0)
+	dbglistobj ObjID_SwingingPform,	Obj82_MapUnc_2A476,   3,   0, make_art_tile(ArtTile_ArtKosP_LevelArt,0,0)
+	dbglistobj ObjID_SwingingPform,	Obj82_MapUnc_2A476, $11,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,0,0)
+	dbglistobj ObjID_ARZRotPforms,	Obj15_Obj83_MapUnc_1021E, $10,   1, make_art_tile(ArtTile_ArtKosP_LevelArt,0,0)
 	dbglistobj ObjID_ARZBubbles,	Obj24_MapUnc_1FBF6, $81,  $E, make_art_tile(ArtTile_ArtNem_BigBubbles,0,1)
 	dbglistobj ObjID_ChopChop,	Obj91_MapUnc_36EF6,   8,   0, make_art_tile(ArtTile_ArtNem_ChopChop,1,0)
 	dbglistobj ObjID_Whisp,		Obj8C_MapUnc_36A4E,   0,   0, make_art_tile(ArtTile_ArtNem_Whisp,1,1)
@@ -88801,23 +88690,23 @@ cur_zone_str := "\{cur_zone_id}"
 ; BEGIN SArt_Ptrs Art_Ptrs_Array[17]
 ; dword_42594: MainLoadBlocks: saArtPtrs:
 LevelArtPointers:
-	levartptrs PLCID_Ehz1,        PLCID_Ehz2,      PalID_EHZ,  ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; EHZ    ; EMERALD HILL ZONE
-	levartptrs PLCID_MilesLife2P, PLCID_MilesLife, PalID_EHZ2, ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; Zone 1 ; LEVEL 1 (UNUSED)
-	levartptrs PLCID_TailsLife2P, PLCID_TailsLife, PalID_WZ,   ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; WZ     ; WOOD ZONE (UNUSED)
-	levartptrs PLCID_Unused1,     PLCID_Unused2,   PalID_EHZ3, ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; Zone 3 ; LEVEL 3 (UNUSED)
-	levartptrs PLCID_Mtz1,        PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ, BM16_MTZ, BM128_MTZ ; MTZ1,2 ; METROPOLIS ZONE ACTS 1 & 2
-	levartptrs PLCID_Mtz1,        PLCID_Mtz2,      PalID_MTZ,  ArtKos_MTZ, BM16_MTZ, BM128_MTZ ; MTZ3   ; METROPOLIS ZONE ACT 3
-	levartptrs PLCID_Wfz1,        PLCID_Wfz2,      PalID_WFZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ ; WFZ    ; WING FORTRESS ZONE
-	levartptrs PLCID_Htz1,        PLCID_Htz2,      PalID_HTZ,  ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; HTZ    ; HILL TOP ZONE
-	levartptrs PLCID_Hpz1,        PLCID_Hpz2,      PalID_HPZ,  ArtKos_HPZ, BM16_HPZ, BM128_HPZ ; HPZ    ; HIDDEN PALACE ZONE (UNUSED)
-	levartptrs PLCID_Unused3,     PLCID_Unused4,   PalID_EHZ4, ArtKos_EHZ, BM16_EHZ, BM128_EHZ ; Zone 9 ; LEVEL 9 (UNUSED)
-	levartptrs PLCID_Ooz1,        PLCID_Ooz2,      PalID_OOZ,  ArtKos_OOZ, BM16_OOZ, BM128_OOZ ; OOZ    ; OIL OCEAN ZONE
-	levartptrs PLCID_Mcz1,        PLCID_Mcz2,      PalID_MCZ,  ArtKos_MCZ, BM16_MCZ, BM128_MCZ ; MCZ    ; MYSTIC CAVE ZONE
-	levartptrs PLCID_Cnz1,        PLCID_Cnz2,      PalID_CNZ,  ArtKos_CNZ, BM16_CNZ, BM128_CNZ ; CNZ    ; CASINO NIGHT ZONE
-	levartptrs PLCID_Cpz1,        PLCID_Cpz2,      PalID_CPZ,  ArtKos_CPZ, BM16_CPZ, BM128_CPZ ; CPZ    ; CHEMICAL PLANT ZONE
-	levartptrs PLCID_Dez1,        PLCID_Dez2,      PalID_DEZ,  ArtKos_CPZ, BM16_CPZ, BM128_CPZ ; DEZ    ; DEATH EGG ZONE
-	levartptrs PLCID_Arz1,        PLCID_Arz2,      PalID_ARZ,  ArtKos_ARZ, BM16_ARZ, BM128_ARZ ; ARZ    ; AQUATIC RUIN ZONE
-	levartptrs PLCID_Scz1,        PLCID_Scz2,      PalID_SCZ,  ArtKos_SCZ, BM16_WFZ, BM128_WFZ ; SCZ    ; SKY CHASE ZONE
+	levartptrs PLCID_Ehz1,        PLCID_Ehz2,      PalID_EHZ,  ArtKosP_EHZ, BM16_EHZ, BM128_EHZ ; EHZ    ; EMERALD HILL ZONE
+	levartptrs PLCID_MilesLife2P, PLCID_MilesLife, PalID_EHZ2, ArtKosP_EHZ, BM16_EHZ, BM128_EHZ ; Zone 1 ; LEVEL 1 (UNUSED)
+	levartptrs PLCID_TailsLife2P, PLCID_TailsLife, PalID_WZ,   ArtKosP_EHZ, BM16_EHZ, BM128_EHZ ; WZ     ; WOOD ZONE (UNUSED)
+	levartptrs PLCID_Unused1,     PLCID_Unused2,   PalID_EHZ3, ArtKosP_EHZ, BM16_EHZ, BM128_EHZ ; Zone 3 ; LEVEL 3 (UNUSED)
+	levartptrs PLCID_Mtz1,        PLCID_Mtz2,      PalID_MTZ,  ArtKosP_MTZ, BM16_MTZ, BM128_MTZ ; MTZ1,2 ; METROPOLIS ZONE ACTS 1 & 2
+	levartptrs PLCID_Mtz1,        PLCID_Mtz2,      PalID_MTZ,  ArtKosP_MTZ, BM16_MTZ, BM128_MTZ ; MTZ3   ; METROPOLIS ZONE ACT 3
+	levartptrs PLCID_Wfz1,        PLCID_Wfz2,      PalID_WFZ,  ArtKosP_SCZ, BM16_WFZ, BM128_WFZ ; WFZ    ; WING FORTRESS ZONE
+	levartptrs PLCID_Htz1,        PLCID_Htz2,      PalID_HTZ,  ArtKosP_EHZ, BM16_EHZ, BM128_EHZ ; HTZ    ; HILL TOP ZONE
+	levartptrs PLCID_Hpz1,        PLCID_Hpz2,      PalID_HPZ,  ArtKosP_HPZ, BM16_HPZ, BM128_HPZ ; HPZ    ; HIDDEN PALACE ZONE (UNUSED)
+	levartptrs PLCID_Unused3,     PLCID_Unused4,   PalID_EHZ4, ArtKosP_EHZ, BM16_EHZ, BM128_EHZ ; Zone 9 ; LEVEL 9 (UNUSED)
+	levartptrs PLCID_Ooz1,        PLCID_Ooz2,      PalID_OOZ,  ArtKosP_OOZ, BM16_OOZ, BM128_OOZ ; OOZ    ; OIL OCEAN ZONE
+	levartptrs PLCID_Mcz1,        PLCID_Mcz2,      PalID_MCZ,  ArtKosP_MCZ, BM16_MCZ, BM128_MCZ ; MCZ    ; MYSTIC CAVE ZONE
+	levartptrs PLCID_Cnz1,        PLCID_Cnz2,      PalID_CNZ,  ArtKosP_CNZ, BM16_CNZ, BM128_CNZ ; CNZ    ; CASINO NIGHT ZONE
+	levartptrs PLCID_Cpz1,        PLCID_Cpz2,      PalID_CPZ,  ArtKosP_CPZ, BM16_CPZ, BM128_CPZ ; CPZ    ; CHEMICAL PLANT ZONE
+	levartptrs PLCID_Dez1,        PLCID_Dez2,      PalID_DEZ,  ArtKosP_CPZ, BM16_CPZ, BM128_CPZ ; DEZ    ; DEATH EGG ZONE
+	levartptrs PLCID_Arz1,        PLCID_Arz2,      PalID_ARZ,  ArtKosP_ARZ, BM16_ARZ, BM128_ARZ ; ARZ    ; AQUATIC RUIN ZONE
+	levartptrs PLCID_Scz1,        PLCID_Scz2,      PalID_SCZ,  ArtKosP_SCZ, BM16_WFZ, BM128_WFZ ; SCZ    ; SKY CHASE ZONE
 
     if (cur_zone_id<>no_of_zones)&&(MOMPASS=1)
 	message "Warning: Table LevelArtPointers has \{cur_zone_id/1.0} entries, but it should have \{no_of_zones/1.0} entries"
@@ -89826,37 +89715,37 @@ ColArrayHorizontal:	BINCLUDE	"collision/Collision array - Horizontal.bin"
 	even
 
 ; These are all compressed in the Kosinski format.
-ColP_EHZHTZ:	BINCLUDE	"collision/EHZ and HTZ primary 16x16 collision index.kos"
+ColP_EHZHTZ:	BINCLUDE	"collision/EHZ and HTZ primary 16x16 collision index.kosp"
 	even
-ColS_EHZHTZ:	BINCLUDE	"collision/EHZ and HTZ secondary 16x16 collision index.kos"
+ColS_EHZHTZ:	BINCLUDE	"collision/EHZ and HTZ secondary 16x16 collision index.kosp"
 	even
-ColP_WZ:	;BINCLUDE	"collision/WZ primary 16x16 collision index.kos"
+ColP_WZ:	;BINCLUDE	"collision/WZ primary 16x16 collision index.kosp"
 	;even
-ColP_MTZ:	BINCLUDE	"collision/MTZ primary 16x16 collision index.kos"
+ColP_MTZ:	BINCLUDE	"collision/MTZ primary 16x16 collision index.kosp"
 	even
-ColP_HPZ:	;BINCLUDE	"collision/HPZ primary 16x16 collision index.kos"
+ColP_HPZ:	;BINCLUDE	"collision/HPZ primary 16x16 collision index.kosp"
 	;even
-ColS_HPZ:	;BINCLUDE	"collision/HPZ secondary 16x16 collision index.kos"
+ColS_HPZ:	;BINCLUDE	"collision/HPZ secondary 16x16 collision index.kosp"
 	;even
-ColP_OOZ:	BINCLUDE	"collision/OOZ primary 16x16 collision index.kos"
+ColP_OOZ:	BINCLUDE	"collision/OOZ primary 16x16 collision index.kosp"
 	even
-ColP_MCZ:	BINCLUDE	"collision/MCZ primary 16x16 collision index.kos"
+ColP_MCZ:	BINCLUDE	"collision/MCZ primary 16x16 collision index.kosp"
 	even
-ColP_CNZ:	BINCLUDE	"collision/CNZ primary 16x16 collision index.kos"
+ColP_CNZ:	BINCLUDE	"collision/CNZ primary 16x16 collision index.kosp"
 	even
-ColS_CNZ:	BINCLUDE	"collision/CNZ secondary 16x16 collision index.kos"
+ColS_CNZ:	BINCLUDE	"collision/CNZ secondary 16x16 collision index.kosp"
 	even
-ColP_CPZDEZ:	BINCLUDE	"collision/CPZ and DEZ primary 16x16 collision index.kos"
+ColP_CPZDEZ:	BINCLUDE	"collision/CPZ and DEZ primary 16x16 collision index.kosp"
 	even
-ColS_CPZDEZ:	BINCLUDE	"collision/CPZ and DEZ secondary 16x16 collision index.kos"
+ColS_CPZDEZ:	BINCLUDE	"collision/CPZ and DEZ secondary 16x16 collision index.kosp"
 	even
-ColP_ARZ:	BINCLUDE	"collision/ARZ primary 16x16 collision index.kos"
+ColP_ARZ:	BINCLUDE	"collision/ARZ primary 16x16 collision index.kosp"
 	even
-ColS_ARZ:	BINCLUDE	"collision/ARZ secondary 16x16 collision index.kos"
+ColS_ARZ:	BINCLUDE	"collision/ARZ secondary 16x16 collision index.kosp"
 	even
-ColP_WFZSCZ:	BINCLUDE	"collision/WFZ and SCZ primary 16x16 collision index.kos"
+ColP_WFZSCZ:	BINCLUDE	"collision/WFZ and SCZ primary 16x16 collision index.kosp"
 	even
-ColS_WFZSCZ:	BINCLUDE	"collision/WFZ and SCZ secondary 16x16 collision index.kos"
+ColS_WFZSCZ:	BINCLUDE	"collision/WFZ and SCZ secondary 16x16 collision index.kosp"
 	even
 ColP_Invalid:
 
@@ -89924,47 +89813,47 @@ Off_Level: zoneOrderedOffsetTable 2,2
 
 ; These are all compressed in the Kosinski format.
 Level_Invalid:
-Level_EHZ1:	BINCLUDE	"level/layout/EHZ_1.kos"
+Level_EHZ1:	BINCLUDE	"level/layout/EHZ_1.kosp"
 	even
-Level_EHZ2:	BINCLUDE	"level/layout/EHZ_2.kos"
+Level_EHZ2:	BINCLUDE	"level/layout/EHZ_2.kosp"
 	even
-Level_MTZ1:	BINCLUDE	"level/layout/MTZ_1.kos"
+Level_MTZ1:	BINCLUDE	"level/layout/MTZ_1.kosp"
 	even
-Level_MTZ2:	BINCLUDE	"level/layout/MTZ_2.kos"
+Level_MTZ2:	BINCLUDE	"level/layout/MTZ_2.kosp"
 	even
-Level_MTZ3:	BINCLUDE	"level/layout/MTZ_3.kos"
+Level_MTZ3:	BINCLUDE	"level/layout/MTZ_3.kosp"
 	even
-Level_WFZ:	BINCLUDE	"level/layout/WFZ.kos"
+Level_WFZ:	BINCLUDE	"level/layout/WFZ.kosp"
 	even
-Level_HTZ1:	BINCLUDE	"level/layout/HTZ_1.kos"
+Level_HTZ1:	BINCLUDE	"level/layout/HTZ_1.kosp"
 	even
-Level_HTZ2:	BINCLUDE	"level/layout/HTZ_2.kos"
+Level_HTZ2:	BINCLUDE	"level/layout/HTZ_2.kosp"
 	even
-Level_HPZ1:	;BINCLUDE	"level/layout/HPZ_1.kos"
+Level_HPZ1:	;BINCLUDE	"level/layout/HPZ_1.kosp"
 	;even
-Level_OOZ1:	BINCLUDE	"level/layout/OOZ_1.kos"
+Level_OOZ1:	BINCLUDE	"level/layout/OOZ_1.kosp"
 	even
-Level_OOZ2:	BINCLUDE	"level/layout/OOZ_2.kos"
+Level_OOZ2:	BINCLUDE	"level/layout/OOZ_2.kosp"
 	even
-Level_MCZ1:	BINCLUDE	"level/layout/MCZ_1.kos"
+Level_MCZ1:	BINCLUDE	"level/layout/MCZ_1.kosp"
 	even
-Level_MCZ2:	BINCLUDE	"level/layout/MCZ_2.kos"
+Level_MCZ2:	BINCLUDE	"level/layout/MCZ_2.kosp"
 	even
-Level_CNZ1:	BINCLUDE	"level/layout/CNZ_1.kos"
+Level_CNZ1:	BINCLUDE	"level/layout/CNZ_1.kosp"
 	even
-Level_CNZ2:	BINCLUDE	"level/layout/CNZ_2.kos"
+Level_CNZ2:	BINCLUDE	"level/layout/CNZ_2.kosp"
 	even
-Level_CPZ1:	BINCLUDE	"level/layout/CPZ_1.kos"
+Level_CPZ1:	BINCLUDE	"level/layout/CPZ_1.kosp"
 	even
-Level_CPZ2:	BINCLUDE	"level/layout/CPZ_2.kos"
+Level_CPZ2:	BINCLUDE	"level/layout/CPZ_2.kosp"
 	even
-Level_DEZ:	BINCLUDE	"level/layout/DEZ.kos"
+Level_DEZ:	BINCLUDE	"level/layout/DEZ.kosp"
 	even
-Level_ARZ1:	BINCLUDE	"level/layout/ARZ_1.kos"
+Level_ARZ1:	BINCLUDE	"level/layout/ARZ_1.kosp"
 	even
-Level_ARZ2:	BINCLUDE	"level/layout/ARZ_2.kos"
+Level_ARZ2:	BINCLUDE	"level/layout/ARZ_2.kosp"
 	even
-Level_SCZ:	BINCLUDE	"level/layout/SCZ.kos"
+Level_SCZ:	BINCLUDE	"level/layout/SCZ.kosp"
 	even
 
 
@@ -90528,47 +90417,47 @@ ArtNem_EndingTitle:		BINCLUDE	"art/nemesis/Sonic the Hedgehog 2 image at end of 
 
 ; All of these are compressed in the Kosinski format.
 
-BM16_EHZ:	BINCLUDE	"mappings/16x16/EHZ.kos"
-ArtKos_EHZ:	BINCLUDE	"art/kosinski/EHZ_HTZ.kos"
-BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.kos"
-ArtKos_HTZ:	BINCLUDE	"art/kosinski/HTZ_Supp.kos" ; HTZ pattern suppliment to EHZ level patterns
-BM128_EHZ:	BINCLUDE	"mappings/128x128/EHZ_HTZ.kos"
+BM16_EHZ:	BINCLUDE	"mappings/16x16/EHZ.kosp"
+ArtKosP_EHZ:	BINCLUDE	"art/kosinski/EHZ_HTZ.kosp"
+BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.kosp"
+ArtKosP_HTZ:	BINCLUDE	"art/kosinski/HTZ_Supp.kosp" ; HTZ pattern suppliment to EHZ level patterns
+BM128_EHZ:	BINCLUDE	"mappings/128x128/EHZ_HTZ.kosp"
 
-BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.kos"
-ArtKos_MTZ:	BINCLUDE	"art/kosinski/MTZ.kos"
-BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.kos"
+BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.kosp"
+ArtKosP_MTZ:	BINCLUDE	"art/kosinski/MTZ.kosp"
+BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.kosp"
 
-BM16_HPZ:	;BINCLUDE	"mappings/16x16/HPZ.kos"
-ArtKos_HPZ:	;BINCLUDE	"art/kosinski/HPZ.kos"
-BM128_HPZ:	;BINCLUDE	"mappings/128x128/HPZ.kos"
+BM16_HPZ:	;BINCLUDE	"mappings/16x16/HPZ.kosp"
+ArtKosP_HPZ:	;BINCLUDE	"art/kosinski/HPZ.kosp"
+BM128_HPZ:	;BINCLUDE	"mappings/128x128/HPZ.kosp"
 
-BM16_OOZ:	BINCLUDE	"mappings/16x16/OOZ.kos"
-ArtKos_OOZ:	BINCLUDE	"art/kosinski/OOZ.kos"
-BM128_OOZ:	BINCLUDE	"mappings/128x128/OOZ.kos"
+BM16_OOZ:	BINCLUDE	"mappings/16x16/OOZ.kosp"
+ArtKosP_OOZ:	BINCLUDE	"art/kosinski/OOZ.kosp"
+BM128_OOZ:	BINCLUDE	"mappings/128x128/OOZ.kosp"
 
-BM16_MCZ:	BINCLUDE	"mappings/16x16/MCZ.kos"
-ArtKos_MCZ:	BINCLUDE	"art/kosinski/MCZ.kos"
-BM128_MCZ:	BINCLUDE	"mappings/128x128/MCZ.kos"
+BM16_MCZ:	BINCLUDE	"mappings/16x16/MCZ.kosp"
+ArtKosP_MCZ:	BINCLUDE	"art/kosinski/MCZ.kosp"
+BM128_MCZ:	BINCLUDE	"mappings/128x128/MCZ.kosp"
 
-BM16_CNZ:	BINCLUDE	"mappings/16x16/CNZ.kos"
-ArtKos_CNZ:	BINCLUDE	"art/kosinski/CNZ.kos"
-BM128_CNZ:	BINCLUDE	"mappings/128x128/CNZ.kos"
+BM16_CNZ:	BINCLUDE	"mappings/16x16/CNZ.kosp"
+ArtKosP_CNZ:	BINCLUDE	"art/kosinski/CNZ.kosp"
+BM128_CNZ:	BINCLUDE	"mappings/128x128/CNZ.kosp"
 
-BM16_CPZ:	BINCLUDE	"mappings/16x16/CPZ_DEZ.kos"
-ArtKos_CPZ:	BINCLUDE	"art/kosinski/CPZ_DEZ.kos"
-BM128_CPZ:	BINCLUDE	"mappings/128x128/CPZ_DEZ.kos"
+BM16_CPZ:	BINCLUDE	"mappings/16x16/CPZ_DEZ.kosp"
+ArtKosP_CPZ:	BINCLUDE	"art/kosinski/CPZ_DEZ.kosp"
+BM128_CPZ:	BINCLUDE	"mappings/128x128/CPZ_DEZ.kosp"
 
 ; This file contains $320 blocks, overflowing the 'Block_table' buffer. This causes
 ; 'TempArray_LayerDef' to be overwritten with (empty) block data.
 ; If only 'fixBugs' could fix this...
-BM16_ARZ:	BINCLUDE	"mappings/16x16/ARZ.kos"
-ArtKos_ARZ:	BINCLUDE	"art/kosinski/ARZ.kos"
-BM128_ARZ:	BINCLUDE	"mappings/128x128/ARZ.kos"
+BM16_ARZ:	BINCLUDE	"mappings/16x16/ARZ.kosp"
+ArtKosP_ARZ:	BINCLUDE	"art/kosinski/ARZ.kosp"
+BM128_ARZ:	BINCLUDE	"mappings/128x128/ARZ.kosp"
 
-BM16_WFZ:	BINCLUDE	"mappings/16x16/WFZ_SCZ.kos"
-ArtKos_SCZ:	BINCLUDE	"art/kosinski/WFZ_SCZ.kos"
-ArtKos_WFZ:	BINCLUDE	"art/kosinski/WFZ_Supp.kos" ; WFZ pattern suppliment to SCZ tiles
-BM128_WFZ:	BINCLUDE	"mappings/128x128/WFZ_SCZ.kos"
+BM16_WFZ:	BINCLUDE	"mappings/16x16/WFZ_SCZ.kosp"
+ArtKosP_SCZ:	BINCLUDE	"art/kosinski/WFZ_SCZ.kosp"
+ArtKosP_WFZ:	BINCLUDE	"art/kosinski/WFZ_Supp.kosp" ; WFZ pattern suppliment to SCZ tiles
+BM128_WFZ:	BINCLUDE	"mappings/128x128/WFZ_SCZ.kosp"
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ;-----------------------------------------------------------------------------------
@@ -90661,7 +90550,7 @@ MapSpec_Turn7:		BINCLUDE	"mappings/special stage/Begin curve right - Frame 7.bin
 ;  the same as this one line, so to get the full tiles, each line needs to be
 ;  duplicated 7 times over.					; ArtKoz_DCA38:
 ;--------------------------------------------------------------------------------------
-ArtKos_Special:			BINCLUDE	"art/kosinski/SpecStag.kos"
+ArtKosP_Special:		BINCLUDE	"art/kosinski/SpecStag.kosp"
 	even
 
 ArtNem_SpecialBack:		BINCLUDE	"art/nemesis/Background art for special stage.nem"
@@ -90698,11 +90587,11 @@ ArtNem_SpecialSonicAndTails:	BINCLUDE	"art/nemesis/Sonic and Tails animation fra
 	even
 ArtNem_SpecialTailsText:	BINCLUDE	"art/nemesis/Tails text patterns from special stage.nem"
 	even
-MiscKoz_SpecialPerspective:	BINCLUDE	"misc/Special stage object perspective data.kos"
+MiscKozP_SpecialPerspective:	BINCLUDE	"misc/Special stage object perspective data.kosp"
 	even
 MiscNem_SpecialLevelLayout:	BINCLUDE	"misc/Special stage level layouts.nem"
 	even
-MiscKoz_SpecialObjectLocations:	BINCLUDE	"misc/Special stage object location lists.kos"
+MiscKozP_SpecialObjectLocations:	BINCLUDE	"misc/Special stage object location lists.kosp"
 	even
 
 ;--------------------------------------------------------------------------------------

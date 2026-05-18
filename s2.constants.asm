@@ -1957,12 +1957,12 @@ IntroFallingStar:
 	phase	RAM_Start	; Move back to start of RAM
 SSRAM_ArtNem_SpecialSonicAndTails:
 				ds.b	tiles_to_bytes($353)	; $353 art blocks
-SSRAM_MiscKoz_SpecialPerspective:
+SSRAM_MiscKozP_SpecialPerspective:
 				ds.b	$1AFC
 SSRAM_MiscNem_SpecialLevelLayout:
 				ds.b	$180
 				ds.b	$9C	; padding
-SSRAM_MiscKoz_SpecialObjectLocations:
+SSRAM_MiscKozP_SpecialObjectLocations:
 				ds.b	$1AE0
 	dephase
 
@@ -2312,22 +2312,22 @@ ArtTile_ContinueCountdown             = $06FC
 
 ; ---------------------------------------------------------------------------
 ; Level art stuff.
-ArtTile_ArtKos_LevelArt               = $0000
-ArtTile_ArtKos_NumTiles_EHZ           = $0393
-ArtTile_ArtKos_NumTiles_CPZ           = $0364
-ArtTile_ArtKos_NumTiles_ARZ           = $03F6
-ArtTile_ArtKos_NumTiles_CNZ           = $0331
-ArtTile_ArtKos_NumTiles_HTZ_Main      = $01FC ; Until this tile, equal to EHZ tiles.
-ArtTile_ArtKos_NumTiles_HTZ_Sup       = $0183 ; Overwrites several EHZ tiles.
-ArtTile_ArtKos_NumTiles_HTZ           = ArtTile_ArtKos_NumTiles_HTZ_Main + ArtTile_ArtKos_NumTiles_HTZ_Sup - 1
-ArtTile_ArtKos_NumTiles_MCZ           = $03A9
-ArtTile_ArtKos_NumTiles_OOZ           = $02AA
-ArtTile_ArtKos_NumTiles_MTZ           = $0319
-ArtTile_ArtKos_NumTiles_SCZ           = $036E
-ArtTile_ArtKos_NumTiles_WFZ_Main      = $0307 ; Until this tile, equal to SCZ tiles.
-ArtTile_ArtKos_NumTiles_WFZ_Sup       = $0073 ; Overwrites several SCZ tiles.
-ArtTile_ArtKos_NumTiles_WFZ           = ArtTile_ArtKos_NumTiles_WFZ_Main + ArtTile_ArtKos_NumTiles_WFZ_Sup - 1
-ArtTile_ArtKos_NumTiles_DEZ           = $0326 ; Skips several CPZ tiles.
+ArtTile_ArtKosP_LevelArt              = $0000
+ArtTile_ArtKosP_NumTiles_EHZ          = $0393
+ArtTile_ArtKosP_NumTiles_CPZ          = $0364
+ArtTile_ArtKosP_NumTiles_ARZ          = $03F6
+ArtTile_ArtKosP_NumTiles_CNZ          = $0331
+ArtTile_ArtKosP_NumTiles_HTZ_Main     = $01FC ; Until this tile, equal to EHZ tiles.
+ArtTile_ArtKosP_NumTiles_HTZ_Sup      = $0183 ; Overwrites several EHZ tiles.
+ArtTile_ArtKosP_NumTiles_HTZ          = ArtTile_ArtKosP_NumTiles_HTZ_Main + ArtTile_ArtKosP_NumTiles_HTZ_Sup - 1
+ArtTile_ArtKosP_NumTiles_MCZ          = $03A9
+ArtTile_ArtKosP_NumTiles_OOZ          = $02AA
+ArtTile_ArtKosP_NumTiles_MTZ          = $0319
+ArtTile_ArtKosP_NumTiles_SCZ          = $036E
+ArtTile_ArtKosP_NumTiles_WFZ_Main     = $0307 ; Until this tile, equal to SCZ tiles.
+ArtTile_ArtKosP_NumTiles_WFZ_Sup      = $0073 ; Overwrites several SCZ tiles.
+ArtTile_ArtKosP_NumTiles_WFZ          = ArtTile_ArtKosP_NumTiles_WFZ_Main + ArtTile_ArtKosP_NumTiles_WFZ_Sup - 1
+ArtTile_ArtKosP_NumTiles_DEZ          = $0326 ; Skips several CPZ tiles.
 
 ; ---------------------------------------------------------------------------
 ; Shared badniks and objects.
@@ -2344,7 +2344,7 @@ ArtTile_ArtNem_VrtclSprng             = $045C
 ArtTile_ArtNem_HrzntlSprng            = $0470
 
 ; EHZ, HTZ
-ArtTile_ArtKos_Checkers               = ArtTile_ArtKos_LevelArt+$0158
+ArtTile_ArtKosP_Checkers              = ArtTile_ArtKosP_LevelArt+$0158
 ArtTile_ArtUnc_Flowers1               = $0394
 ArtTile_ArtUnc_Flowers2               = $0396
 ArtTile_ArtUnc_Flowers3               = $0398
