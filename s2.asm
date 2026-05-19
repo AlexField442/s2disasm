@@ -417,7 +417,7 @@ GameClrRAM:
 	dbf	d6,GameClrRAM	; clear RAM ($0000-$FDFF)
 
 	bsr.w	VDPSetupGame
-	bsr.w	JmpTo_SoundDriverLoad
+	jsr	(SoundDriverLoad).l
 	bsr.w	JoypadInit
 	move.b	#GameModeID_SegaScreen,(Game_Mode).w ; set Game Mode to Sega Screen
 ; loc_394:
@@ -1483,35 +1483,6 @@ ClearScreen:
 	rts
 ; End of function ClearScreen
 
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-; JumpTo load the sound driver
-; sub_130A:
-JmpTo_SoundDriverLoad ; JmpTo
-	nop
-	jmp	(SoundDriverLoad).l
-; End of function JmpTo_SoundDriverLoad
-
-; ===========================================================================
-; unused mostly-leftover subroutine to load the sound driver
-; SoundDriverLoadS1:
-	move.w	#$100,(Z80_Bus_Request).l ; stop the Z80
-	move.w	#$100,(Z80_Reset).l ; reset the Z80
-	lea	(Z80_RAM).l,a1
-	move.b	#$F3,(a1)+	; di
-	move.b	#$F3,(a1)+	; di
-	move.b	#$C3,(a1)+	; jp
-	move.b	#0,(a1)+	; jp address low byte
-	move.b	#0,(a1)+	; jp address high byte
-	move.w	#0,(Z80_Reset).l
-	nop
-	nop
-	nop
-	nop
-	move.w	#$100,(Z80_Reset).l ; reset the Z80
-	move.w	#0,(Z80_Bus_Request).l ; start the Z80
-	rts
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 ; Despite the name, this can actually be used for playing sounds.
@@ -88975,13 +88946,6 @@ MapEng_EndingTailsPlane:	BINCLUDE	"mappings/misc/Closeup of Tails flying plane i
 	even
 MapEng_EndingSonicPlane:	BINCLUDE	"mappings/misc/Closeup of Sonic flying plane in ending sequence.eni"
 	even
-
-; Strange unused mappings (duplicates of MapEng_EndGameLogo)
-    rept 9
-				BINCLUDE	"mappings/misc/Sonic 2 end of game logo.eni"
-	even
-    endm
-
 ArtNem_EndingPics:		BINCLUDE	"art/nemesis/Movie sequence at end of game.nem"
 	even
 ArtNem_EndingFinalTornado:	BINCLUDE	"art/nemesis/Final image of Tornado with it and Sonic facing screen.nem"

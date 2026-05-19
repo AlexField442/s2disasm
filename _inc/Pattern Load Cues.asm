@@ -182,7 +182,6 @@ PlrList_GameOver_End
 PlrList_Ehz1: plrlistheader
 	plreq ArtTile_ArtNem_Waterfall, ArtNem_Waterfall
 	plreq ArtTile_ArtNem_EHZ_Bridge, ArtNem_EHZ_Bridge
-	plreq ArtTile_ArtNem_Buzzer_Fireball, ArtNem_HtzFireball1
 	plreq ArtTile_ArtNem_Buzzer, ArtNem_Buzzer
 	plreq ArtTile_ArtNem_Coconuts, ArtNem_Coconuts
 	plreq ArtTile_ArtNem_Masher, ArtNem_Masher
@@ -240,9 +239,6 @@ PlrList_Wfz1: plrlistheader
 	plreq ArtTile_ArtNem_BreakPanels, ArtNem_BreakPanels
 	plreq ArtTile_ArtNem_WfzScratch, ArtNem_WfzScratch
 	plreq ArtTile_ArtNem_WfzTiltPlatforms, ArtNem_WfzTiltPlatforms
-	; These two are already in the list, so this is redundant
-	plreq ArtTile_ArtNem_Tornado, ArtNem_Tornado
-	plreq ArtTile_ArtNem_Clouds, ArtNem_Clouds
 PlrList_Wfz1_End
 ; ---------------------------------------------------------------------------
 ; PATTERN LOAD REQUEST LIST
