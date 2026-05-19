@@ -530,13 +530,14 @@ idstart :=	0
 PLCID_Std1 =		id(PLCptr_Std1) ; 0
 PLCID_Std2 =		id(PLCptr_Std2) ; 1
 PLCID_StdWtr =		id(PLCptr_StdWtr) ; 2
+PLCID_SonicLife =	id(PLCptr_SonicLife)
+PLCID_TailsLife =	id(PLCptr_TailsLife)
+PLCID_MilesLife =	id(PLCptr_MilesLife)
+PLCID_TailsLife2P =	id(PLCptr_TailsLife2P)
+PLCID_MilesLife2P =	id(PLCptr_MilesLife2P)
 PLCID_GameOver =	id(PLCptr_GameOver) ; 3
 PLCID_Ehz1 =		id(PLCptr_Ehz1) ; 4
 PLCID_Ehz2 =		id(PLCptr_Ehz2) ; 5
-PLCID_MilesLife2P =	id(PLCptr_MilesLife2P) ; 6
-PLCID_MilesLife =	id(PLCptr_MilesLife) ; 7
-PLCID_TailsLife2P =	id(PLCptr_TailsLife2P) ; 8
-PLCID_TailsLife =	id(PLCptr_TailsLife) ; 9
 PLCID_Unused1 =		id(PLCptr_Unused1) ; A
 PLCID_Unused2 =		id(PLCptr_Unused2) ; B
 PLCID_Mtz1 =		id(PLCptr_Mtz1) ; C
@@ -1607,9 +1608,9 @@ WindTunnel_flag:		ds.b	1
 WindTunnel_holding_flag:	ds.b	1
 				ds.b	2	; $FFFFF7CA-$FFFFF7CB ; seems unused
 Control_Locked:			ds.b	1
-f_bigring:			ds.b	1	; Leftover from Sonic 1
-				ds.b	1	; $FFFFF7CE ; seems unused
 Control_Locked_P2:		ds.b	1
+f_bigring:			ds.b	1	; Leftover from Sonic 1
+				ds.b	1	; $FFFFF7CF ; seems unused
 Chain_Bonus_counter:		ds.w	1	; counts up when you destroy things that give points, resets when you touch the ground
 Bonus_Countdown_1:		ds.w	1	; level results time bonus or special stage Sonic ring bonus
 Bonus_Countdown_2:		ds.w	1	; level results ring bonus or special stage Tails ring bonus
@@ -1662,7 +1663,7 @@ CrossResetRAM:	; RAM in this region will not be cleared after a soft reset.
 
 SS_2p_Flag:			ds.w	1	; $FFFFFE00-$FFFFFE01 ; seems unused
 Level_Inactive_flag:		ds.w	1	; (2 bytes)
-Level_frame_counter:			ds.w	1	; (2 bytes) (previously known as Timer_frames)
+Level_frame_counter:		ds.w	1	; (2 bytes) (previously known as Timer_frames)
 Debug_object:			ds.b	1
 				ds.b	1	; $FFFFFE07 ; seems unused
 Debug_placement_mode:		ds.b	1
