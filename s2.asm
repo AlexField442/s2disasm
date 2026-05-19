@@ -4206,7 +4206,7 @@ TitleScreen:
 	move.b	#0,(Last_star_pole_hit).w
 	move.b	#0,(Last_star_pole_hit_2P).w
 	move.w	#0,(Debug_placement_mode).w
-	move.w	#0,(Demo_mode_flag).w
+	move.b	#0,(Demo_mode_flag).w
 	move.w	#0,(unk_FFDA).w
 	move.w	#0,(PalCycle_Timer).w
 	move.w	#0,(Two_player_mode).w
@@ -4485,7 +4485,7 @@ TitleScreen_Demo:
 	blo.s	+
 	move.w	#0,(Demo_number).w
 +
-	move.w	#1,(Demo_mode_flag).w
+	move.b	#1,(Demo_mode_flag).w
 	move.b	#GameModeID_Demo,(Game_Mode).w ; => Level (Demo mode)
 	cmpi.w	#emerald_hill_zone_act_1,(Current_ZoneAndAct).w
 	bne.s	+
@@ -5528,7 +5528,7 @@ OilSlides_Chunks_End:
 
 ; sub_481E:
 MoveSonicInDemo:
-	tst.w	(Demo_mode_flag).w	; is demo mode on?
+	tst.b	(Demo_mode_flag).w	; is demo mode on?
 	bne.w	MoveDemo_On	; if yes, branch
 	rts
 ; ---------------------------------------------------------------------------

@@ -1886,8 +1886,8 @@ SoundQueue ENDSTRUCT
 
 Sound_Queue:			SoundQueue
 
-				ds.b	$F	; $FFFFFFE5-$FFFFFFF3 ; seems unused
-Demo_mode_flag:			ds.w	1	; 1 if a demo is playing (2 bytes)
+				ds.b	$10	; $FFFFFFE5-$FFFFFFF4 ; seems unused
+Demo_mode_flag:			ds.b	1	; 1 if a demo is playing
 Demo_number:			ds.w	1	; which demo will play next (2 bytes)
 Graphics_Flags:			ds.w	1	; misc. bitfield
 Debug_mode_flag:		ds.w	1	; (2 bytes)
