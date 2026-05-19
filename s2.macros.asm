@@ -151,6 +151,19 @@ mvabs macro source,destination
 .skip:
     endm
 
+; macro to check if an object moves out of range
+out_of_range macro exit,upos
+	    if ("upos"<>"")
+		move.w	upos,d0		; get object position (if specified as not x_pos)
+	    else
+		move.w	x_pos(a0),d0	; get object position
+	    endif
+	andi.w	#$FF80,d0	; round down to nearest $80
+	sub.w	(Camera_X_pos_coarse).w,d0	; approx distance between object and screen
+	cmpi.w	#$80+roundToNextMultiple(screen_width,$80)+$80,d0
+	bhi.ATTRIBUTE	exit
+    endm
+
 ; macro to declare an offset table
 offsetTable macro {INTLABEL}
 current_offset_table := __LABEL__

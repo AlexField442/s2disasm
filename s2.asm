@@ -21946,11 +21946,7 @@ Obj11_Unload:
 	rts
 ; ---------------------------------------------------------------------------
 +
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	+
+	out_of_range.s	+
 	rts
 ; ---------------------------------------------------------------------------
 +	; delete first subsprite object
@@ -22621,11 +22617,7 @@ loc_1000C:
 	bra.w	DisplaySprite
 ; ===========================================================================
 +
-	move.w	objoff_3A(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	+
+	out_of_range.s	+,objoff_3A
 	bra.w	DisplaySprite
 ; ===========================================================================
 +
@@ -22956,11 +22948,7 @@ Obj17_MakeHelix:
 ; loc_103E8: Obj17_Action:
 Obj17_Main:
 	bsr.w	Obj17_RotateSpike
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	Obj17_DelAll
+	out_of_range.s	Obj17_DelAll
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; loc_10404:
@@ -23121,11 +23109,7 @@ loc_105B0:
 	bra.w	DisplaySprite
 ; ===========================================================================
 +
-	move.w	objoff_32(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	BranchTo3_DeleteObject
+	out_of_range.s	BranchTo3_DeleteObject,objoff_32(a0)
 	bra.w	DisplaySprite
 ; ===========================================================================
 
@@ -25058,11 +25042,7 @@ BigRing_Init:
 ; loc_12264:
 BigRing_Main:
 	move.b	(Rings_anim_frame).w,mapping_frame(a0)
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	DeleteObject
+	out_of_range.w	DeleteObject
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; loc_12282:
@@ -25119,11 +25099,7 @@ BigRingFlash_Init:
 ; loc_12306:
 BigRingFlash_Main:
 	bsr.s	BigRingFlash_Animate
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	DeleteObject
+	out_of_range.w	DeleteObject
 	bra.w	DisplaySprite
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -29343,17 +29319,7 @@ Obj3B_Main:
 	move.w	#$10,d3
 	move.w	x_pos(a0),d4
 	bsr.w	SolidObject
-	; This code contains a bugfix that Sonic 1 lacks: in Sonic 1,
-	; DisplaySprite is called right here, resulting in a
-	; display-after-delete bug when DeleteObject is called.
-	; This, combined with leftover debugging code in REV00's BuildSprites
-	; function, show that an effort was made to eliminate
-	; display-after-delete bugs during Sonic 2's development.
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	DeleteObject
+	out_of_range.w	DeleteObject
 	bra.w	DisplaySprite
 ; ===========================================================================
 ; -------------------------------------------------------------------------------
@@ -29915,120 +29881,7 @@ ObjectMove:
 ; End of function ObjectMove
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-; ---------------------------------------------------------------------------
-; Routines to mark an enemy/monitor/ring/platform as destroyed
-; ---------------------------------------------------------------------------
-
-; ===========================================================================
-; input: a0 = the object
-; loc_163D2:
-MarkObjGone:
-	tst.w	(Two_player_mode).w	; is it two player mode?
-	beq.s	+			; if not, branch
-	bra.w	DisplaySprite
-+
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$80+roundToNextMultiple(screen_width,$80)+$80,d0	; This gives an object $80 pixels of room offscreen before being unloaded
-	bhi.w	+
-	bra.w	DisplaySprite
-
-+	lea	(Object_Respawn_Table).w,a2
-	moveq	#0,d0
-	move.b	respawn_index(a0),d0
-	beq.s	+
-	bclr	#7,Obj_respawn_data-Object_Respawn_Table(a2,d0.w)
-+
-	bra.w	DeleteObject
-; ===========================================================================
-; input: d0 = the object's x position
-; loc_1640A:
-MarkObjGone2:
-	tst.w	(Two_player_mode).w
-	beq.s	+
-	bra.w	DisplaySprite
-+
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$80+roundToNextMultiple(screen_width,$80)+$80,d0	; This gives an object $80 pixels of room offscreen before being unloaded
-	bhi.w	+
-	bra.w	DisplaySprite
-+
-	lea	(Object_Respawn_Table).w,a2
-	moveq	#0,d0
-	move.b	respawn_index(a0),d0
-	beq.s	+
-	bclr	#7,Obj_respawn_data-Object_Respawn_Table(a2,d0.w)
-+
-	bra.w	DeleteObject
-; ===========================================================================
-; input: a0 = the object
-; does nothing instead of calling DisplaySprite in the case of no deletion
-; loc_1643E:
-MarkObjGone3:
-	tst.w	(Two_player_mode).w
-	beq.s	+
-	rts
-+
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$80+roundToNextMultiple(screen_width,$80)+$80,d0	; This gives an object $80 pixels of room offscreen before being unloaded
-	bhi.w	+
-	rts
-+
-	lea	(Object_Respawn_Table).w,a2
-	moveq	#0,d0
-	move.b	respawn_index(a0),d0
-	beq.s	+
-	bclr	#7,Obj_respawn_data-Object_Respawn_Table(a2,d0.w)
-+
-	bra.w	DeleteObject
-; ===========================================================================
-; input: a0 = the object
-; loc_16472:
-MarkObjGone_P1:
-	tst.w	(Two_player_mode).w
-	bne.s	MarkObjGone_P2
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$80+roundToNextMultiple(screen_width,$80)+$80,d0	; This gives an object $80 pixels of room offscreen before being unloaded
-	bhi.w	+
-	bra.w	DisplaySprite
-+
-	lea	(Object_Respawn_Table).w,a2
-	moveq	#0,d0
-	move.b	respawn_index(a0),d0
-	beq.s	+
-	bclr	#7,Obj_respawn_data-Object_Respawn_Table(a2,d0.w)
-+
-	bra.w	DeleteObject
-; ---------------------------------------------------------------------------
-; input: a0 = the object
-; loc_164A6:
-MarkObjGone_P2:
-	move.w	x_pos(a0),d0
-	andi.w	#$FF00,d0
-	move.w	d0,d1
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$300,d0
-	bhi.w	+
-	bra.w	DisplaySprite
-+
-	sub.w	(Camera_X_pos_coarse_P2).w,d1
-	cmpi.w	#$300,d1
-	bhi.w	+
-	bra.w	DisplaySprite
-+
-	lea	(Object_Respawn_Table).w,a2
-	moveq	#0,d0
-	move.b	respawn_index(a0),d0
-	beq.s	+
-	bclr	#7,Obj_respawn_data-Object_Respawn_Table(a2,d0.w)
-+
-	bra.w	DeleteObject ; useless branch...
+	include	"_incObj/sub MarkObjGone.asm"
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to delete an object
@@ -44624,11 +44477,7 @@ Obj7D_Init:
 	jsr	(AddPoints).l
 
 Obj7D_NoAdd:
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	JmpTo11_DeleteObject
+	out_of_range.s	JmpTo11_DeleteObject
 	rts
 ; ===========================================================================
 
@@ -44650,11 +44499,7 @@ word_1F6D2:
 Obj7D_Main:
 	subq.w	#1,objoff_30(a0)
 	bmi.s	JmpTo12_DeleteObject
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	JmpTo12_DeleteObject
+	out_of_range.s	JmpTo12_DeleteObject
 	jmp	(DisplaySprite).l
 ; ===========================================================================
 
@@ -44977,11 +44822,7 @@ loc_1FAC2:
 	jsr	(AnimateSprite).l
 
 loc_1FACE:
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo15_DeleteObject
+	out_of_range.w	JmpTo15_DeleteObject
 	move.w	(Water_Level_1).w,d0
 	cmp.w	y_pos(a0),d0
 	blo.w	JmpTo7_DisplaySprite
@@ -45701,11 +45542,7 @@ Obj12_Main:
 	move.w	#$10,d3
 	move.w	x_pos(a0),d4
 	bsr.w	SolidObject
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo16_DeleteObject
+	out_of_range.w	JmpTo16_DeleteObject
 	jmpto	JmpTo8_DisplaySprite
 
     if removeJmpTos
@@ -45828,11 +45665,7 @@ Obj13_Main:
 	move.b	d1,mapping_frame(a1)
 
 loc_204D8:
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo17_DeleteObject
+	out_of_range.w	JmpTo17_DeleteObject
 	jmpto	JmpTo9_DisplaySprite
 ; ===========================================================================
 
@@ -45840,11 +45673,7 @@ loc_204F0:
 	moveq	#$13,d0
 	move.b	d0,mapping_frame(a0)
 	move.b	d0,mapping_frame(a1)
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo17_DeleteObject
+	out_of_range.w	JmpTo17_DeleteObject
 	rts
 
     if removeJmpTos
@@ -45854,12 +45683,9 @@ JmpTo17_DeleteObject ; JmpTo
 ; ===========================================================================
 ; loc_20510:
 Obj13_ChkDel:
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo17_DeleteObject
+	out_of_range.w	JmpTo17_DeleteObject
 	jmpto	JmpTo9_DisplaySprite
+
 ; ===========================================================================
 ; -------------------------------------------------------------------------------
 ; sprite mappings (unused)
@@ -46036,11 +45862,7 @@ Obj49_Init:
 Obj49_ChkDel:
 	tst.w	(Two_player_mode).w
 	bne.s	+
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo18_DeleteObject
+	out_of_range.w	JmpTo18_DeleteObject
 +
 	move.w	x_pos(a0),d1
 	move.w	d1,d2
@@ -46134,11 +45956,7 @@ Obj31_Init:
 Obj31_Main:
 	tst.w	(Two_player_mode).w
 	bne.s	+
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo18_DeleteObject
+	out_of_range.w	JmpTo18_DeleteObject
 +
 	tst.w	(Debug_placement_mode).w
 	beq.s	+	; rts
@@ -46212,11 +46030,7 @@ Obj74_Main:
 	bsr.w	SolidObject_Always
 	tst.w	(Two_player_mode).w
 	bne.s	+
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo18_DeleteObject
+	out_of_range.w	JmpTo18_DeleteObject
     if gameRevision=0
     ; this object was visible with debug mode in REV00
 +
@@ -46700,11 +46514,7 @@ Obj06:
 ; only in 1-player mode, because it would screw up the other player
 ; loc_214DA:
 Obj06_ChkDel:
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	JmpTo19_DeleteObject
+	out_of_range.s	JmpTo19_DeleteObject
 	rts
 ; ---------------------------------------------------------------------------
 JmpTo19_DeleteObject ; JmpTo
@@ -47601,11 +47411,7 @@ Obj19_Main:
 	move.w	#$11,d3
 	move.w	(sp)+,d4
 	jsrto	JmpTo4_PlatformObject
-	move.w	objoff_30(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo20_DeleteObject
+	out_of_range.w	JmpTo20_DeleteObject,objoff_30(a0)
 	jmpto	JmpTo11_DisplaySprite
 
     if removeJmpTos
@@ -49621,11 +49427,7 @@ loc_23F0A:
 	sub.w	(Camera_X_pos_coarse).w,d0
 	cmpi.w	#$280,d0
 	bls.s	JmpTo13_DisplaySprite
-	move.w	objoff_34(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	loc_23F36
+	out_of_range.s	loc_23F36,objoff_34(a0)
 
 JmpTo13_DisplaySprite ; JmpTo
 	jmp	(DisplaySprite).l
@@ -51671,11 +51473,7 @@ Obj2C_Init:
 	move.b	subtype(a0),mapping_frame(a0)
 ; loc_26152:
 Obj2C_Main:
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo29_DeleteObject
+	out_of_range.w	JmpTo29_DeleteObject
     if fixBugs
 	; This object never actually displays itself, even in Debug Mode.
 	; This code exists in Beta 8.
@@ -52343,11 +52141,7 @@ Obj64_Main:
 	addq.w	#1,d3
 	jsrto	JmpTo9_SolidObject
 +
-	move.w	objoff_34(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	JmpTo31_DeleteObject
+	out_of_range.s	JmpTo31_DeleteObject,objoff_34(a0)
 	jmp	(DisplaySprite).l
 ; ===========================================================================
 
@@ -52539,11 +52333,7 @@ loc_26C1C:
 	move.w	d2,d3
 	addq.w	#1,d3
 	jsrto	JmpTo10_SolidObject
-	move.w	objoff_34(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	loc_26C66
+	out_of_range.s	loc_26C66,objoff_34(a0)
 	jmp	(DisplaySprite).l
 ; ===========================================================================
 
@@ -52910,11 +52700,7 @@ loc_26FF6:
 	bsr.s	loc_27042
 
 loc_2702C:
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo33_DeleteObject
+	out_of_range.w	JmpTo33_DeleteObject
     if gameRevision=0
        ; this object was visible with debug mode in REV00
 	tst.w	(Debug_placement_mode).w
@@ -54272,11 +54058,7 @@ Obj6C:
 	move.b	routine(a0),d0
 	move.w	Obj6C_Index(pc,d0.w),d1
 	jsr	Obj6C_Index(pc,d1.w)
-	move.w	objoff_30(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	+
+	out_of_range.s	+,objoff_30(a0)
 	jmpto	JmpTo20_DisplaySprite
 ; ===========================================================================
 +	jmpto	JmpTo34_DeleteObject
@@ -54609,11 +54391,7 @@ loc_28432:
 	move.w	d2,d3
 	addq.w	#1,d3
 	jsrto	JmpTo15_SolidObject
-	move.w	objoff_34(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	+
+	out_of_range.s	+,objoff_34(a0)
 	jmp	(DisplaySprite).l
 ; ===========================================================================
 +
@@ -54650,11 +54428,7 @@ loc_284BC:
 	move.w	d1,x_pos(a0)
 	add.w	objoff_30(a0),d2
 	move.w	d2,y_pos(a0)
-	move.w	objoff_34(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	+
+	out_of_range.s	+,objoff_34(a0)
 	jmp	(DisplaySprite).l
 ; ===========================================================================
 +
@@ -54788,11 +54562,7 @@ loc_286CA:
 	move.w	d2,d3
 	move.w	(sp)+,d4
 	jsrto	JmpTo16_SolidObject
-	move.w	objoff_32(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	+
+	out_of_range.s	+,objoff_32(a0)
 	jmp	(DisplaySprite).l
 ; ===========================================================================
 +
@@ -55085,11 +54855,7 @@ loc_28B16:
 ; ===========================================================================
 
 loc_28B46:
-	move.w	objoff_3A(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	+
+	out_of_range.s	+,objoff_3A(a0)
 	jmpto	JmpTo21_DisplaySprite
 ; ===========================================================================
 +
@@ -55265,11 +55031,7 @@ loc_28D3E:
 	jmpto	JmpTo22_DisplaySprite
 ; ===========================================================================
 +
-	move.w	objoff_30(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	+
+	out_of_range.s	+,objoff_30(a0)
 	jmpto	JmpTo22_DisplaySprite
 ; ===========================================================================
 +
@@ -55842,11 +55604,7 @@ Obj7A_Main:
 	sub.w	(Camera_X_pos_coarse).w,d0
 	cmpi.w	#$280,d0
 	bls.s	+
-	move.w	objoff_34(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	loc_294C4
+	out_of_range.s	loc_294C4,objoff_34(a0)
 +
 	jmp	(DisplaySprite).l
 ; ===========================================================================
@@ -55944,11 +55702,7 @@ Obj7B:
 	jmpto	JmpTo25_DisplaySprite
 ; ===========================================================================
 +
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo40_DeleteObject
+	out_of_range.w	JmpTo40_DeleteObject
 	jmpto	JmpTo25_DisplaySprite
 
     if removeJmpTos
@@ -56661,11 +56415,7 @@ loc_2A1B4:
 	jmpto	JmpTo26_DisplaySprite
 ; ---------------------------------------------------------------------------
 +
-	move.w	objoff_30(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	+
+	out_of_range.s	+,objoff_30(a0)
 	jmpto	JmpTo26_DisplaySprite
 ; ---------------------------------------------------------------------------
 +
@@ -57180,11 +56930,7 @@ Obj83_Main:
 	jmpto	JmpTo27_DisplaySprite
 ; ===========================================================================
 .notTwoPlayerMode:
-	move.w	Obj83_initial_x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	.objectOffscreen
+	out_of_range.s	.objectOffscreen,Obj83_initial_x_pos(a0)
 	jmpto	JmpTo27_DisplaySprite
 ; ===========================================================================
 .objectOffscreen:
@@ -59565,11 +59311,7 @@ loc_2C5C4:
 	sub.w	(Camera_X_pos_coarse).w,d0
 	cmpi.w	#$280,d0
 	bls.s	+
-	move.w	objoff_32(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.s	loc_2C5F8
+	out_of_range.s	loc_2C5F8,objoff_32(a0)
 +
 	jmp	(DisplaySprite).l
 ; ===========================================================================
@@ -72748,11 +72490,7 @@ Obj_DeleteOffScreen:
 	jmp	(DisplaySprite).l
 +
 	; when not in two player mode
-	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	JmpTo64_DeleteObject
+	out_of_range.w	JmpTo64_DeleteObject
 	jmp	(DisplaySprite).l
 ; ===========================================================================
 
@@ -76659,11 +76397,7 @@ loc_39182:
 	beq.s	+
 	jmpto	JmpTo45_DisplaySprite
 ; ---------------------------------------------------------------------------
-+	move.w	x_pos(a0),d0
-	andi.w	#$FF80,d0
-	sub.w	(Camera_X_pos_coarse).w,d0
-	cmpi.w	#$280,d0
-	bhi.w	+
++	out_of_range.s	+
 	jmpto	JmpTo45_DisplaySprite
 ; ---------------------------------------------------------------------------
 +	lea	(Object_Respawn_Table).w,a3
