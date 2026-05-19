@@ -4645,23 +4645,19 @@ MusicList2: zoneOrderedTable 1,1
 ; loc_3EC4:
 Level:
 	bset	#GameModeFlag_TitleCard,(Game_Mode).w ; add $80 to screen mode (for pre level sequence)
-	tst.w	(Demo_mode_flag).w	; test the old flag for the credits demos (now unused)
-	bmi.s	+
 	move.b	#MusID_FadeOut,d0
 	bsr.w	PlaySound	; fade out music
-+
 	bsr.w	ClearPLC
 	bsr.w	Pal_FadeToBlack
-	tst.w	(Demo_mode_flag).w
-	bmi.s	Level_ClrRam
+
 	move	#$2700,sr
 	bsr.w	ClearScreen
 	jsr	(LoadTitleCard).l ; load title card patterns
 	move	#$2300,sr
+
 	moveq	#0,d0
 	move.w	d0,(Level_frame_counter).w
 	move.b	(Current_Zone).w,d0
-
 	; multiply d0 by 12, the size of a level art load block
 	add.w	d0,d0
 	add.w	d0,d0
@@ -4785,8 +4781,6 @@ Level_WaterPal:
 	move.b	(Saved_Water_move).w,(Water_fullscreen_flag).w
 ; loc_40AE:
 Level_GetBgm:
-	tst.w	(Demo_mode_flag).w
-	bmi.s	+
 	moveq	#0,d0
 	move.b	(Current_Zone).w,d0
 	lea_	MusicList,a1
@@ -4814,7 +4808,6 @@ Level_TtlCard:
 	move.b	#VintID_TitleCard,(Vint_routine).w
 	bsr.w	WaitForVint
 	jsr	(Hud_Base).l
-+
 	moveq	#PalID_BGND,d0
 	bsr.w	PalLoad_ForFade	; load Sonic's palette line
 	bsr.w	LevelSizeLoad
@@ -4904,14 +4897,6 @@ Level_FromCheckpoint:
 	move.b	(Current_Zone).w,d0	; load zone value
 	lsl.w	#2,d0
 	movea.l	(a1,d0.w),a1
-	tst.w	(Demo_mode_flag).w
-	bpl.s	+
-	lea	(EndingDemoScriptPointers).l,a1
-	move.w	(Ending_demo_number).w,d0
-	subq.w	#1,d0
-	lsl.w	#2,d0
-	movea.l	(a1,d0.w),a1
-+
 	move.b	1(a1),(Demo_press_counter).w
     if emerald_hill_zone<>0
 	cmpi.b	#emerald_hill_zone,(Current_Zone).w
@@ -4923,13 +4908,6 @@ Level_FromCheckpoint:
 	move.b	1(a1),(Demo_press_counter_2P).w
 +
 	move.w	#$668,(Demo_Time_left).w
-	tst.w	(Demo_mode_flag).w
-	bpl.s	+
-	move.w	#$21C,(Demo_Time_left).w
-	cmpi.w	#4,(Ending_demo_number).w
-	bne.s	+
-	move.w	#$1FE,(Demo_Time_left).w
-+
 	tst.b	(Water_flag).w
 	beq.s	++
 	moveq	#PalID_HPZ_U,d0
@@ -5610,19 +5588,13 @@ MoveDemo_On:
 	move.b	(Ctrl_1_Press).w,d0
 	or.b	(Ctrl_2_Press).w,d0
 	andi.b	#button_start_mask,d0
-	beq.s	+
-	tst.w	(Demo_mode_flag).w
-	bmi.s	+
+	beq.s	MoveDemo_On_P1
 	move.b	#GameModeID_TitleScreen,(Game_Mode).w ; => TitleScreen
-+
+; loc_48DA:
+MoveDemo_On_P1:
 	lea	(DemoScriptPointers).l,a1 ; load pointer to input data
 	moveq	#0,d0
 	move.b	(Current_Zone).w,d0
-	cmpi.b	#GameModeID_SpecialStage,(Game_Mode).w ; special stage mode?
-	bne.s	MoveDemo_On_P1		; if yes, branch
-	moveq	#6,d0
-; loc_48DA:
-MoveDemo_On_P1:
 	lsl.w	#2,d0
 	movea.l	(a1,d0.w),a1
 
@@ -5741,43 +5713,6 @@ DemoScriptPointers: zoneOrderedTable 4,1
 	zoneTableEntry.l Demo_ARZ	; ARZ
 	zoneTableEntry.l Demo_EHZ	; SCZ
     zoneTableEnd
-; ---------------------------------------------------------------------------
-; dword_498C:
-EndingDemoScriptPointers:
-	; Empty, since Sonic 2 doesn't have demos during its credits.
-; ---------------------------------------------------------------------------
-	; Leftover unused demo data from Sonic 1.
-	; It involves Sonic slowly running right, jumping once,
-	; then running at full speed for a few seconds.
-	; Interestingly, this lines up with our knowledge of
-	; the fabled Tokyo Game Show prototype.
-	; See it in action: https://youtu.be/S8_IAfQbUu0
-	demoinput ,	$8C
-	demoinput R,	$38
-	demoinput ,	$43
-	demoinput R,	$5D
-	demoinput ,	$6B
-	demoinput R,	$60
-	demoinput ,	$30
-	demoinput R,	$2D
-	demoinput ,	$22
-	demoinput R,	4
-	demoinput RC,	$31
-	demoinput R,	9
-	demoinput ,	$2F
-	demoinput R,	$16
-	demoinput ,	$10
-	demoinput R,	$47
-	demoinput ,	$1B
-	demoinput R,	$100
-	demoinput R,	$CB
-	demoinput ,	1
-	demoinput ,	1
-	demoinput ,	1
-	demoinput ,	1
-	demoinput ,	1
-
-
 
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -29733,7 +29668,7 @@ ObjPtr_Flipper:		dc.l Obj86	; Flipper from CNZ
 ObjPtr_SSNumberOfRings:	dc.l Obj87	; Number of rings in Special Stage
 ObjPtr_SSTailsTails:	dc.l Obj88	; Tails' tails in Special Stage
 ObjPtr_ARZBoss:		dc.l Obj89	; ARZ boss
-			dc.l Obj8A	; Sonic Team Presents/Credits (seemingly unused leftover from S1)
+			dc.l ObjNull	; Obj8A
 ObjPtr_WFZPalSwitcher:	dc.l Obj8B	; Cycling palette switcher from Wing Fortress Zone
 ObjPtr_Whisp:		dc.l Obj8C	; Whisp (blowfly badnik) from ARZ
 ObjPtr_GrounderInWall:	dc.l Obj8D	; Grounder in wall, from ARZ
@@ -84042,65 +83977,6 @@ Scale_2x_RightPixels2:
 
 	jmpTos0 JmpTo5_DisplaySprite3,JmpTo45_DisplaySprite,JmpTo65_DeleteObject,JmpTo19_AllocateObject,JmpTo39_DespawnObject,JmpTo6_DeleteObject2,JmpTo12_PlaySound,JmpTo25_AllocateObjectAfterCurrent,JmpTo25_AnimateSprite,JmpTo_PlaySoundLocal,JmpTo6_RandomNumber,JmpTo2_DespawnObject_P1,JmpTo_Pal_FadeToWhite.UpdateColour,JmpTo_LoadTailsDynPLC_Part2,JmpTo_LoadSonicDynPLC_Part2,JmpTo8_DespawnObject3,JmpTo64_Adjust2PArtPointer,JmpTo5_PlayMusic,JmpTo_Boss_LoadExplosion,JmpTo9_PlatformObject,JmpTo27_SolidObject,JmpTo8_ObjectMoveAndFall,JmpTo26_ObjectMove
 
-
-
-
-; ===========================================================================
-; ----------------------------------------------------------------------------
-; Object 8A - Sonic Team Presents/Credits (leftover from S1) (seemingly unused)
-; ----------------------------------------------------------------------------
-; Sprite_3EAC8:
-Obj8A: ; (screen-space obj)
-	moveq	#0,d0
-	move.b	routine(a0),d0
-	move.w	Obj8A_Index(pc,d0.w),d1
-	jmp	Obj8A_Index(pc,d1.w)
-; ===========================================================================
-; off_3EAD6:
-Obj8A_Index:	offsetTable
-		offsetTableEntry.w Obj8A_Init
-		offsetTableEntry.w Obj8A_Display
-; ===========================================================================
-; loc_3EADA:
-Obj8A_Init:
-	addq.b	#2,routine(a0)
-	move.w	#spriteScreenPositionXCentered(0),x_pixel(a0)
-	move.w	#spriteScreenPositionYCentered(0),y_pixel(a0)
-	move.l	#Obj8A_MapUnc_3EB4E,mappings(a0)
-	move.w	#make_art_tile($05A0,0,0),art_tile(a0)
-	jsrto	JmpTo65_Adjust2PArtPointer
-	move.w	(Ending_demo_number).w,d0
-	move.b	d0,mapping_frame(a0)
-	move.b	#0,render_flags(a0)
-	move.b	#0,priority(a0)
-	cmpi.b	#GameModeID_TitleScreen,(Game_Mode).w	; title screen??
-	bne.s	Obj8A_Display	; if not, branch
-	move.w	#make_art_tile($0300,0,0),art_tile(a0)
-	jsrto	JmpTo65_Adjust2PArtPointer
-	move.b	#$A,mapping_frame(a0)
-	tst.b	(S1_hidden_credits_flag).w
-	beq.s	Obj8A_Display
-	cmpi.b	#button_down_mask|button_B_mask|button_C_mask|button_A_mask,(Ctrl_1_Held).w
-	bne.s	Obj8A_Display
-	move.w	#$EEE,(Target_palette_line3).w
-	move.w	#$880,(Target_palette_line3+2).w
-	jmp	(DeleteObject).l
-; ===========================================================================
-; JmpTo46_DisplaySprite
-Obj8A_Display:
-	jmp	(DisplaySprite).l
-; ===========================================================================
-; ----------------------------------------------------------------------------
-; sprite mappings (unused?)
-; ----------------------------------------------------------------------------
-Obj8A_MapUnc_3EB4E:	include "mappings/sprite/obj8A.asm"
-; ===========================================================================
-
-	jmpTos JmpTo65_Adjust2PArtPointer
-
-
-
-
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 3E - Egg prison
@@ -87785,17 +87661,9 @@ Debug_Init:
 	; be assumed that having it cleared here was intended.
 	bclr	#status.player.in_air,(MainCharacter+status).w
     endif
-	; S1 leftover
-	cmpi.b	#GameModeID_SpecialStage,(Game_Mode).w ; special stage mode? (you can't enter debug mode in S2's special stage)
-	bne.s	.islevel	; if not, branch
-	moveq	#6,d0		; force zone 6's debug object list (was the ending in S1)
-	bra.s	.selectlist
-; ===========================================================================
-.islevel:
+
 	moveq	#0,d0
 	move.b	(Current_Zone).w,d0
-
-.selectlist:
 	lea	(DebugObjectLists).l,a2
 	add.w	d0,d0
 	adda.w	(a2,d0.w),a2
@@ -87809,15 +87677,8 @@ Debug_Init:
 	move.b	#1,(Debug_Speed).w
 ; loc_41B0C:
 Debug_Main:
-	; S1 leftover
-	moveq	#6,d0		; force zone 6's debug object list (was the ending in S1)
-	cmpi.b	#GameModeID_SpecialStage,(Game_Mode).w	; special stage mode? (you can't enter debug mode in S2's special stage)
-	beq.s	.isntlevel	; if yes, branch
-
 	moveq	#0,d0
 	move.b	(Current_Zone).w,d0
-
-.isntlevel:
 	lea	(DebugObjectLists).l,a2
 	add.w	d0,d0
 	adda.w	(a2,d0.w),a2
@@ -87979,12 +87840,6 @@ Debug_ExitDebugMode:
 	move.b	#9,x_radius(a1)
 	move.w	(Camera_Min_Y_pos_Debug_Copy).w,(Camera_Min_Y_pos).w
 	move.w	(Camera_Max_Y_pos_Debug_Copy).w,(Camera_Max_Y_pos_target).w
-	; useless leftover; this is for S1's special stage
-	cmpi.b	#GameModeID_SpecialStage,(Game_Mode).w	; special stage mode?
-	bne.s	return_41CB6		; if not, branch
-	move.b	#AniIDSonAni_Roll,(MainCharacter+anim).w
-	bset	#status.player.rolling,(MainCharacter+status).w
-	bset	#status.player.in_air,(MainCharacter+status).w
 
 return_41CB6:
 	rts
