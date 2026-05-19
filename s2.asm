@@ -21940,7 +21940,7 @@ loc_F7BC:
 
 ; loc_F7D4:
 Obj11_Unload:
-	; this is essentially MarkObjGone, except we need to delete our subsprite objects as well
+	; this is essentially DespawnObject, except we need to delete our subsprite objects as well
 	tst.w	(Two_player_mode).w	; is it two player mode?
 	beq.s	+			; if not, branch
 	rts
@@ -22749,7 +22749,7 @@ Obj15_State6:
 	addq.b	#1,d3
 	move.w	(sp)+,d4
 	jsrto	JmpTo_PlatformObject2
-	bra.w	MarkObjGone
+	bra.w	DespawnObject
 
 ; ===========================================================================
 ; loc_10166:
@@ -22792,7 +22792,7 @@ Obj15_State7:
 	addq.b	#1,d3
 	move.w	(sp)+,d4
 	jsrto	JmpTo_PlatformObject2
-	bra.w	MarkObjGone
+	bra.w	DespawnObject
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; sprite mappings
@@ -23482,7 +23482,7 @@ sub_1099E:
 	movea.l	collapsing_platform_slope_pointer(a0),a2 ; a2=object
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo_SlopedPlatform
-	bra.w	MarkObjGone
+	bra.w	DespawnObject
 ; End of function sub_1099E
 
 ; ===========================================================================
@@ -23597,7 +23597,7 @@ sub_10AF8:
 	move.w	#$10,d3
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo2_PlatformObject
-	bra.w	MarkObjGone
+	bra.w	DespawnObject
 ; End of function sub_10AF8
 
 ; ===========================================================================
@@ -23782,7 +23782,7 @@ Obj1C:
 ; off_111E2:
 Obj1C_Index:	offsetTable
 		offsetTableEntry.w Obj1C_Init		; 0
-		offsetTableEntry.w BranchTo_MarkObjGone	; 2
+		offsetTableEntry.w BranchTo_DespawnObject	; 2
 ; ===========================================================================
 
 objsubdecl macro frame, mapaddr,artaddr,width,priority
@@ -23866,12 +23866,12 @@ Obj1C_Init:
 	move.b	(a1)+,priority(a0)
 	lea	Obj1C_Radii(pc),a1
 	move.b	(a1,d1.w),d1
-	beq.s	BranchTo_MarkObjGone	; if the radius is zero, branch
+	beq.s	BranchTo_DespawnObject	; if the radius is zero, branch
 	move.b	d1,y_radius(a0)
 	bset	#render_flags.explicit_height,render_flags(a0)
 
-BranchTo_MarkObjGone ; BranchTo
-	bra.w	MarkObjGone
+BranchTo_DespawnObject ; BranchTo
+	bra.w	DespawnObject
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 71 - Bridge stake and pulsing orb from Hidden Palace Zone
@@ -23917,7 +23917,7 @@ Obj71_Init:
 Obj71_Main:
 	lea	(Ani_obj71).l,a1
 	bsr.w	AnimateSprite
-	bra.w	MarkObjGone
+	bra.w	DespawnObject
 ; ===========================================================================
 ; off_1136A:
 Ani_obj71:	offsetTable
@@ -24023,7 +24023,7 @@ Obj2A_Main:
 	addq.w	#1,d3
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo2_SolidObject
-	bra.w	MarkObjGone
+	bra.w	DespawnObject
 ; ===========================================================================
 ; -------------------------------------------------------------------------------
 ; sprite mappings
@@ -24156,7 +24156,7 @@ Obj2D_Main:
     else
 	bsr.w	JmpTo2_SolidObject
     endif
-	bra.w	MarkObjGone                          ; delete object if off screen
+	bra.w	DespawnObject                          ; delete object if off screen
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -24763,7 +24763,7 @@ Obj25_Init:
 Obj25_Animate:
 	move.b	(Rings_anim_frame).w,mapping_frame(a0)
 	move.w	objoff_32(a0),d0
-	bra.w	MarkObjGone2
+	bra.w	DespawnObject2
 ; ===========================================================================
 ; Obj_25_sub_4:
 Obj25_Collect:
@@ -25250,7 +25250,7 @@ Obj26_Index:	offsetTable
 		offsetTableEntry.w Obj26_Main			; 2
 		offsetTableEntry.w Obj26_Break			; 4
 		offsetTableEntry.w Obj26_Animate		; 6
-		offsetTableEntry.w BranchTo2_MarkObjGone	; 8
+		offsetTableEntry.w BranchTo2_DespawnObject	; 8
 ; ===========================================================================
 ; obj_26_sub_0: Obj_26_Init:
 Obj26_Init:
@@ -25323,8 +25323,8 @@ Obj26_Animate:
 	lea	(Ani_obj26).l,a1
 	bsr.w	AnimateSprite
 
-BranchTo2_MarkObjGone ; BranchTo
-	bra.w	MarkObjGone
+BranchTo2_DespawnObject ; BranchTo
+	bra.w	DespawnObject
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 ; sub_12756:
@@ -29103,7 +29103,7 @@ Obj36_Upright:
 ; loc_159DE:
 Obj36_UprightEnd:
 	move.w	spikes_base_x_pos(a0),d0
-	bra.w	MarkObjGone2
+	bra.w	DespawnObject2
 ; ===========================================================================
 ; loc_159E6:
 Obj36_Sideways:
@@ -29137,7 +29137,7 @@ Obj36_Sideways:
 ; loc_15A3A:
 Obj36_SidewaysEnd:
 	move.w	spikes_base_x_pos(a0),d0
-	bra.w	MarkObjGone2
+	bra.w	DespawnObject2
 ; ===========================================================================
 ; loc_15A42:
 Obj36_Upsidedown:
@@ -29168,7 +29168,7 @@ Obj36_Upsidedown:
 ; loc_15A88:
 Obj36_UpsidedownEnd:
 	move.w	spikes_base_x_pos(a0),d0
-	bra.w	MarkObjGone2
+	bra.w	DespawnObject2
 
 ; ---------------------------------------------------------------------------
 ; Subroutine for checking if Sonic/Tails should be hurt and hurting them if so
@@ -29339,7 +29339,7 @@ Obj3C:
 	move.b	routine(a0),d0
 	move.w	Obj3C_Index(pc,d0.w),d1
 	jsr	Obj3C_Index(pc,d1.w)
-	bra.w	MarkObjGone
+	bra.w	DespawnObject
 ; ===========================================================================
 ; off_15D56:
 Obj3C_Index:	offsetTable
@@ -29881,7 +29881,7 @@ ObjectMove:
 ; End of function ObjectMove
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-	include	"_incObj/sub MarkObjGone.asm"
+	include	"_incObj/sub DespawnObject.asm"
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to delete an object
@@ -33069,7 +33069,7 @@ ObjectsManager_2P_FindEmptyObjectBlock:
 ; this sub-routine appears to determine which 12-slot block of object RAM
 ; corresponds to the current out-of-range camera positon (in d2) and deletes
 ; the objects in this block. This most likely takes over the functionality
-; of markObjGone, as that routine isn't called in two player mode.
+; of DespawnObject, as that routine isn't called in two player mode.
 ;loc_17EC6: ObjectsManager_2P_UnkSub3:
 ObjectsManager_2P_UnloadObjectBlock:
 	; Find which object block holds this object block index.
@@ -33372,7 +33372,7 @@ Obj41:
 	move.b	routine(a0),d0
 	move.w	Obj41_Index(pc,d0.w),d1
 	jsr	Obj41_Index(pc,d1.w)
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 ; ===========================================================================
 ; off_1889C:
 Obj41_Index:	offsetTable
@@ -34188,7 +34188,7 @@ Obj0D:
 	lea	(Ani_obj0D).l,a1
 	bsr.w	AnimateSprite
 	bsr.w	PLCLoad_Signpost
-	bra.w	MarkObjGone
+	bra.w	DespawnObject
 ; ===========================================================================
 ; off_191D8: Obj_0D_subtbl: Obj0D_States:
 Obj0D_Index:	offsetTable
@@ -44155,7 +44155,7 @@ return_1F22E:
 Obj79_Animate:
 	lea	(Ani_obj79).l,a1
 	jsrto	JmpTo2_AnimateSprite
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 ; ===========================================================================
 ; loc_1F240:
 Obj79_Dongle:
@@ -44183,7 +44183,7 @@ Obj79_MoveDonglyThing:
 	swap	d0
 	add.w	objoff_32(a0),d0
 	move.w	d0,y_pos(a0)
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 ; ===========================================================================
 ; hit a starpost / save checkpoint
 ; loc_1F298:
@@ -44411,14 +44411,14 @@ loc_1F5D6:
 	moveq	#1,d0
 +
 	move.b	d0,mapping_frame(a0)
-	jmpto	JmpTo_MarkObjGone
+	jmpto	JmpTo_DespawnObject
 ; ===========================================================================
 
 JmpTo10_DeleteObject ; JmpTo
 	jmp	(DeleteObject).l
 ; ===========================================================================
 
-	jmpTos JmpTo_MarkObjGone,JmpTo2_AnimateSprite,JmpTo3_Adjust2PArtPointer
+	jmpTos JmpTo_DespawnObject,JmpTo2_AnimateSprite,JmpTo3_Adjust2PArtPointer
 
 
 
@@ -44610,7 +44610,7 @@ return_1F83C:
 loc_1F83E:
 	lea	(Ani_obj44).l,a1
 	jsrto	JmpTo3_AnimateSprite
-	jmpto	JmpTo2_MarkObjGone
+	jmpto	JmpTo2_DespawnObject
 ; ===========================================================================
 ; animation script
 ; off_1F84C:
@@ -44627,7 +44627,7 @@ byte_1F853:	dc.b   3,  1,  0,  1,$FD,  0
 Obj44_MapUnc_1F85A:	include "mappings/sprite/obj44.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo2_MarkObjGone,JmpTo3_AnimateSprite,JmpTo5_Adjust2PArtPointer
+	jmpTos JmpTo2_DespawnObject,JmpTo3_AnimateSprite,JmpTo5_Adjust2PArtPointer
 
 
 
@@ -45054,7 +45054,7 @@ Obj03:
 	move.b	routine(a0),d0
 	move.w	Obj03_Index(pc,d0.w),d1
 	jsr	Obj03_Index(pc,d1.w)
-	jmp	(MarkObjGone3).l
+	jmp	(DespawnObject3).l
 ; ===========================================================================
 ; off_1FCF0:
 Obj03_Index:	offsetTable
@@ -45367,24 +45367,24 @@ loc_2013C:
 	moveq	#$11,d3
 	move.w	x_pos(a0),d4
 	bsr.w	PlatformObject
-	jmpto	JmpTo3_MarkObjGone
+	jmpto	JmpTo3_DespawnObject
 ; ---------------------------------------------------------------------------
 +
 	move.b	status(a0),d0
 	andi.b	#standing_mask,d0
-	beq.s	BranchTo_JmpTo3_MarkObjGone
+	beq.s	BranchTo_JmpTo3_DespawnObject
 	bclr	#p1_standing_bit,status(a0)
 	beq.s	+
 	bclr	#status.player.on_object,(MainCharacter+status).w
 	bset	#status.player.in_air,(MainCharacter+status).w
 +
 	bclr	#p2_standing_bit,status(a0)
-	beq.s	BranchTo_JmpTo3_MarkObjGone
+	beq.s	BranchTo_JmpTo3_DespawnObject
 	bclr	#status.player.on_object,(Sidekick+status).w
 	bset	#status.player.in_air,(Sidekick+status).w
 
-BranchTo_JmpTo3_MarkObjGone ; BranchTo
-	jmpto	JmpTo3_MarkObjGone
+BranchTo_JmpTo3_DespawnObject ; BranchTo
+	jmpto	JmpTo3_DespawnObject
 ; ===========================================================================
 ; animation script
 ; off_2018C:
@@ -45402,7 +45402,7 @@ byte_20198:
 Obj0B_MapUnc_201A0:	include "mappings/sprite/obj0B.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo3_MarkObjGone,JmpTo8_Adjust2PArtPointer
+	jmpTos JmpTo3_DespawnObject,JmpTo8_Adjust2PArtPointer
 
 
 
@@ -45497,7 +45497,7 @@ loc_202E6:
 	moveq	#9,d3
 	move.w	x_pos(a0),d4
 	bsr.w	PlatformObject
-	jmpto	JmpTo4_MarkObjGone
+	jmpto	JmpTo4_DespawnObject
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Unused sprite mappings
@@ -45505,7 +45505,7 @@ loc_202E6:
 Obj0C_MapUnc_202FA:	include "mappings/sprite/obj0C.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo4_MarkObjGone,JmpTo9_Adjust2PArtPointer,JmpTo5_CalcSine
+	jmpTos JmpTo4_DespawnObject,JmpTo9_Adjust2PArtPointer,JmpTo5_CalcSine
 
 
 
@@ -46176,7 +46176,7 @@ Obj84:
 	move.b	routine(a0),d0
 	move.w	Obj84_Index(pc,d0.w),d1
 	jsr	Obj84_Index(pc,d1.w)
-	jmp	(MarkObjGone3).l
+	jmp	(DespawnObject3).l
 ; ===========================================================================
 ; off_21170: Obj84_States:
 Obj84_Index:	offsetTable
@@ -46393,7 +46393,7 @@ Obj8B:
 	move.b	routine(a0),d0
 	move.w	Obj8B_Index(pc,d0.w),d1
 	jsr	Obj8B_Index(pc,d1.w)
-	jmp	(MarkObjGone3).l
+	jmp	(DespawnObject3).l
 ; ===========================================================================
 ; off_213A6:
 Obj8B_Index:	offsetTable
@@ -46855,7 +46855,7 @@ Obj14:
 	move.w	Obj14_Index(pc,d0.w),d1
 	jsr	Obj14_Index(pc,d1.w)
 	move.w	objoff_30(a0),d0
-	jmpto	JmpTo_MarkObjGone2
+	jmpto	JmpTo_DespawnObject2
 ; ===========================================================================
 ; off_2193E:
 Obj14_Index:	offsetTable
@@ -47199,7 +47199,7 @@ Obj14_MapUnc_21CF0:	include "mappings/sprite/obj14_a.asm"
 Obj14_MapUnc_21D7C:	include "mappings/sprite/obj14_b.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo3_AllocateObjectAfterCurrent,JmpTo13_Adjust2PArtPointer,JmpTo_ObjectMoveAndFall,JmpTo_MarkObjGone2
+	jmpTos JmpTo3_AllocateObjectAfterCurrent,JmpTo13_Adjust2PArtPointer,JmpTo_ObjectMoveAndFall,JmpTo_DespawnObject2
 
 
 
@@ -47247,7 +47247,7 @@ Obj16_Main:
 	move.w	#-$28,d3
 	move.w	(sp)+,d4
 	jsrto	JmpTo3_PlatformObject
-	jmpto	JmpTo5_MarkObjGone
+	jmpto	JmpTo5_DespawnObject
 ; ===========================================================================
 ; loc_21E2C:
 Obj16_RunSecondaryRoutine:
@@ -47332,7 +47332,7 @@ Obj16_Fall:
 Obj16_MapUnc_21F14:	include "mappings/sprite/obj16.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo5_MarkObjGone,JmpTo4_AllocateObjectAfterCurrent,JmpTo14_Adjust2PArtPointer,JmpTo3_PlatformObject,JmpTo4_ObjectMove
+	jmpTos JmpTo5_DespawnObject,JmpTo4_AllocateObjectAfterCurrent,JmpTo14_Adjust2PArtPointer,JmpTo3_PlatformObject,JmpTo4_ObjectMove
 
 
 
@@ -47672,7 +47672,7 @@ Obj1B_Main:
 	bhs.w	+
 	bsr.w	Obj1B_GiveBoost
 +
-	jmpto	JmpTo6_MarkObjGone
+	jmpto	JmpTo6_DespawnObject
 
 ; ===========================================================================
 ; sub_22388:
@@ -47707,7 +47707,7 @@ Obj1B_GiveBoost_Done:
 Obj1B_MapUnc_223E2:	include "mappings/sprite/obj1B.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo6_MarkObjGone,JmpTo16_Adjust2PArtPointer
+	jmpTos JmpTo6_DespawnObject,JmpTo16_Adjust2PArtPointer
 
 
 
@@ -47802,14 +47802,14 @@ Obj1D_InitBall:
 ; loc_224D6:
 Obj1D_Wait:
 	subq.w	#1,objoff_32(a0)
-	bpl.s	BranchTo_JmpTo7_MarkObjGone
+	bpl.s	BranchTo_JmpTo7_DespawnObject
 	addq.b	#2,routine(a0) ; => Obj1D_MoveArc or Obj1D_MoveStraight
 	move.w	#$3B,objoff_32(a0)
 	move.w	#SndID_Gloop,d0
 	jsr	(PlaySoundLocal).l
 
-BranchTo_JmpTo7_MarkObjGone ; BranchTo
-	jmpto	JmpTo7_MarkObjGone
+BranchTo_JmpTo7_DespawnObject ; BranchTo
+	jmpto	JmpTo7_DespawnObject
 ; ===========================================================================
 ; loc_224F4:
 Obj1D_MoveArc:
@@ -47822,13 +47822,13 @@ Obj1D_MoveArc:
 +
 	move.w	blueballs_y_pos(a0),d0
 	cmp.w	y_pos(a0),d0
-	bhi.s	BranchTo2_JmpTo7_MarkObjGone
+	bhi.s	BranchTo2_JmpTo7_DespawnObject
 	move.w	blueballs_y_vel(a0),y_vel(a0)
 	clr.w	x_vel(a0)
 	subq.b	#2,routine(a0) ; => Obj1D_Wait
 
-BranchTo2_JmpTo7_MarkObjGone ; BranchTo
-	jmpto	JmpTo7_MarkObjGone
+BranchTo2_JmpTo7_DespawnObject ; BranchTo
+	jmpto	JmpTo7_DespawnObject
 ; ===========================================================================
 ; loc_22528:
 Obj1D_MoveStraight:
@@ -47846,14 +47846,14 @@ Obj1D_MoveStraight:
 +
 	move.w	blueballs_y_pos(a0),d0
 	cmp.w	y_pos(a0),d0
-	bhi.s	BranchTo3_JmpTo7_MarkObjGone
+	bhi.s	BranchTo3_JmpTo7_DespawnObject
 	move.w	blueballs_y_vel(a0),y_vel(a0)
 	move.w	blueballs_x_pos(a0),x_pos(a0)
 	move.w	#SndID_Gloop,d0
 	jsr	(PlaySoundLocal).l
 
-BranchTo3_JmpTo7_MarkObjGone ; BranchTo
-	jmpto	JmpTo7_MarkObjGone
+BranchTo3_JmpTo7_DespawnObject ; BranchTo
+	jmpto	JmpTo7_DespawnObject
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; sprite mappings
@@ -47861,7 +47861,7 @@ BranchTo3_JmpTo7_MarkObjGone ; BranchTo
 Obj1D_MapUnc_22576:	include "mappings/sprite/obj1D.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo7_MarkObjGone,JmpTo5_AllocateObjectAfterCurrent,JmpTo3_Adjust2PArtPointer2,JmpTo6_ObjectMove
+	jmpTos JmpTo7_DespawnObject,JmpTo5_AllocateObjectAfterCurrent,JmpTo3_Adjust2PArtPointer2,JmpTo6_ObjectMove
 
 
 
@@ -47879,15 +47879,15 @@ Obj1E:
 	move.b	objoff_2C(a0),d0
 	add.b	objoff_36(a0),d0
     if removeJmpTos
-	beq.s	JmpTo_MarkObjGone3
+	beq.s	JmpTo_DespawnObject3
     else
-	beq.w	JmpTo_MarkObjGone3
+	beq.w	JmpTo_DespawnObject3
     endif
 	rts
 
     if removeJmpTos
-JmpTo_MarkObjGone3 ; JmpTo
-	jmp	(MarkObjGone3).l
+JmpTo_DespawnObject3 ; JmpTo
+	jmp	(DespawnObject3).l
     endif
 ; ===========================================================================
 ; JmpTbl_225B8: Obj1E_States:
@@ -48294,7 +48294,7 @@ __LABEL__ label *
 	include	"misc/obj1E_b.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo_MarkObjGone3
+	jmpTos JmpTo_DespawnObject3
 
 
 
@@ -48348,7 +48348,7 @@ Obj20_Init:
 loc_23076:
 	lea	(Ani_obj20).l,a1
 	jsrto	JmpTo4_AnimateSprite
-	jmpto	JmpTo8_MarkObjGone
+	jmpto	JmpTo8_DespawnObject
 ; ===========================================================================
 
 loc_23084:
@@ -48371,7 +48371,7 @@ loc_230A6:
 loc_230B4:
 	lea	(Ani_obj20).l,a1
 	jsrto	JmpTo4_AnimateSprite
-	jmpto	JmpTo8_MarkObjGone
+	jmpto	JmpTo8_DespawnObject
 ; ===========================================================================
 
 loc_230C2:
@@ -48403,7 +48403,7 @@ loc_2311E:
 loc_23136:
 	lea	(Ani_obj20).l,a1
 	jsrto	JmpTo4_AnimateSprite
-	jmpto	JmpTo8_MarkObjGone
+	jmpto	JmpTo8_DespawnObject
 ; ===========================================================================
 
 loc_23144:
@@ -48426,11 +48426,11 @@ loc_2315A:
 loc_23176:
 	bclr	#render_flags.y_flip,render_flags(a0)
 	tst.w	y_vel(a0)
-	bmi.s	BranchTo_JmpTo8_MarkObjGone
+	bmi.s	BranchTo_JmpTo8_DespawnObject
 	bset	#render_flags.y_flip,render_flags(a0)
 	bsr.w	ObjCheckFloorDist
 	tst.w	d1
-	bpl.s	BranchTo_JmpTo8_MarkObjGone
+	bpl.s	BranchTo_JmpTo8_DespawnObject
 	add.w	d1,y_pos(a0)
 	addq.b	#2,routine(a0)
 	move.b	#2,anim(a0)
@@ -48443,8 +48443,8 @@ loc_23176:
 	move.w	#9,objoff_32(a0)
 	move.b	#3,objoff_36(a0)
 
-BranchTo_JmpTo8_MarkObjGone ; BranchTo
-	jmpto	JmpTo8_MarkObjGone
+BranchTo_JmpTo8_DespawnObject ; BranchTo
+	jmpto	JmpTo8_DespawnObject
 ; ===========================================================================
 
 loc_231D2:
@@ -48484,7 +48484,7 @@ loc_23214:
 loc_23224:
 	lea	(Ani_obj20).l,a1
 	jsrto	JmpTo4_AnimateSprite
-	jmpto	JmpTo8_MarkObjGone
+	jmpto	JmpTo8_DespawnObject
 ; ===========================================================================
 
 BranchTo_JmpTo21_DeleteObject ; BranchTo
@@ -48513,7 +48513,7 @@ Obj20_MapUnc_23254:	include "mappings/sprite/obj20_a.asm"
 Obj20_MapUnc_23294:	include "mappings/sprite/obj20_b.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo21_DeleteObject,JmpTo8_MarkObjGone,JmpTo6_AllocateObjectAfterCurrent,JmpTo4_AnimateSprite,JmpTo17_Adjust2PArtPointer,JmpTo7_ObjectMove
+	jmpTos JmpTo21_DeleteObject,JmpTo8_DespawnObject,JmpTo6_AllocateObjectAfterCurrent,JmpTo4_AnimateSprite,JmpTo17_Adjust2PArtPointer,JmpTo7_ObjectMove
 
 
 
@@ -48580,8 +48580,8 @@ Obj2F_Main:
 	andi.b	#standing_mask,d0
 	bne.s	+
 
-BranchTo_JmpTo9_MarkObjGone ; BranchTo
-	jmpto	JmpTo9_MarkObjGone
+BranchTo_JmpTo9_DespawnObject ; BranchTo
+	jmpto	JmpTo9_DespawnObject
 ; ===========================================================================
 +
 	cmpi.b	#standing_mask,d0
@@ -48606,7 +48606,7 @@ loc_233C0:
 loc_233E2:
 	move.b	#$C,(Sidekick+top_solid_bit).w
 	move.b	#$D,(Sidekick+lrb_solid_bit).w
-	bra.s	BranchTo_JmpTo9_MarkObjGone
+	bra.s	BranchTo_JmpTo9_DespawnObject
 ; ===========================================================================
 
 loc_233F0:
@@ -48633,7 +48633,7 @@ loc_23408:
 loc_23426:
 	move.b	#$C,(MainCharacter+top_solid_bit).w
 	move.b	#$D,(MainCharacter+lrb_solid_bit).w
-	bra.w	BranchTo_JmpTo9_MarkObjGone
+	bra.w	BranchTo_JmpTo9_DespawnObject
 ; ===========================================================================
 
 loc_23436:
@@ -48661,7 +48661,7 @@ loc_2345C:
 
 loc_23470:
 	andi.b	#p2_standing,d0
-	beq.w	BranchTo_JmpTo9_MarkObjGone
+	beq.w	BranchTo_JmpTo9_DespawnObject
 	cmpi.b	#AniIDSonAni_Roll,objoff_33(a0)
 	bne.s	loc_2348E
 	tst.b	subtype(a0)
@@ -48672,7 +48672,7 @@ loc_23470:
 loc_2348E:
 	move.b	#$C,(Sidekick+top_solid_bit).w
 	move.b	#$D,(Sidekick+lrb_solid_bit).w
-	bra.w	BranchTo_JmpTo9_MarkObjGone
+	bra.w	BranchTo_JmpTo9_DespawnObject
 ; ===========================================================================
 
 loc_2349E:
@@ -48771,8 +48771,8 @@ Obj32_Main:
 	andi.b	#standing_mask,d0	; is at least one player standing on the object?
 	bne.s	Obj32_SupportingSomeone
 
-BranchTo2_JmpTo9_MarkObjGone ; BranchTo
-	jmpto	JmpTo9_MarkObjGone
+BranchTo2_JmpTo9_DespawnObject ; BranchTo
+	jmpto	JmpTo9_DespawnObject
 ; ===========================================================================
 ; loc_235BC:
 Obj32_SupportingSomeone:
@@ -48781,7 +48781,7 @@ Obj32_SupportingSomeone:
 	cmpi.b	#AniIDSonAni_Roll,breakableblock_mainchar_anim(a0)
 	beq.s	+
 	cmpi.b	#AniIDSonAni_Roll,breakableblock_sidekick_anim(a0)
-	bne.s	BranchTo2_JmpTo9_MarkObjGone
+	bne.s	BranchTo2_JmpTo9_DespawnObject
 +
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.b	breakableblock_mainchar_anim(a0),d0
@@ -48797,7 +48797,7 @@ Obj32_SupportingOnePlayerOnly:
 	andi.b	#p1_standing,d1			 ; is the main character standing on the object?
 	beq.s	Obj32_SupportingSidekick ; if not, branch
 	cmpi.b	#AniIDSonAni_Roll,breakableblock_mainchar_anim(a0)
-	bne.s	BranchTo2_JmpTo9_MarkObjGone
+	bne.s	BranchTo2_JmpTo9_DespawnObject
 	lea	(MainCharacter).w,a1 ; a1=character
 	bsr.s	Obj32_BouncePlayer
 	bra.s	Obj32_Destroy
@@ -48822,9 +48822,9 @@ Obj32_BouncePlayer:
 ; loc_2363A:
 Obj32_SupportingSidekick:
 	andi.b	#p2_standing,d0	; is the sidekick standing on the object? (at this point, it should...)
-	beq.w	BranchTo2_JmpTo9_MarkObjGone ; if, by miracle, he's not, branch
+	beq.w	BranchTo2_JmpTo9_DespawnObject ; if, by miracle, he's not, branch
 	cmpi.b	#2,breakableblock_sidekick_anim(a0)
-	bne.w	BranchTo2_JmpTo9_MarkObjGone
+	bne.w	BranchTo2_JmpTo9_DespawnObject
 	lea	(Sidekick).w,a1 ; a1=character
 	bsr.s	Obj32_BouncePlayer
 ; loc_23652:
@@ -48912,7 +48912,7 @@ Obj32_MapUnc_23852:	include "mappings/sprite/obj32_a.asm"
 Obj32_MapUnc_23886:	include "mappings/sprite/obj32_b.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo12_DisplaySprite,JmpTo22_DeleteObject,JmpTo3_AllocateObject,JmpTo9_MarkObjGone,JmpTo18_Adjust2PArtPointer,JmpTo_BreakObjectToPieces,JmpTo3_SolidObject,JmpTo8_ObjectMove
+	jmpTos JmpTo12_DisplaySprite,JmpTo22_DeleteObject,JmpTo3_AllocateObject,JmpTo9_DespawnObject,JmpTo18_Adjust2PArtPointer,JmpTo_BreakObjectToPieces,JmpTo3_SolidObject,JmpTo8_ObjectMove
 
 
 
@@ -48985,15 +48985,15 @@ Obj30_Main:
 	jsr	Obj30_Modes(pc,d1.w)
 	tst.b	(Screen_Shaking_Flag_HTZ).w
     if removeJmpTos
-	beq.s	JmpTo2_MarkObjGone3
+	beq.s	JmpTo2_DespawnObject3
     else
-	beq.w	JmpTo2_MarkObjGone3
+	beq.w	JmpTo2_DespawnObject3
     endif
 	rts
 
     if removeJmpTos
-JmpTo2_MarkObjGone3 ; JmpTo
-	jmp	(MarkObjGone3).l
+JmpTo2_DespawnObject3 ; JmpTo
+	jmp	(DespawnObject3).l
     endif
 ; ===========================================================================
 ; off_23968:
@@ -49083,7 +49083,7 @@ Obj30_SlopeData:
 	even
 ; ===========================================================================
 
-	jmpTos JmpTo23_DeleteObject,JmpTo_Touch_ChkHurt,JmpTo2_MarkObjGone3,JmpTo_DropOnFloor,JmpTo_SolidObject_Always,JmpTo_SlopedSolid
+	jmpTos JmpTo23_DeleteObject,JmpTo_Touch_ChkHurt,JmpTo2_DespawnObject3,JmpTo_DropOnFloor,JmpTo_SolidObject_Always,JmpTo_SlopedSolid
 
 
 
@@ -49148,7 +49148,7 @@ Obj33_Main:
 	move.w	d2,d3
 	addq.w	#1,d3
 	jsrto	JmpTo4_SolidObject
-	jmpto	JmpTo10_MarkObjGone
+	jmpto	JmpTo10_DespawnObject
 ; ===========================================================================
 ; off_23BBC:
 Obj33_Modes:	offsetTable
@@ -49311,7 +49311,7 @@ Obj33_Flame:
 	move.b	#$9B,collision_flags(a0)
 	lea	(Ani_obj33).l,a1
 	jsr	(AnimateSprite).l
-	jmpto	JmpTo10_MarkObjGone
+	jmpto	JmpTo10_DespawnObject
 ; ===========================================================================
 ; loc_23DC2:
 Obj33_FlameOff:
@@ -49335,7 +49335,7 @@ Obj33_MapUnc_23DDC:	include "mappings/sprite/obj33_a.asm"
 Obj33_MapUnc_23DF0:	include "mappings/sprite/obj33_b.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo10_MarkObjGone,JmpTo7_AllocateObjectAfterCurrent,JmpTo4_SolidObject
+	jmpTos JmpTo10_DespawnObject,JmpTo7_AllocateObjectAfterCurrent,JmpTo4_SolidObject
 
 
 
@@ -49636,7 +49636,7 @@ Obj45:
 	move.b	routine(a0),d0
 	move.w	Obj45_Index(pc,d0.w),d1
 	jsr	Obj45_Index(pc,d1.w)
-	jmpto	JmpTo11_MarkObjGone
+	jmpto	JmpTo11_DespawnObject
 ; ===========================================================================
 ; off_2410A:
 Obj45_Index:	offsetTable
@@ -50119,7 +50119,7 @@ Obj46_Inactive:
 	neg.w	objoff_14(a0)
 +
 	bsr.w	loc_24BF0
-	jmpto	JmpTo11_MarkObjGone
+	jmpto	JmpTo11_DespawnObject
 ; ===========================================================================
 ; loc_24B38:
 Obj46_Moving:
@@ -50167,7 +50167,7 @@ loc_24BA4:
 	move.w	(sp)+,d4
 	jsrto	JmpTo5_SolidObject
 	bsr.w	loc_24BF0
-	jmpto	JmpTo11_MarkObjGone
+	jmpto	JmpTo11_DespawnObject
 ; ===========================================================================
 
 loc_24BC4:
@@ -50193,7 +50193,7 @@ Obj46_PressureSpring:
 	bne.s	+
 	clr.b	objoff_30(a0)
 +
-	jmpto	JmpTo11_MarkObjGone
+	jmpto	JmpTo11_DespawnObject
 ; ===========================================================================
 
 loc_24BF0:
@@ -50250,7 +50250,7 @@ Obj46_MapUnc_24C52:	include "mappings/sprite/obj46.asm"
 ; ===========================================================================
 
 	; some of these are still used, for some reason:
-	jmpTos JmpTo25_DeleteObject,JmpTo4_AllocateObject,JmpTo11_MarkObjGone,JmpTo20_Adjust2PArtPointer,JmpTo5_SolidObject,JmpTo_SolidObject_Always_SingleCharacter,JmpTo_SolidObject45,JmpTo9_ObjectMove
+	jmpTos JmpTo25_DeleteObject,JmpTo4_AllocateObject,JmpTo11_DespawnObject,JmpTo20_Adjust2PArtPointer,JmpTo5_SolidObject,JmpTo_SolidObject_Always_SingleCharacter,JmpTo_SolidObject45,JmpTo9_ObjectMove
 
 
 
@@ -50284,7 +50284,7 @@ Obj47_Init:
 ; loc_24D32:
 Obj47_Main:
 	_btst	#render_flags.on_screen,render_flags(a0)
-	_beq.s	BranchTo_JmpTo12_MarkObjGone
+	_beq.s	BranchTo_JmpTo12_DespawnObject
 	move.w	#$1B,d1
 	move.w	#4,d2
 	move.w	#5,d3
@@ -50304,7 +50304,7 @@ Obj47_Main:
 	andi.b	#standing_mask,d0
 	bne.s	+
 	bclr	d3,(a3)
-	bra.s	BranchTo_JmpTo12_MarkObjGone
+	bra.s	BranchTo_JmpTo12_DespawnObject
 ; ===========================================================================
 +
 	tst.b	(a3)
@@ -50315,8 +50315,8 @@ Obj47_Main:
 	bset	d3,(a3)
 	move.b	#1,mapping_frame(a0)
 
-BranchTo_JmpTo12_MarkObjGone ; BranchTo
-	jmpto	JmpTo12_MarkObjGone
+BranchTo_JmpTo12_DespawnObject ; BranchTo
+	jmpto	JmpTo12_DespawnObject
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; sprite mappings
@@ -50324,7 +50324,7 @@ BranchTo_JmpTo12_MarkObjGone ; BranchTo
 Obj47_MapUnc_24D96:	include "mappings/sprite/obj47.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo12_MarkObjGone,JmpTo21_Adjust2PArtPointer,JmpTo6_SolidObject
+	jmpTos JmpTo12_DespawnObject,JmpTo21_Adjust2PArtPointer,JmpTo6_SolidObject
 
 
 
@@ -50377,8 +50377,8 @@ Obj3D_Main:
 	andi.b	#standing_mask,d0
 	bne.s	loc_24E60
 
-BranchTo_JmpTo13_MarkObjGone ; BranchTo
-	jmpto	JmpTo13_MarkObjGone
+BranchTo_JmpTo13_DespawnObject ; BranchTo
+	jmpto	JmpTo13_DespawnObject
 ; ===========================================================================
 
 loc_24E60:
@@ -50387,7 +50387,7 @@ loc_24E60:
 	cmpi.b	#AniIDSonAni_Roll,objoff_32(a0)
 	beq.s	loc_24E76
 	cmpi.b	#AniIDSonAni_Roll,objoff_33(a0)
-	bne.s	BranchTo_JmpTo13_MarkObjGone
+	bne.s	BranchTo_JmpTo13_DespawnObject
 
 loc_24E76:
 	lea	(MainCharacter).w,a1 ; a1=character
@@ -50406,7 +50406,7 @@ loc_24E96:
 	andi.b	#p1_standing,d1
 	beq.s	loc_24EE8
 	cmpi.b	#AniIDSonAni_Roll,objoff_32(a0)
-	bne.s	BranchTo_JmpTo13_MarkObjGone
+	bne.s	BranchTo_JmpTo13_DespawnObject
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.w	objoff_34(a0),d1
 	bsr.s	loc_24EB8
@@ -50433,9 +50433,9 @@ loc_24ED4:
 
 loc_24EE8:
 	andi.b	#p2_standing,d0
-	beq.w	BranchTo_JmpTo13_MarkObjGone
+	beq.w	BranchTo_JmpTo13_DespawnObject
 	cmpi.b	#AniIDSonAni_Roll,objoff_33(a0)
-	bne.w	BranchTo_JmpTo13_MarkObjGone
+	bne.w	BranchTo_JmpTo13_DespawnObject
 	lea	(Sidekick).w,a1 ; a1=character
 	move.w	objoff_36(a0),d1
 	bsr.s	loc_24EB8
@@ -50474,8 +50474,8 @@ Obj3D_Fragment:
     if removeJmpTos
 JmpTo26_DeleteObject ; JmpTo
 	jmp	(DeleteObject).l
-JmpTo3_MarkObjGone3 ; JmpTo
-	jmp	(MarkObjGone3).l
+JmpTo3_DespawnObject3 ; JmpTo
+	jmp	(DespawnObject3).l
     endif
 ; ===========================================================================
 ; loc_24F52:
@@ -50488,7 +50488,7 @@ Obj3D_InvisibleLauncher:
 	bsr.s	loc_24F74
 	move.b	objoff_2C(a0),d0
 	add.b	objoff_36(a0),d0
-	beq.w	JmpTo3_MarkObjGone3
+	beq.w	JmpTo3_DespawnObject3
 	rts
 ; ===========================================================================
 
@@ -50614,7 +50614,7 @@ word_2507A:
 Obj3D_MapUnc_250BA:	include "mappings/sprite/obj3D.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo14_DisplaySprite,JmpTo26_DeleteObject,JmpTo13_MarkObjGone,JmpTo9_AllocateObjectAfterCurrent,JmpTo3_MarkObjGone3,JmpTo22_Adjust2PArtPointer,JmpTo2_BreakObjectToPieces,JmpTo7_SolidObject,JmpTo10_ObjectMove
+	jmpTos JmpTo14_DisplaySprite,JmpTo26_DeleteObject,JmpTo13_DespawnObject,JmpTo9_AllocateObjectAfterCurrent,JmpTo3_DespawnObject3,JmpTo22_Adjust2PArtPointer,JmpTo2_BreakObjectToPieces,JmpTo7_SolidObject,JmpTo10_ObjectMove
 
 
 
@@ -50631,12 +50631,12 @@ Obj48:
 	jsr	Obj48_Index(pc,d1.w)
 	move.b	objoff_2C(a0),d0
 	add.b	objoff_36(a0),d0
-	beq.w	JmpTo14_MarkObjGone
+	beq.w	JmpTo14_DespawnObject
 	jmpto	JmpTo15_DisplaySprite
 
     if removeJmpTos
-JmpTo14_MarkObjGone ; JmpTo
-	jmp	(MarkObjGone).l
+JmpTo14_DespawnObject ; JmpTo
+	jmp	(DespawnObject).l
     endif
 ; ===========================================================================
 ; off_25262:
@@ -50899,7 +50899,7 @@ loc_254F2:
 Obj48_MapUnc_254FE:	include "mappings/sprite/obj48.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo15_DisplaySprite,JmpTo14_MarkObjGone,JmpTo23_Adjust2PArtPointer
+	jmpTos JmpTo15_DisplaySprite,JmpTo14_DespawnObject,JmpTo23_Adjust2PArtPointer
 
 
 
@@ -50954,7 +50954,7 @@ Obj22_Main:
 Obj22_Animate:
 	lea	(Ani_obj22).l,a1
 	jsrto	JmpTo5_AnimateSprite
-	jmpto	JmpTo15_MarkObjGone
+	jmpto	JmpTo15_DespawnObject
 ; ===========================================================================
 ; loc_25714:
 Obj22_DetectPlayer:
@@ -50987,7 +50987,7 @@ Obj22_ShootArrow:
 	subq.b	#2,routine(a0)
 	lea	(Ani_obj22).l,a1
 	jsrto	JmpTo5_AnimateSprite
-	jmpto	JmpTo15_MarkObjGone
+	jmpto	JmpTo15_DespawnObject
 ; ===========================================================================
 ; loc_2577A:
 Obj22_Arrow_Init:
@@ -51014,7 +51014,7 @@ Obj22_Arrow:
 	bsr.w	ObjCheckLeftWallDist
 	tst.w	d1
 	bmi.w	BranchTo_JmpTo27_DeleteObject
-	jmpto	JmpTo15_MarkObjGone
+	jmpto	JmpTo15_DespawnObject
 ; ===========================================================================
 
 BranchTo_JmpTo27_DeleteObject ; BranchTo
@@ -51026,7 +51026,7 @@ loc_257DE:
 	bsr.w	ObjCheckRightWallDist
 	tst.w	d1
 	bmi.w	BranchTo_JmpTo27_DeleteObject
-	jmpto	JmpTo15_MarkObjGone
+	jmpto	JmpTo15_DespawnObject
 ; ===========================================================================
 ; animation script
 ; off_257EE:
@@ -51046,7 +51046,7 @@ byte_257FB:	dc.b   7,  3,  4,$FC,  4,  3,  1,$FD,  0
 Obj22_MapUnc_25804:	include "mappings/sprite/obj22.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo27_DeleteObject,JmpTo5_AllocateObject,JmpTo15_MarkObjGone,JmpTo5_AnimateSprite,JmpTo24_Adjust2PArtPointer,JmpTo11_ObjectMove
+	jmpTos JmpTo27_DeleteObject,JmpTo5_AllocateObject,JmpTo15_DespawnObject,JmpTo5_AnimateSprite,JmpTo24_Adjust2PArtPointer,JmpTo11_ObjectMove
 
 
 
@@ -51106,7 +51106,7 @@ Obj23_Main:
 	addq.w	#1,d3
 	move.w	(sp)+,d4
 	jsrto	JmpTo8_SolidObject
-	jmpto	JmpTo16_MarkObjGone
+	jmpto	JmpTo16_DespawnObject
 ; ===========================================================================
 
 loc_25948:
@@ -51248,7 +51248,7 @@ Obj2B_Main:
 	move.b	status(a0),d0
 	andi.b	#standing_mask,d0
 	bne.w	loc_25ACE
-	jmpto	JmpTo16_MarkObjGone
+	jmpto	JmpTo16_DespawnObject
 ; ===========================================================================
 
 loc_25ACE:
@@ -51423,7 +51423,7 @@ loc_25C64:
 Obj2B_MapUnc_25C6E:	include "mappings/sprite/obj2B.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo16_DisplaySprite,JmpTo28_DeleteObject,JmpTo16_MarkObjGone,JmpTo10_AllocateObjectAfterCurrent,JmpTo25_Adjust2PArtPointer,JmpTo8_SolidObject,JmpTo12_ObjectMove
+	jmpTos JmpTo16_DisplaySprite,JmpTo28_DeleteObject,JmpTo16_DespawnObject,JmpTo10_AllocateObjectAfterCurrent,JmpTo25_Adjust2PArtPointer,JmpTo8_SolidObject,JmpTo12_ObjectMove
 
 
 
@@ -51658,7 +51658,7 @@ Obj40:
 	move.b	routine(a0),d0
 	move.w	Obj40_Index(pc,d0.w),d1
 	jsr	Obj40_Index(pc,d1.w)
-	jmpto	JmpTo17_MarkObjGone
+	jmpto	JmpTo17_DespawnObject
 ; ===========================================================================
 ; off_26382:
 Obj40_Index:	offsetTable
@@ -51862,7 +51862,7 @@ byte_265EF:	dc.b   3,  1,  0,$FD,  0
 Obj40_MapUnc_265F4:	include "mappings/sprite/obj40.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo17_MarkObjGone,JmpTo6_AnimateSprite,JmpTo26_Adjust2PArtPointer,JmpTo_SlopedSolid_SingleCharacter
+	jmpTos JmpTo17_DespawnObject,JmpTo6_AnimateSprite,JmpTo26_Adjust2PArtPointer,JmpTo_SlopedSolid_SingleCharacter
 
 
 
@@ -51922,10 +51922,10 @@ loc_26688:
 	move.b	routine_secondary(a0),d0
 	bne.s	loc_266E4
 	subq.w	#1,objoff_32(a0)
-	bpl.s	BranchTo_JmpTo18_MarkObjGone
+	bpl.s	BranchTo_JmpTo18_DespawnObject
 	move.w	#$3B,objoff_32(a0)
 	addq.b	#2,routine_secondary(a0)
-	bra.s	BranchTo_JmpTo18_MarkObjGone
+	bra.s	BranchTo_JmpTo18_DespawnObject
 ; ===========================================================================
 
 loc_266E4:
@@ -51944,17 +51944,17 @@ loc_26708:
 	move.w	objoff_36(a0),d0
 	add.w	objoff_34(a0),d0
 	move.w	d0,y_pos(a0)
-	bra.s	BranchTo_JmpTo18_MarkObjGone
+	bra.s	BranchTo_JmpTo18_DespawnObject
 ; ===========================================================================
 
 loc_26716:
 	subq.b	#2,d0
 	bne.s	loc_2672C
 	subq.w	#1,objoff_32(a0)
-	bpl.s	BranchTo_JmpTo18_MarkObjGone
+	bpl.s	BranchTo_JmpTo18_DespawnObject
 	move.w	#$3B,objoff_32(a0)
 	addq.b	#2,routine_secondary(a0)
-	bra.s	BranchTo_JmpTo18_MarkObjGone
+	bra.s	BranchTo_JmpTo18_DespawnObject
 ; ===========================================================================
 
 loc_2672C:
@@ -51968,8 +51968,8 @@ loc_2673C:
 	add.w	objoff_34(a0),d0
 	move.w	d0,y_pos(a0)
 
-BranchTo_JmpTo18_MarkObjGone ; BranchTo
-	jmpto	JmpTo18_MarkObjGone
+BranchTo_JmpTo18_DespawnObject ; BranchTo
+	jmpto	JmpTo18_DespawnObject
 ; ===========================================================================
 
 loc_2674C:
@@ -52064,7 +52064,7 @@ JmpTo30_DeleteObject ; JmpTo
 Obj42_MapUnc_2686C:	include "mappings/sprite/obj42.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo18_DisplaySprite,JmpTo30_DeleteObject,JmpTo7_AllocateObject,JmpTo18_MarkObjGone,JmpTo27_Adjust2PArtPointer,JmpTo2_SolidObject_Always_SingleCharacter
+	jmpTos JmpTo18_DisplaySprite,JmpTo30_DeleteObject,JmpTo7_AllocateObject,JmpTo18_DespawnObject,JmpTo27_Adjust2PArtPointer,JmpTo2_SolidObject_Always_SingleCharacter
 
 
 
@@ -52589,7 +52589,7 @@ loc_26EA4:
 loc_26EAC:
 	andi.w	#7,d0
 	move.b	byte_26EBA(pc,d0.w),mapping_frame(a0)
-	jmpto	JmpTo19_MarkObjGone
+	jmpto	JmpTo19_DespawnObject
 ; ===========================================================================
 byte_26EBA:
 	dc.b   0
@@ -52617,7 +52617,7 @@ Obj65_Obj6A_Obj6B_MapUnc_26EC8:	include "mappings/sprite/obj65_a.asm"
 Obj65_MapUnc_26F04:	include "mappings/sprite/obj65_b.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo19_MarkObjGone,JmpTo11_AllocateObjectAfterCurrent,JmpTo29_Adjust2PArtPointer,JmpTo10_SolidObject
+	jmpTos JmpTo19_DespawnObject,JmpTo11_AllocateObjectAfterCurrent,JmpTo29_Adjust2PArtPointer,JmpTo10_SolidObject
 
 
 
@@ -52810,14 +52810,14 @@ Obj67:
 	jsr	Obj67_Index(pc,d1.w)
 	move.b	objoff_2C(a0),d0
 	add.b	objoff_36(a0),d0
-	beq.w	JmpTo4_MarkObjGone3
+	beq.w	JmpTo4_DespawnObject3
 	lea	(Ani_obj67).l,a1
 	jsrto	JmpTo7_AnimateSprite
 	jmpto	JmpTo19_DisplaySprite
 
     if removeJmpTos
-JmpTo4_MarkObjGone3 ; JmpTo
-	jmp	(MarkObjGone3).l
+JmpTo4_DespawnObject3 ; JmpTo
+	jmp	(DespawnObject3).l
     endif
 ; ===========================================================================
 ; off_27184:
@@ -53078,7 +53078,7 @@ byte_27535:
 Obj67_MapUnc_27548:	include "mappings/sprite/obj67.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo19_DisplaySprite,JmpTo7_AnimateSprite,JmpTo4_MarkObjGone3
+	jmpTos JmpTo19_DisplaySprite,JmpTo7_AnimateSprite,JmpTo4_DespawnObject3
 
 
 
@@ -53148,7 +53148,7 @@ Obj68_Block:
 	move.w	#$11,d3
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo11_SolidObject
-	jmpto	JmpTo20_MarkObjGone
+	jmpto	JmpTo20_DespawnObject
 ; ===========================================================================
 ; loc_27662:
 Obj68_Spike:
@@ -53159,7 +53159,7 @@ Obj68_Spike:
 	move.w	Obj68_Spike_Directions(pc,d0.w),d1
 	jsr	Obj68_Spike_Directions(pc,d1.w)
 	move.w	spikearoundblock_initial_x_pos(a0),d0
-	jmpto	JmpTo2_MarkObjGone2
+	jmpto	JmpTo2_DespawnObject2
 ; ===========================================================================
 ; off_2767E:
 Obj68_Spike_Directions: offsetTable
@@ -53300,7 +53300,7 @@ Obj6D_Main:
 	add.w	floorspike_initial_y_pos(a0),d0
 	move.w	d0,y_pos(a0)
 	move.w	floorspike_initial_x_pos(a0),d0
-	jmpto	JmpTo2_MarkObjGone2
+	jmpto	JmpTo2_DespawnObject2
 ; ===========================================================================
 ; loc_277FC:
 Obj6D_Action:
@@ -53341,7 +53341,7 @@ Obj6D_Action_End:
 	rts
 ; ===========================================================================
 
-	jmpTos JmpTo20_MarkObjGone,JmpTo12_AllocateObjectAfterCurrent,JmpTo31_Adjust2PArtPointer,JmpTo11_SolidObject,JmpTo2_MarkObjGone2
+	jmpTos JmpTo20_DespawnObject,JmpTo12_AllocateObjectAfterCurrent,JmpTo31_Adjust2PArtPointer,JmpTo11_SolidObject,JmpTo2_DespawnObject2
 
 
 
@@ -53398,7 +53398,7 @@ loc_278F4:
 	move.w	#$D,d3
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo12_SolidObject
-	jmpto	JmpTo21_MarkObjGone
+	jmpto	JmpTo21_DespawnObject
 ; ===========================================================================
 ; loc_27912:
 Obj69_Action:
@@ -53520,7 +53520,7 @@ loc_279FC:
 Obj69_MapUnc_27A26:	include "mappings/sprite/obj69.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo21_MarkObjGone,JmpTo_ObjCheckFloorDist,JmpTo32_Adjust2PArtPointer,JmpTo12_SolidObject,JmpTo13_ObjectMove
+	jmpTos JmpTo21_DespawnObject,JmpTo_ObjCheckFloorDist,JmpTo32_Adjust2PArtPointer,JmpTo12_SolidObject,JmpTo13_ObjectMove
 
 
 
@@ -53664,7 +53664,7 @@ loc_27C3E:
 
 loc_27C5E:
 	move.w	objoff_32(a0),d0
-	jmpto	JmpTo3_MarkObjGone2
+	jmpto	JmpTo3_DespawnObject2
 ; ===========================================================================
 
 loc_27C66:
@@ -53689,7 +53689,7 @@ loc_27C7A:
 
 loc_27C9A:
 	move.w	objoff_32(a0),d0
-	jmpto	JmpTo3_MarkObjGone2
+	jmpto	JmpTo3_DespawnObject2
 ; ===========================================================================
 
 loc_27CA2:
@@ -53735,7 +53735,7 @@ byte_27D12:
 Obj6A_MapUnc_27D30:	include "mappings/sprite/obj6A.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo13_AllocateObjectAfterCurrent,JmpTo33_Adjust2PArtPointer,JmpTo13_SolidObject,JmpTo3_MarkObjGone2
+	jmpTos JmpTo13_AllocateObjectAfterCurrent,JmpTo33_Adjust2PArtPointer,JmpTo13_SolidObject,JmpTo3_DespawnObject2
 
 
 
@@ -53822,7 +53822,7 @@ Obj6B_Main:
 	jsrto	JmpTo14_SolidObject
 +
 	move.w	objoff_34(a0),d0
-	jmpto	JmpTo4_MarkObjGone2
+	jmpto	JmpTo4_DespawnObject2
 ; ===========================================================================
 ; off_27E4E:
 Obj6B_Types:	offsetTable
@@ -54043,7 +54043,7 @@ loc_27FF8:
 Obj6B_MapUnc_2800E:	include "mappings/sprite/obj6B.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo34_Adjust2PArtPointer,JmpTo14_SolidObject,JmpTo4_MarkObjGone2,JmpTo14_ObjectMove
+	jmpTos JmpTo34_Adjust2PArtPointer,JmpTo14_SolidObject,JmpTo4_DespawnObject2,JmpTo14_ObjectMove
 
 
 
@@ -54673,7 +54673,7 @@ Obj72_Main:
 	bsr.s	Obj72_Action
 	lea	(Sidekick).w,a1 ; a1=character
 	bsr.s	Obj72_Action
-	jmpto	JmpTo5_MarkObjGone3
+	jmpto	JmpTo5_DespawnObject3
 ; ===========================================================================
 ; loc_28990:
 Obj72_Action:
@@ -54700,7 +54700,7 @@ Obj72_Action:
 	rts
 ; ===========================================================================
 
-	jmpTos JmpTo5_MarkObjGone3
+	jmpTos JmpTo5_DespawnObject3
 
 
 
@@ -55048,7 +55048,7 @@ loc_28D6C:
 	move.w	#$11,d3
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo18_SolidObject
-	jmpto	JmpTo22_MarkObjGone
+	jmpto	JmpTo22_DespawnObject
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; sprite mappings
@@ -55056,7 +55056,7 @@ loc_28D6C:
 Obj75_MapUnc_28D8A:	include "mappings/sprite/obj75.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo_DisplaySprite3,JmpTo22_DisplaySprite,JmpTo38_DeleteObject,JmpTo22_MarkObjGone,JmpTo2_DeleteObject2,JmpTo15_AllocateObjectAfterCurrent,JmpTo38_Adjust2PArtPointer,JmpTo8_CalcSine,JmpTo18_SolidObject
+	jmpTos JmpTo_DisplaySprite3,JmpTo22_DisplaySprite,JmpTo38_DeleteObject,JmpTo22_DespawnObject,JmpTo2_DeleteObject2,JmpTo15_AllocateObjectAfterCurrent,JmpTo38_Adjust2PArtPointer,JmpTo8_CalcSine,JmpTo18_SolidObject
 
 
 
@@ -55140,7 +55140,7 @@ Obj76_Main:
 
 loc_28EC2:
 	move.w	objoff_34(a0),d0
-	jmpto	JmpTo5_MarkObjGone2
+	jmpto	JmpTo5_DespawnObject2
 ; ===========================================================================
 ; off_28ECA:
 Obj76_Modes:	offsetTable
@@ -55192,7 +55192,7 @@ Obj76_SlideOut:
 Obj76_MapUnc_28F3A:	include "mappings/sprite/obj76.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo_Touch_ChkHurt2,JmpTo39_Adjust2PArtPointer,JmpTo19_SolidObject,JmpTo5_MarkObjGone2
+	jmpTos JmpTo_Touch_ChkHurt2,JmpTo39_Adjust2PArtPointer,JmpTo19_SolidObject,JmpTo5_DespawnObject2
 
 
 
@@ -55247,7 +55247,7 @@ Obj77_Main:
 	addq.w	#1,d3
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo20_SolidObject
-	jmpto	JmpTo23_MarkObjGone
+	jmpto	JmpTo23_DespawnObject
 ; ===========================================================================
 
 ; Check if the characters are standing on it. If a character is standing on the
@@ -55271,7 +55271,7 @@ Obj77_DropCharacters:
 +
 	andi.b	#~standing_mask,status(a0)
 +
-	jmpto	JmpTo23_MarkObjGone
+	jmpto	JmpTo23_DespawnObject
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; animation script
@@ -55293,7 +55293,7 @@ Ani_obj77_Open:
 Obj77_MapUnc_29064:	include "mappings/sprite/obj77.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo23_MarkObjGone,JmpTo40_Adjust2PArtPointer,JmpTo20_SolidObject
+	jmpTos JmpTo23_DespawnObject,JmpTo40_Adjust2PArtPointer,JmpTo20_SolidObject
 
 
 
@@ -55309,7 +55309,7 @@ Obj78:
 	move.w	Obj78_Index(pc,d0.w),d1
 	jsr	Obj78_Index(pc,d1.w)
 	move.w	objoff_30(a0),d0
-	jmpto	JmpTo6_MarkObjGone2
+	jmpto	JmpTo6_DespawnObject2
 ; ===========================================================================
 ; off_291E2:
 Obj78_Index:	offsetTable
@@ -55497,7 +55497,7 @@ return_29386:
 	rts
 ; ===========================================================================
 
-	jmpTos JmpTo16_AllocateObjectAfterCurrent,JmpTo5_Adjust2PArtPointer2,JmpTo21_SolidObject,JmpTo6_MarkObjGone2
+	jmpTos JmpTo16_AllocateObjectAfterCurrent,JmpTo5_Adjust2PArtPointer2,JmpTo21_SolidObject,JmpTo6_DespawnObject2
 
 
 
@@ -55905,7 +55905,7 @@ Obj7F_Main:
 	addq.w	#1,a2
 	move.w	(Ctrl_2).w,d0
 	bsr.s	Obj7F_Action
-	jmpto	JmpTo24_MarkObjGone
+	jmpto	JmpTo24_DespawnObject
 ; ===========================================================================
 ; loc_2983C:
 Obj7F_Action:
@@ -55985,7 +55985,7 @@ return_29936:
 Obj7F_MapUnc_29938:	include "mappings/sprite/obj7F.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo24_MarkObjGone,JmpTo43_Adjust2PArtPointer
+	jmpTos JmpTo24_DespawnObject,JmpTo43_Adjust2PArtPointer
 
 
 
@@ -56110,7 +56110,7 @@ loc_29AAE:
 	addq.w	#1,a2
 	move.w	(Ctrl_2).w,d0
 	bsr.s	Obj80_Action
-	jmpto	JmpTo25_MarkObjGone
+	jmpto	JmpTo25_DespawnObject
 ; ===========================================================================
 ; loc_29ACC:
 Obj80_Action:
@@ -56253,7 +56253,7 @@ loc_29C42:
 	addq.w	#1,a2
 	move.w	(Ctrl_2).w,d0
 	bsr.w	Obj80_Action
-	jmpto	JmpTo25_MarkObjGone
+	jmpto	JmpTo25_DespawnObject
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; sprite mappings
@@ -56265,7 +56265,7 @@ Obj80_MapUnc_29C64:	include "mappings/sprite/obj80_a.asm"
 Obj80_MapUnc_29DD0:	include "mappings/sprite/obj80_b.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo25_MarkObjGone,JmpTo44_Adjust2PArtPointer
+	jmpTos JmpTo25_DespawnObject,JmpTo44_Adjust2PArtPointer
 
 
 
@@ -56570,7 +56570,7 @@ Obj82_Main:
 	bsr.w	loc_2A432
 +
 	move.w	objoff_34(a0),d0
-	jmpto	JmpTo7_MarkObjGone2
+	jmpto	JmpTo7_DespawnObject2
 ; ===========================================================================
 ; off_2A358:
 Obj82_Types:	offsetTable
@@ -56720,7 +56720,7 @@ return_2A474:
 Obj82_MapUnc_2A476:	include "mappings/sprite/obj82.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo2_ObjCheckFloorDist,JmpTo46_Adjust2PArtPointer,JmpTo_ObjCheckCeilingDist,JmpTo23_SolidObject,JmpTo7_MarkObjGone2,JmpTo16_ObjectMove
+	jmpTos JmpTo2_ObjCheckFloorDist,JmpTo46_Adjust2PArtPointer,JmpTo_ObjCheckCeilingDist,JmpTo23_SolidObject,JmpTo7_DespawnObject2,JmpTo16_ObjectMove
 
 
 
@@ -56966,10 +56966,10 @@ Obj83_PlatformSubObject:
 	jsrto	JmpTo7_PlatformObject
 	move.w	x_pos(a0),Obj83_last_x_pos(a0)
 	move.w	Obj83_initial_x_pos(a0),d0
-	jmpto	JmpTo8_MarkObjGone2
+	jmpto	JmpTo8_DespawnObject2
 ; ===========================================================================
 
-	jmpTos JmpTo3_DisplaySprite3,JmpTo27_DisplaySprite,JmpTo42_DeleteObject,JmpTo4_DeleteObject2,JmpTo19_AllocateObjectAfterCurrent,JmpTo47_Adjust2PArtPointer,JmpTo10_CalcSine,JmpTo7_PlatformObject,JmpTo8_MarkObjGone2
+	jmpTos JmpTo3_DisplaySprite3,JmpTo27_DisplaySprite,JmpTo42_DeleteObject,JmpTo4_DeleteObject2,JmpTo19_AllocateObjectAfterCurrent,JmpTo47_Adjust2PArtPointer,JmpTo10_CalcSine,JmpTo7_PlatformObject,JmpTo8_DespawnObject2
 
 
 
@@ -57022,9 +57022,9 @@ loc_2A82A:
 	tst.b	objoff_32(a0)
 	beq.w	loc_2A84E
 	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	BranchTo_JmpTo26_MarkObjGone
+	bpl.s	BranchTo_JmpTo26_DespawnObject
 	cmpi.w	#$400,objoff_34(a0)
-	bhs.s	BranchTo_JmpTo26_MarkObjGone
+	bhs.s	BranchTo_JmpTo26_DespawnObject
 	addi.w	#$2A,objoff_34(a0)
 	move.b	objoff_34(a0),anim_frame_duration(a0)
 	bra.s	loc_2A86A
@@ -57036,7 +57036,7 @@ loc_2A84E:
 	lea	(Sidekick).w,a1 ; a1=character
 	bsr.w	loc_2A894
 	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	BranchTo_JmpTo26_MarkObjGone
+	bpl.s	BranchTo_JmpTo26_DespawnObject
 	move.b	#0,anim_frame_duration(a0)
 
 loc_2A86A:
@@ -57055,8 +57055,8 @@ loc_2A888:
 	add.b	anim_frame(a0),d0
 	move.b	d0,mapping_frame(a0)
 
-BranchTo_JmpTo26_MarkObjGone ; BranchTo
-	jmpto	JmpTo26_MarkObjGone
+BranchTo_JmpTo26_DespawnObject ; BranchTo
+	jmpto	JmpTo26_DespawnObject
 ; ===========================================================================
 
 loc_2A894:
@@ -57120,9 +57120,9 @@ loc_2A926:
 	tst.b	objoff_32(a0)
 	beq.w	loc_2A94A
 	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	BranchTo2_JmpTo26_MarkObjGone
+	bpl.s	BranchTo2_JmpTo26_DespawnObject
 	cmpi.w	#$400,objoff_34(a0)
-	bhs.s	BranchTo2_JmpTo26_MarkObjGone
+	bhs.s	BranchTo2_JmpTo26_DespawnObject
 	addi.w	#$2A,objoff_34(a0)
 	move.b	objoff_34(a0),anim_frame_duration(a0)
 	bra.s	loc_2A966
@@ -57134,7 +57134,7 @@ loc_2A94A:
 	lea	(Sidekick).w,a1 ; a1=character
 	bsr.w	loc_2A990
 	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	BranchTo2_JmpTo26_MarkObjGone
+	bpl.s	BranchTo2_JmpTo26_DespawnObject
 	move.b	#0,anim_frame_duration(a0)
 
 loc_2A966:
@@ -57151,8 +57151,8 @@ loc_2A966:
 	add.b	anim_frame(a0),d0
 	move.b	d0,mapping_frame(a0)
 
-BranchTo2_JmpTo26_MarkObjGone ; BranchTo
-	jmpto	JmpTo26_MarkObjGone
+BranchTo2_JmpTo26_DespawnObject ; BranchTo
+	jmpto	JmpTo26_DespawnObject
 ; ===========================================================================
 
 loc_2A990:
@@ -57204,7 +57204,7 @@ Obj3F_MapUnc_2AA12:	include "mappings/sprite/obj3F_a.asm"
 Obj3F_MapUnc_2AAC4:	include "mappings/sprite/obj3F_b.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo26_MarkObjGone,JmpTo48_Adjust2PArtPointer
+	jmpTos JmpTo26_DespawnObject,JmpTo48_Adjust2PArtPointer
 
 
 
@@ -57647,7 +57647,7 @@ Obj86:
 	move.b	routine(a0),d0
 	move.w	Obj86_Index(pc,d0.w),d1
 	jsr	Obj86_Index(pc,d1.w)
-	jmpto	JmpTo27_MarkObjGone
+	jmpto	JmpTo27_DespawnObject
 ; ===========================================================================
 ; off_2B152:
 Obj86_Index:	offsetTable
@@ -57903,7 +57903,7 @@ byte_2B451:	dc.b   0,  3,  4,  5,  5,  5,  5,$FD,  2
 Obj86_MapUnc_2B45A:	include "mappings/sprite/obj86.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo27_MarkObjGone,JmpTo9_AnimateSprite,JmpTo50_Adjust2PArtPointer,JmpTo11_CalcSine,JmpTo6_SolidObject_Always_SingleCharacter,JmpTo2_SlopedSolid
+	jmpTos JmpTo27_DespawnObject,JmpTo9_AnimateSprite,JmpTo50_Adjust2PArtPointer,JmpTo11_CalcSine,JmpTo6_SolidObject_Always_SingleCharacter,JmpTo2_SlopedSolid
 
 
 
@@ -57945,7 +57945,7 @@ ObjD2_Main:
 	tst.w	objoff_38(a0)
 	beq.s	+
 	subq.w	#1,objoff_38(a0)
-	jmpto	JmpTo6_MarkObjGone3
+	jmpto	JmpTo6_DespawnObject3
 ; ===========================================================================
 +
 	subq.w	#1,objoff_3A(a0)
@@ -57988,7 +57988,7 @@ loc_2B5EC:
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo24_SolidObject
 	move.w	objoff_30(a0),d0
-	jmpto	JmpTo9_MarkObjGone2
+	jmpto	JmpTo9_DespawnObject2
 ; ===========================================================================
 
 loc_2B60C:
@@ -58043,7 +58043,7 @@ byte_2B654:
 ObjD2_MapUnc_2B694:	include "mappings/sprite/objD2.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo6_MarkObjGone3,JmpTo51_Adjust2PArtPointer,JmpTo24_SolidObject,JmpTo9_MarkObjGone2
+	jmpTos JmpTo6_DespawnObject3,JmpTo51_Adjust2PArtPointer,JmpTo24_SolidObject,JmpTo9_DespawnObject2
 
 
 
@@ -58173,7 +58173,7 @@ ObjD4_Main:
 	move.w	(sp)+,d4
 	jsrto	JmpTo25_SolidObject
 	move.w	objoff_30(a0),d0
-	jmpto	JmpTo10_MarkObjGone2
+	jmpto	JmpTo10_DespawnObject2
 ; ===========================================================================
 ; off_2B99E:
 ObjD4_Types:	offsetTable
@@ -58208,7 +58208,7 @@ ObjD4_Vertical:
 ObjD4_MapUnc_2B9CA:	include "mappings/sprite/objD4.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo52_Adjust2PArtPointer,JmpTo25_SolidObject,JmpTo10_MarkObjGone2,JmpTo17_ObjectMove
+	jmpTos JmpTo52_Adjust2PArtPointer,JmpTo25_SolidObject,JmpTo10_DespawnObject2,JmpTo17_ObjectMove
 
 
 
@@ -58261,7 +58261,7 @@ ObjD5_Main:
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo_PlatformObjectD5
 +
-	jmpto	JmpTo28_MarkObjGone
+	jmpto	JmpTo28_DespawnObject
 ; ===========================================================================
 off_2BA94:	offsetTable
 		offsetTableEntry.w loc_2BA9C	; 0
@@ -58343,7 +58343,7 @@ loc_2BB08:
 ObjD5_MapUnc_2BB40:	include "mappings/sprite/objD5.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo28_MarkObjGone,JmpTo53_Adjust2PArtPointer,JmpTo_PlatformObjectD5,JmpTo18_ObjectMove
+	jmpTos JmpTo28_DespawnObject,JmpTo53_Adjust2PArtPointer,JmpTo_PlatformObjectD5,JmpTo18_ObjectMove
 
 
 
@@ -58391,7 +58391,7 @@ ObjD6_Main:
 	bsr.w	loc_2BBE8
 	lea	(Ani_objD6).l,a1
 	jsrto	JmpTo10_AnimateSprite
-	jmpto	JmpTo29_MarkObjGone
+	jmpto	JmpTo29_DespawnObject
 ; ===========================================================================
 
 loc_2BBE8:
@@ -59161,7 +59161,7 @@ SlotSequence3:	dc.b   3,  0,  1,  4,  2,  5,  4,  1
 	even
 ; ===========================================================================
 
-	jmpTos JmpTo10_AllocateObject,JmpTo29_MarkObjGone,JmpTo10_AnimateSprite,JmpTo6_Adjust2PArtPointer2,JmpTo54_Adjust2PArtPointer,JmpTo12_CalcSine,JmpTo7_SolidObject_Always_SingleCharacter
+	jmpTos JmpTo10_AllocateObject,JmpTo29_DespawnObject,JmpTo10_AnimateSprite,JmpTo6_Adjust2PArtPointer2,JmpTo54_Adjust2PArtPointer,JmpTo12_CalcSine,JmpTo7_SolidObject_Always_SingleCharacter
 
 
 
@@ -59278,7 +59278,7 @@ ObjD7_MainContinued:
 	lea	(Ani_objD7).l,a1
 	jsrto	JmpTo11_AnimateSprite
 	tst.b	subtype(a0)
-	beq.w	JmpTo30_MarkObjGone
+	beq.w	JmpTo30_DespawnObject
 	tst.b	objoff_34(a0)
 	beq.s	loc_2C5AE
 	move.w	x_pos(a0),d0
@@ -59326,8 +59326,8 @@ loc_2C5F8:
 	jmp	(DeleteObject).l
 
     if removeJmpTos
-JmpTo30_MarkObjGone ; JmpTo
-	jmp	(MarkObjGone).l
+JmpTo30_DespawnObject ; JmpTo
+	jmp	(DespawnObject).l
     endif
 ; ===========================================================================
 ; animation script
@@ -59348,7 +59348,7 @@ byte_2C61F:	dc.b   3,  2,  0,  2,$FD,  0
 ObjD7_MapUnc_2C626:	include "mappings/sprite/objD7.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo30_DisplaySprite,JmpTo30_MarkObjGone,JmpTo11_AnimateSprite,JmpTo55_Adjust2PArtPointer
+	jmpTos JmpTo30_DisplaySprite,JmpTo30_DespawnObject,JmpTo11_AnimateSprite,JmpTo55_Adjust2PArtPointer
 
 
 
@@ -59425,7 +59425,7 @@ loc_2C73C:
 loc_2C740:
 	lea	(Ani_objD8).l,a1
 	jsrto	JmpTo12_AnimateSprite
-	jmpto	JmpTo31_MarkObjGone
+	jmpto	JmpTo31_DespawnObject
 ; ===========================================================================
 
 loc_2C74E:
@@ -59543,7 +59543,7 @@ loc_2C884:
 	jsrto	JmpTo12_AnimateSprite
 	cmpi.b	#3,anim(a0)
 	blo.w	JmpTo46_DeleteObject
-	jmpto	JmpTo31_MarkObjGone
+	jmpto	JmpTo31_DespawnObject
 
     if removeJmpTos
 JmpTo46_DeleteObject ; JmpTo
@@ -59577,7 +59577,7 @@ byte_2C8BD:	dc.b   3,  5,  2,  5,$FD,  2
 ObjD8_MapUnc_2C8C4:	include "mappings/sprite/objD8.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo46_DeleteObject,JmpTo11_AllocateObject,JmpTo31_MarkObjGone,JmpTo12_AnimateSprite,JmpTo56_Adjust2PArtPointer
+	jmpTos JmpTo46_DeleteObject,JmpTo11_AllocateObject,JmpTo31_DespawnObject,JmpTo12_AnimateSprite,JmpTo56_Adjust2PArtPointer
 
 
 
@@ -59614,7 +59614,7 @@ ObjD9_Main:
 	addq.w	#1,a2
 	move.w	(Ctrl_2).w,d0
 	bsr.s	ObjD9_CheckCharacter
-	jmpto	JmpTo7_MarkObjGone3
+	jmpto	JmpTo7_DespawnObject3
 ; ===========================================================================
 ; loc_2C972:
 ObjD9_CheckCharacter:
@@ -59666,7 +59666,7 @@ ObjD9_CheckCharacter_End:
 	rts
 ; ===========================================================================
 
-	jmpTos JmpTo7_MarkObjGone3
+	jmpTos JmpTo7_DespawnObject3
 
 
 
@@ -59702,7 +59702,7 @@ Obj4A_Bullet:
 	jsrto	JmpTo19_ObjectMove
 	lea	(Ani_obj4A).l,a1
 	jsrto	JmpTo13_AnimateSprite
-	jmpto	JmpTo32_MarkObjGone
+	jmpto	JmpTo32_DespawnObject
 ; ===========================================================================
 ; loc_2CA46:
 Obj4A_Angry:	; Used by removed sub-object
@@ -59748,7 +59748,7 @@ Obj4A_Main:
 	jsr	Obj4A_Main_Index(pc,d1.w)
 	lea	(Ani_obj4A).l,a1
 	jsrto	JmpTo13_AnimateSprite
-	jmpto	JmpTo32_MarkObjGone
+	jmpto	JmpTo32_DespawnObject
 ; ===========================================================================
 ; off_2CAD4:
 Obj4A_Main_Index: offsetTable
@@ -59871,7 +59871,7 @@ byte_2CBF8:	dc.b   7,  0,  1,$FD,  1
 Obj4A_MapUnc_2CBFE:	include "mappings/sprite/obj4A.asm"
 ; ===========================================================================
 
-	jmpTos0 JmpTo31_DisplaySprite,JmpTo47_DeleteObject,JmpTo32_MarkObjGone,JmpTo13_AnimateSprite,JmpTo2_ObjectMoveAndFall,JmpTo19_ObjectMove
+	jmpTos0 JmpTo31_DisplaySprite,JmpTo47_DeleteObject,JmpTo32_DespawnObject,JmpTo13_AnimateSprite,JmpTo2_ObjectMoveAndFall,JmpTo19_ObjectMove
 
 
 
@@ -59967,7 +59967,7 @@ Obj50_Main:
 	move.w	Obj50_Main_Index(pc,d0.w),d1
 	jsr	Obj50_Main_Index(pc,d1.w)
 	bsr.w	Obj50_ControlWing
-	jmpto	JmpTo33_MarkObjGone
+	jmpto	JmpTo33_DespawnObject
 ; ===========================================================================
 ; off_2CDC2:
 Obj50_Main_Index: offsetTable
@@ -60000,7 +60000,7 @@ Obj50_Bullet:
 	jsrto	JmpTo20_ObjectMove
 	lea	(Ani_obj50).l,a1
 	jsrto	JmpTo14_AnimateSprite
-	jmpto	JmpTo33_MarkObjGone
+	jmpto	JmpTo33_DespawnObject
 ; ===========================================================================
 ; wait and do nothing until on screen
 ; loc_2CE06:
@@ -60168,7 +60168,7 @@ byte_2CF90:		dc.b  $E,  8,$FF
 Obj50_MapUnc_2CF94:	include "mappings/sprite/obj50.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo32_DisplaySprite,JmpTo48_DeleteObject,JmpTo12_AllocateObject,JmpTo33_MarkObjGone,JmpTo14_AnimateSprite,JmpTo_Obj_GetOrientationToPlayer,JmpTo_Obj_CapSpeed,JmpTo_Obj_MoveStop,JmpTo20_ObjectMove
+	jmpTos JmpTo32_DisplaySprite,JmpTo48_DeleteObject,JmpTo12_AllocateObject,JmpTo33_DespawnObject,JmpTo14_AnimateSprite,JmpTo_Obj_GetOrientationToPlayer,JmpTo_Obj_CapSpeed,JmpTo_Obj_MoveStop,JmpTo20_ObjectMove
 
 
 
@@ -60203,7 +60203,7 @@ Obj4B_Projectile:
 	jsrto	JmpTo21_ObjectMove
 	lea	(Ani_obj4B).l,a1
 	jsrto	JmpTo15_AnimateSprite
-	jmpto	JmpTo_MarkObjGone_P1
+	jmpto	JmpTo_DespawnObject_P1
 ; ===========================================================================
 ; loc_2D090:
 Obj4B_Flame:
@@ -60232,7 +60232,7 @@ Obj4B_Flame:
 	move.b	render_flags(a1),render_flags(a0)
 	lea	(Ani_obj4B).l,a1
 	jsrto	JmpTo15_AnimateSprite
-	jmpto	JmpTo_MarkObjGone_P1
+	jmpto	JmpTo_DespawnObject_P1
 
     if removeJmpTos
 JmpTo49_DeleteObject ; JmpTo
@@ -60286,7 +60286,7 @@ Obj4B_Main:
 	jsr	Obj4B_Buzzer_States(pc,d1.w)
 	lea	(Ani_obj4B).l,a1
 	jsrto	JmpTo15_AnimateSprite
-	jmpto	JmpTo_MarkObjGone_P1
+	jmpto	JmpTo_DespawnObject_P1
 ; ===========================================================================
 ; off_2D190:
 Obj4B_Buzzer_States:	offsetTable
@@ -60435,7 +60435,7 @@ byte_2D2E1:	dc.b	$09, $01, $01, $01, $01, $01, $FD, $00
 Obj4B_MapUnc_2D2EA:	include "mappings/sprite/obj4B.asm"
 ; ===========================================================================
 
-	jmpTos0 JmpTo49_DeleteObject,JmpTo20_AllocateObjectAfterCurrent,JmpTo15_AnimateSprite,JmpTo7_Adjust2PArtPointer2,JmpTo_MarkObjGone_P1,JmpTo57_Adjust2PArtPointer,JmpTo21_ObjectMove
+	jmpTos0 JmpTo49_DeleteObject,JmpTo20_AllocateObjectAfterCurrent,JmpTo15_AnimateSprite,JmpTo7_Adjust2PArtPointer2,JmpTo_DespawnObject_P1,JmpTo57_Adjust2PArtPointer,JmpTo21_ObjectMove
 
 
 
@@ -60453,7 +60453,7 @@ Obj5C:
 	move.b	routine(a0),d0
 	move.w	Obj5C_Index(pc,d0.w),d1
 	jsr	Obj5C_Index(pc,d1.w)
-	jmpto	JmpTo34_MarkObjGone
+	jmpto	JmpTo34_DespawnObject
 ; ===========================================================================
 ; off_2D3A6:
 Obj5C_Index:	offsetTable
@@ -60511,7 +60511,7 @@ byte_2D43E:	dc.b   7,  0,$FF
 Obj5C_MapUnc_2D442:	include "mappings/sprite/obj5C.asm"
 ; ===========================================================================
 
-	jmpTos0 JmpTo34_MarkObjGone,JmpTo16_AnimateSprite,JmpTo58_Adjust2PArtPointer,JmpTo22_ObjectMove
+	jmpTos0 JmpTo34_DespawnObject,JmpTo16_AnimateSprite,JmpTo58_Adjust2PArtPointer,JmpTo22_ObjectMove
 
 
 
@@ -61285,7 +61285,7 @@ Obj5D_FallingParts:
 	move.l	d3,y_pos(a0)
 	cmpi.l	#$5800000,d3
 	bhs.w	JmpTo51_DeleteObject
-	jmpto	JmpTo35_MarkObjGone
+	jmpto	JmpTo35_DespawnObject
 ; ===========================================================================
 
 Obj5D_Pump:
@@ -62294,7 +62294,7 @@ Obj5D_Gunk_Droplets_Move:
 	jsr	(ObjCheckFloorDist).l
 	tst.w	d1
 	bmi.s	+
-	jmpto	JmpTo35_MarkObjGone
+	jmpto	JmpTo35_DespawnObject
 ; ---------------------------------------------------------------------------
 +
 	jmpto	JmpTo51_DeleteObject
@@ -62549,7 +62549,7 @@ Obj5D_MapUnc_2EE88:	include "mappings/sprite/obj5D_c.asm"
 Obj5D_MapUnc_2EEA0:	include "mappings/sprite/obj5D_d.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo34_DisplaySprite,JmpTo51_DeleteObject,JmpTo35_MarkObjGone,JmpTo5_PlaySound,JmpTo8_Adjust2PArtPointer2,JmpTo5_LoadPLC,JmpTo2_AddPoints,JmpTo60_Adjust2PArtPointer,JmpTo_PlayLevelMusic,JmpTo_LoadPLC_AnimalExplosion,JmpTo3_ObjectMoveAndFall,JmpTo23_ObjectMove
+	jmpTos JmpTo34_DisplaySprite,JmpTo51_DeleteObject,JmpTo35_DespawnObject,JmpTo5_PlaySound,JmpTo8_Adjust2PArtPointer2,JmpTo5_LoadPLC,JmpTo2_AddPoints,JmpTo60_Adjust2PArtPointer,JmpTo_PlayLevelMusic,JmpTo_LoadPLC_AnimalExplosion,JmpTo3_ObjectMoveAndFall,JmpTo23_ObjectMove
 
 
 
@@ -63255,12 +63255,12 @@ loc_2F7D2:	; Obj56_Wheel_Sub8:
 	jsrto	JmpTo4_ObjectMoveAndFall
 	jsrto	JmpTo3_ObjCheckFloorDist
 	tst.w	d1
-	bpl.s	BranchTo_JmpTo36_MarkObjGone
+	bpl.s	BranchTo_JmpTo36_DespawnObject
 	move.w	#-$200,y_vel(a0)	; negative velocity to have bouncing effect
 	add.w	d1,y_pos(a0)	; reset on floor
 
-BranchTo_JmpTo36_MarkObjGone ; BranchTo
-	jmpto	JmpTo36_MarkObjGone
+BranchTo_JmpTo36_DespawnObject ; BranchTo
+	jmpto	JmpTo36_DespawnObject
 ; ===========================================================================
 
 loc_2F7F4:	; Obj56_Spike:
@@ -63460,7 +63460,7 @@ Obj56_MapUnc_2FAF8:	include "mappings/sprite/obj56_c.asm"
 	; frame 6 = top, when flying off
 ; ===========================================================================
 
-	jmpTos JmpTo35_DisplaySprite,JmpTo52_DeleteObject,JmpTo36_MarkObjGone,JmpTo5_DeleteObject2,JmpTo6_PlaySound,JmpTo21_AllocateObjectAfterCurrent,JmpTo17_AnimateSprite,JmpTo9_Adjust2PArtPointer2,JmpTo3_ObjCheckFloorDist,JmpTo6_LoadPLC,JmpTo3_AddPoints,JmpTo61_Adjust2PArtPointer,JmpTo2_PlayLevelMusic,JmpTo2_LoadPLC_AnimalExplosion,JmpTo4_ObjectMoveAndFall
+	jmpTos JmpTo35_DisplaySprite,JmpTo52_DeleteObject,JmpTo36_DespawnObject,JmpTo5_DeleteObject2,JmpTo6_PlaySound,JmpTo21_AllocateObjectAfterCurrent,JmpTo17_AnimateSprite,JmpTo9_Adjust2PArtPointer2,JmpTo3_ObjCheckFloorDist,JmpTo6_LoadPLC,JmpTo3_AddPoints,JmpTo61_Adjust2PArtPointer,JmpTo2_PlayLevelMusic,JmpTo2_LoadPLC_AnimalExplosion,JmpTo4_ObjectMoveAndFall
 
 
 
@@ -63753,7 +63753,7 @@ loc_2FF50:
 	add.w	d1,x_pos(a0)
 	lea	(Ani_obj52).l,a1
 	jsrto	JmpTo18_AnimateSprite
-	jmpto	JmpTo37_MarkObjGone
+	jmpto	JmpTo37_DespawnObject
 ; ===========================================================================
 
 ; loc_2FF66:
@@ -63840,7 +63840,7 @@ loc_30008:
 loc_30064:
 	lea	(Ani_obj52).l,a1
 	jsrto	JmpTo18_AnimateSprite
-	jmpto	JmpTo37_MarkObjGone
+	jmpto	JmpTo37_DespawnObject
 ; ===========================================================================
 
 ; loc_30072:
@@ -64064,7 +64064,7 @@ byte_302B7:	dc.b   3, $E, $F,$FF
 Obj52_MapUnc_302BC:	include "mappings/sprite/obj52_b.asm"
 ; ===========================================================================
 
-	jmpTos0 JmpTo36_DisplaySprite,JmpTo53_DeleteObject,JmpTo13_AllocateObject,JmpTo37_MarkObjGone,JmpTo7_PlaySound,JmpTo18_AnimateSprite,JmpTo4_ObjCheckFloorDist,JmpTo7_LoadPLC,JmpTo_Obj20,JmpTo4_AddPoints,JmpTo62_Adjust2PArtPointer,JmpTo3_PlayLevelMusic,JmpTo3_LoadPLC_AnimalExplosion
+	jmpTos0 JmpTo36_DisplaySprite,JmpTo53_DeleteObject,JmpTo13_AllocateObject,JmpTo37_DespawnObject,JmpTo7_PlaySound,JmpTo18_AnimateSprite,JmpTo4_ObjCheckFloorDist,JmpTo7_LoadPLC,JmpTo_Obj20,JmpTo4_AddPoints,JmpTo62_Adjust2PArtPointer,JmpTo3_PlayLevelMusic,JmpTo3_LoadPLC_AnimalExplosion
 
 
 
@@ -68302,7 +68302,7 @@ Obj55_Wave:
 Obj55_Wave_End:
 	lea	(Ani_obj55).l,a1
 	jsrto	JmpTo22_AnimateSprite
-	jmpto	JmpTo38_MarkObjGone
+	jmpto	JmpTo38_DespawnObject
 ; ===========================================================================
 
 BranchTo2_JmpTo62_DeleteObject ; BranchTo
@@ -68343,7 +68343,7 @@ byte_33753:
 Obj55_MapUnc_33756:	include "mappings/sprite/obj55.asm"
 ; ===========================================================================
 
-	jmpTos JmpTo41_DisplaySprite,JmpTo62_DeleteObject,JmpTo18_AllocateObject,JmpTo38_MarkObjGone,JmpTo11_PlaySound,JmpTo24_AllocateObjectAfterCurrent,JmpTo22_AnimateSprite,JmpTo5_RandomNumber,JmpTo63_Adjust2PArtPointer,JmpTo13_CalcSine,JmpTo8_PlayLevelMusic,JmpTo8_LoadPLC_AnimalExplosion,JmpTo25_ObjectMove
+	jmpTos JmpTo41_DisplaySprite,JmpTo62_DeleteObject,JmpTo18_AllocateObject,JmpTo38_DespawnObject,JmpTo11_PlaySound,JmpTo24_AllocateObjectAfterCurrent,JmpTo22_AnimateSprite,JmpTo5_RandomNumber,JmpTo63_Adjust2PArtPointer,JmpTo13_CalcSine,JmpTo8_PlayLevelMusic,JmpTo8_LoadPLC_AnimalExplosion,JmpTo25_ObjectMove
 
 
 
@@ -72548,7 +72548,7 @@ Obj8C_WaitUntilTimerExpires:
 Obj8C_Animate:
 	lea	(Ani_obj8C).l,a1
 	jsr	(AnimateSprite).l
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 ; ===========================================================================
 
 loc_36970:
@@ -72587,7 +72587,7 @@ loc_369C2:
 	jsr	(ObjectMove).l
 	lea	(Ani_obj8C).l,a1
 	jsr	(AnimateSprite).l
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 ; ===========================================================================
 ; word_369F4:
 Obj8C_MovementDeltas:
@@ -72604,14 +72604,14 @@ loc_369F8:
 	bsr.w	Obj_MoveStop
 	lea	(Ani_obj8C).l,a1
 	jsr	(AnimateSprite).l
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 ; ===========================================================================
 ; loc_36A26:
 Obj8C_FlyAway:
 	jsr	(ObjectMove).l
 	lea	(Ani_obj8C).l,a1
 	jsr	(AnimateSprite).l
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 ; ===========================================================================
 ; off_36A3E:
 Obj8C_SubObjData:
@@ -72674,19 +72674,19 @@ loc_36ADC:
 	abs.w	d2
 	cmpi.w	#$60,d2
 	bls.s	+
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
 	st.b	objoff_2B(a0)
 	bsr.w	loc_36C2C
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; loc_36B00:
 Obj8D_Animate:
 	lea	(Ani_obj8D_b).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36B0E:
@@ -72698,7 +72698,7 @@ loc_36B0E:
 	beq.s	+
 	bset	#status.npc.x_flip,status(a0)
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; word_36B30:
 Obj8D_Directions:
@@ -72716,26 +72716,26 @@ loc_36B34:
 	add.w	d1,y_pos(a0)
 	lea	(Ani_obj8D_a).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36B5C:
 	addq.b	#2,routine(a0)
 	move.b	#$3B,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36B6A:
 	subq.b	#1,objoff_2A(a0)
 	bmi.s	loc_36B74
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36B74:
 	move.b	#8,routine(a0)
 	neg.w	x_vel(a0)
 	bchg	#status.npc.x_flip,status(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 8F - Wall behind which Grounder hides, from ARZ
@@ -72764,14 +72764,14 @@ loc_36BA6:
 	movea.w	objoff_2C(a0),a1 ; a1=object
 	tst.b	objoff_2B(a1)
 	bne.s	+
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
 	move.w	objoff_2E(a0),d0
 	move.b	Obj8F_Directions(pc,d0.w),x_vel(a0)
 	move.b	Obj8F_Directions+1(pc,d0.w),y_vel(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; byte_36BCC:
 Obj8F_Directions:
@@ -72804,7 +72804,7 @@ Obj90_Init:
 	move.b	Obj90_Directions+1(pc,d0.w),y_vel(a0)
 	lsr.w	#1,d0
 	move.b	Obj90_Frames(pc,d0.w),mapping_frame(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; byte_36C0C:
 Obj90_Frames:
@@ -72830,7 +72830,7 @@ Obj90_Move:
 	_btst	#render_flags.on_screen,render_flags(a0)
 	_beq.w	JmpTo65_DeleteObject
 	jsrto	JmpTo8_ObjectMoveAndFall
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36C2C:
@@ -73041,14 +73041,14 @@ Obj91_Main:
 	move.w	d3,d5
 	bsr.w	Obj91_TestCharacterPos	; are Sonic or Tails close enough to attack?
 	bne.s	Obj91_PrepareCharge	; if yes, prepare to charge at them
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; loc_36E20
 Obj91_PrepareCharge:
 	addq.b	#2,routine(a0)	; => Obj91_Waiting
 	move.b	#$10,Obj91_move_timer(a0)	; time to wait before charging at the player
 	clr.w	x_vel(a0)		; stop movement
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; loc_36E32:
 Obj91_Waiting:
@@ -73086,7 +73086,7 @@ Obj91_Charge:
 Obj91_Animate:
 	lea	(Ani_obj91).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; loc_36E78:
 Obj91_MakeBubble:
@@ -73197,13 +73197,13 @@ loc_36F48:
 	jsrto	JmpTo26_ObjectMove
 	lea	(Ani_obj92).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36F5A:
 	addq.b	#2,routine(a0)
 	move.b	#$10,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36F68:
@@ -73212,7 +73212,7 @@ loc_36F68:
 	subq.b	#1,objoff_2A(a0)
 	bmi.s	loc_36F78
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36F78:
@@ -73220,7 +73220,7 @@ loc_36F78:
 	move.b	#$40,objoff_2A(a0)
 	neg.w	x_vel(a0)
 	bchg	#status.npc.x_flip,status(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36F90:
@@ -73229,7 +73229,7 @@ loc_36F90:
 	beq.s	loc_36FA4
 	subq.b	#1,d0
 	move.b	d0,objoff_2E(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_36FA4:
@@ -73247,7 +73247,7 @@ loc_36FA4:
 
 loc_36FDC:
 	move.b	objoff_2F(a0),routine(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 93 - Drill thrown by Spiker from HTZ
@@ -73287,7 +73287,7 @@ loc_37028:
 	_beq.w	JmpTo65_DeleteObject
 	bchg	#render_flags.x_flip,render_flags(a0)
 	jsrto	JmpTo26_ObjectMove
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3703E:
@@ -73442,7 +73442,7 @@ loc_3720C:
 	lea	(Ani_obj95_a).l,a1
 	jsrto	JmpTo25_AnimateSprite
 	andi.b	#3,mapping_frame(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_37224:
@@ -73450,7 +73450,7 @@ loc_37224:
 	lea	(Ani_obj95_b).l,a1
 	jsrto	JmpTo25_AnimateSprite
 	andi.b	#3,mapping_frame(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ; loc_3723C:
@@ -73566,7 +73566,7 @@ loc_37362:
 	move.w	#$11,d3
 	move.w	(sp)+,d4
 	jsrto	JmpTo27_SolidObject
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ; loc_37380:
@@ -73592,7 +73592,7 @@ Obj94_ReadyToCreateHead:
 
 loc_373AE:
 	bsr.w	Obj94_SolidCollision
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ; loc_373B6:
@@ -73607,7 +73607,7 @@ Obj94_SolidCollision:
 ; loc_373CA:
 Obj94_PostCreateHead:
 	bsr.s	Obj94_SolidCollision
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -73679,7 +73679,7 @@ Obj97_InitialWait:
 	bmi.s	Obj97_StartRaise
 	bsr.w	Obj97_CheckHeadIsAlive
     endif
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ; loc_37462:
@@ -73692,7 +73692,7 @@ Obj97_StartRaise:
 	neg.w	d0
 	lsr.w	#1,d0
 	move.b	byte_3744E(pc,d0.w),objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ; loc_37488:
@@ -73712,7 +73712,7 @@ Obj97_RaiseHead:
 	bsr.w	Obj97_CheckHeadIsAlive
     endif
 	jsrto	JmpTo26_ObjectMove
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ; loc_374A0:
@@ -73723,7 +73723,7 @@ Obj97_StartNormalState:
 	move.w	objoff_2E(a0),d0
 	lsr.w	#1,d0
 	move.b	byte_374BE(pc,d0.w),objoff_2B(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 byte_374BE:
 	dc.b $24
@@ -73751,7 +73751,7 @@ loc_374D8:
 	bsr.w	loc_3758A
 	bsr.w	Obj97_Oscillate
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ; loc_374F4:
@@ -73761,7 +73761,7 @@ Obj97_DeathDrop:
 	cmp.w	y_pos(a0),d0
 	blo.w	JmpTo65_DeleteObject
 	jsrto	JmpTo8_ObjectMoveAndFall
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ; loc_3750C:
@@ -73985,7 +73985,7 @@ Obj98_Main:
 	_beq.w	JmpTo65_DeleteObject
 	movea.l	objoff_2A(a0),a1
 	jsr	(a1)	; dynamic call! to Obj98_NebulaBombFall, Obj98_TurtloidShotMove, Obj98_CoconutFall, Obj98_CluckerShotMove, Obj98_SpinyShotFall, or Obj98_WallTurretShotMove, assuming the code hasn't been changed
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 
 ; ===========================================================================
 ; for obj99
@@ -74462,13 +74462,13 @@ Obj9D_Idle:
 +
 	subq.b	#1,Obj9D_timer(a0)	; wait for a bit...
 	bmi.s	Obj9D_StartClimbing	; branch, when done waiting
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ---------------------------------------------------------------------------
 
 Obj9D_StartClimbing:
 	addq.b	#2,routine(a0)	; => Obj9D_Climbing
 	bsr.w	Obj9D_SetClimbingDirection
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ---------------------------------------------------------------------------
 ; loc_37C66:
 Obj9D_StartThrowing:
@@ -74476,7 +74476,7 @@ Obj9D_StartThrowing:
 	move.b	#1,mapping_frame(a0)	; display first throwing frame
 	move.b	#8,Obj9D_timer(a0)	; set time to display frame
 	move.b	#$20,Obj9D_attack_timer(a0)	; reset timer
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ---------------------------------------------------------------------------
 ; loc_37C82:
 Obj9D_SetClimbingDirection:
@@ -74508,13 +74508,13 @@ Obj9D_Climbing:
 	jsrto	JmpTo26_ObjectMove	; else, keep moving
 	lea	(Ani_obj09).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; loc_37CC6:
 Obj9D_StopClimbing:
 	subq.b	#2,routine(a0)	; => Obj9D_Idle
 	move.b	#$10,Obj9D_timer(a0)	; time to remain idle
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; loc_37CD4: Obj09_Throwing:
 Obj9D_Throwing:
@@ -74522,7 +74522,7 @@ Obj9D_Throwing:
 	move.b	routine_secondary(a0),d0
 	move.w	Obj9D_ThrowingStates(pc,d0.w),d1
 	jsr	Obj9D_ThrowingStates(pc,d1.w)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; off_37CE6:
 Obj9D_ThrowingStates:	offsetTable
@@ -74640,7 +74640,7 @@ loc_37E42:
 	cmpi.w	#$100,d3
 	blo.s	loc_37E62
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_37E62:
@@ -74659,37 +74659,37 @@ loc_37E62:
 	lsl.w	#3,d5
 	andi.w	#$FF00,d5
 	move.w	d5,y_vel(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_37E98:
 	subq.b	#1,objoff_3A(a0)
 	bmi.s	+
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ---------------------------------------------------------------------------
 +
 	addq.b	#2,objoff_3B(a0)
 	move.b	#8,objoff_39(a0)
 	move.b	#$1C,objoff_3A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_37EB6:
 	subq.b	#1,objoff_3A(a0)
 	beq.s	+
 	jsrto	JmpTo26_ObjectMove
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ---------------------------------------------------------------------------
 +
 	move.b	objoff_39(a0),objoff_3B(a0)
 	move.b	#$20,objoff_3A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_37ED4:
 	subq.b	#1,objoff_3A(a0)
 	beq.s	+
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ---------------------------------------------------------------------------
 +
 	move.b	#6,objoff_3B(a0)
@@ -74697,7 +74697,7 @@ loc_37ED4:
 	move.b	#$1C,objoff_3A(a0)
 	neg.w	x_vel(a0)
 	neg.w	y_vel(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_37EFC:
@@ -74839,7 +74839,7 @@ loc_38068:
 	bmi.s	loc_3809A
 	lea	(Ani_obj9F).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38096:
@@ -74849,14 +74849,14 @@ loc_3809A:
 	addq.b	#2,routine(a0)
 	move.b	#0,mapping_frame(a0)
 	move.w	#$3B,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_380AE:
 	move.b	#6,routine(a0)
 	move.b	#0,mapping_frame(a0)
 	move.w	#8,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_380C4:
@@ -74876,13 +74876,13 @@ loc_380DA:
 loc_380E4:
 	subq.w	#1,objoff_2A(a0)
 	bmi.s	loc_380EE
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_380EE:
 	subq.b	#2,routine(a0)
 	move.w	#$140,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_380FC:
@@ -74890,7 +74890,7 @@ loc_380FC:
 	move.b	routine_secondary(a0),d0
 	move.w	off_3810E(pc,d0.w),d1
 	jsr	off_3810E(pc,d1.w)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_3810E:	offsetTable
 		offsetTableEntry.w loc_38114	; 0
@@ -74967,7 +74967,7 @@ ObjA0_Init:
 loc_38198:
 	lsr.w	#1,d0
 	move.b	byte_381A4(pc,d0.w),objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 byte_381A4:
 	dc.b   0	; 0
@@ -74989,7 +74989,7 @@ loc_381AC:
 	move.b	routine_secondary(a0),d0
 	move.w	off_381C8(pc,d0.w),d1
 	jsr	off_381C8(pc,d1.w)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_381C8:	offsetTable
 		offsetTableEntry.w loc_381E0	; 0
@@ -75001,7 +75001,7 @@ off_381C8:	offsetTable
 loc_381D0:
 	move.b	#4,routine(a0)
 	move.w	#$40,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_381E0:
@@ -75097,7 +75097,7 @@ loc_38280:
 	jsrto	JmpTo8_ObjectMoveAndFall
 	subi_.w	#1,objoff_2A(a0)
 	bmi.w	JmpTo65_DeleteObject
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38292:
@@ -75167,7 +75167,7 @@ ObjA1_Index:	offsetTable
 		offsetTableEntry.w ObjA1_Main	; 2
 		offsetTableEntry.w loc_38466	; 4
 		offsetTableEntry.w loc_38482	; 6
-		offsetTableEntry.w BranchTo5_JmpTo39_MarkObjGone	; 8
+		offsetTableEntry.w BranchTo5_JmpTo39_DespawnObject	; 8
 ; ===========================================================================
 ; loc_383CC:
 ObjA1_Init:
@@ -75212,50 +75212,50 @@ loc_3841C:
 	add.w	d1,y_pos(a0)
 	lea	(Ani_objA1).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38444:
 	addq.b	#2,routine(a0)
 	move.b	#$3B,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38452:
 	addq.b	#4,routine(a0)
 	move.b	#3,mapping_frame(a0)
 	move.b	#8,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38466:
 	subq.b	#1,objoff_2A(a0)
 	bmi.s	loc_38470
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38470:
 	subq.b	#2,routine(a0)
 	neg.w	x_vel(a0)
 	bchg	#status.npc.x_flip,status(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38482:
 	subq.b	#1,objoff_2A(a0)
 	bmi.s	loc_3848C
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3848C:
 	addq.b	#2,routine(a0)
 	move.b	#4,mapping_frame(a0)
 	bsr.w	ObjA1_LoadPincers
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
-BranchTo5_JmpTo39_MarkObjGone ; BranchTo
-	jmpto	JmpTo39_MarkObjGone
+BranchTo5_JmpTo39_DespawnObject ; BranchTo
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object A2 - Slicer's pincers from MTZ
@@ -75276,7 +75276,7 @@ ObjA2_Index:	offsetTable
 ; loc_384B6:
 ObjA2_Init:
 	bsr.w	LoadSubObject
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ObjA2_Main:
@@ -75294,7 +75294,7 @@ ObjA2_Main:
 	jsrto	JmpTo26_ObjectMove
 	lea	(Ani_objA2).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_384F6:	offsetTable
 		offsetTableEntry.w +
@@ -75322,7 +75322,7 @@ ObjA2_Main2:
 	jsrto	JmpTo8_ObjectMoveAndFall
 	lea	(Ani_objA2).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 ObjA1_LoadPincers:
@@ -75429,7 +75429,7 @@ loc_3875A:
 loc_38766:
 	subq.w	#1,objoff_2A(a0)
 	bmi.s	loc_38770
-	jmpto	JmpTo2_MarkObjGone_P1
+	jmpto	JmpTo2_DespawnObject_P1
 ; ===========================================================================
 
 loc_38770:
@@ -75439,7 +75439,7 @@ loc_38770:
 	move.w	#2,objoff_2E(a0)
 	clr.w	objoff_2A(a0)
 	move.w	#$80,objoff_30(a0)
-	jmpto	JmpTo2_MarkObjGone_P1
+	jmpto	JmpTo2_DespawnObject_P1
 ; ===========================================================================
 
 loc_38794:
@@ -75477,14 +75477,14 @@ loc_387EC:
 	move.w	objoff_2E(a0),d0
 	add.w	d0,x_vel(a0)
 	jsrto	JmpTo26_ObjectMove
-	jmpto	JmpTo2_MarkObjGone_P1
+	jmpto	JmpTo2_DespawnObject_P1
 ; ===========================================================================
 
 loc_387FC:
 	addq.b	#2,routine(a0)
 	move.w	#$80,objoff_30(a0)
 	ori.b	#$80,collision_flags(a0)
-	jmpto	JmpTo2_MarkObjGone_P1
+	jmpto	JmpTo2_DespawnObject_P1
 ; ===========================================================================
 word_38810:
 	dc.w  $100
@@ -75523,14 +75523,14 @@ loc_38832:
 	jsrto	JmpTo25_AnimateSprite
 	cmp.b	routine(a0),d2
 	bne.s	loc_3884A
-	jmpto	JmpTo2_MarkObjGone_P1
+	jmpto	JmpTo2_DespawnObject_P1
 ; ===========================================================================
 
 loc_3884A:
 	clr.l	mapping_frame(a0) ; Clear mapping_frame, anim_frame, anim, and prev_anim.
 	clr.w	anim_frame_duration(a0)
 	move.b	#3,mapping_frame(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3885C:
@@ -75538,20 +75538,20 @@ loc_3885C:
 	bmi.s	loc_38870
 	lea	(Ani_objA3_b).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo2_MarkObjGone_P1
+	jmpto	JmpTo2_DespawnObject_P1
 ; ===========================================================================
 
 loc_38870:
 	addq.b	#2,routine(a0)
 	clr.l	mapping_frame(a0) ; Clear mapping_frame, anim_frame, anim, and prev_anim.
 	clr.w	anim_frame_duration(a0)
-	jmpto	JmpTo2_MarkObjGone_P1
+	jmpto	JmpTo2_DespawnObject_P1
 ; ===========================================================================
 
 loc_38880:
 	lea	(Ani_objA3_c).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo2_MarkObjGone_P1
+	jmpto	JmpTo2_DespawnObject_P1
 ; ===========================================================================
 
 loc_3888E:
@@ -75560,7 +75560,7 @@ loc_3888E:
 	andi.b	#$7F,collision_flags(a0)
 	clr.l	mapping_frame(a0) ; Clear mapping_frame, anim_frame, anim, and prev_anim.
 	clr.w	anim_frame_duration(a0)
-	jmpto	JmpTo2_MarkObjGone_P1
+	jmpto	JmpTo2_DespawnObject_P1
 ; ===========================================================================
 ; off_388AC:
 ObjA3_SubObjData:
@@ -75620,18 +75620,18 @@ loc_389B6:
 	bsr.w	Obj_GetOrientationToPlayer
 	addi.w	#$60,d2
 	cmpi.w	#$C0,d2
-	bhs.s	BranchTo6_JmpTo39_MarkObjGone
+	bhs.s	BranchTo6_JmpTo39_DespawnObject
 	addi.w	#$40,d3
 	cmpi.w	#$80,d3
 	blo.s	loc_389D2
 
-BranchTo6_JmpTo39_MarkObjGone ; BranchTo
-	jmpto	JmpTo39_MarkObjGone
+BranchTo6_JmpTo39_DespawnObject ; BranchTo
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_389D2:
 	addq.b	#2,routine(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_389DA:
@@ -75647,14 +75647,14 @@ loc_389DA:
 loc_389FA:
 	abs.w	d3
 	cmpi.w	#$10,d3
-	blo.s	BranchTo7_JmpTo39_MarkObjGone
+	blo.s	BranchTo7_JmpTo39_DespawnObject
 	cmpi.w	#$60,d3
-	bhs.s	BranchTo7_JmpTo39_MarkObjGone
+	bhs.s	BranchTo7_JmpTo39_DespawnObject
 	move.w	word_38A1A(pc,d1.w),y_vel(a0)
 	bsr.w	loc_38A1E
 
-BranchTo7_JmpTo39_MarkObjGone ; BranchTo
-	jmpto	JmpTo39_MarkObjGone
+BranchTo7_JmpTo39_DespawnObject ; BranchTo
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 word_38A1A:
 	dc.w  -$40	; 0
@@ -75673,14 +75673,14 @@ loc_38A2C:
 	jsrto	JmpTo26_ObjectMove
 	lea	(Ani_objA4).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38A44:
 	_move.b	#ObjID_Explosion,id(a0) ; load 0bj27
 	move.b	#2,routine(a0)
 	bsr.w	loc_38A58
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38A58:
@@ -75782,14 +75782,14 @@ loc_38B3C:
 	jsrto	JmpTo26_ObjectMove
 	lea	(Ani_objA5).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38B4E:
 	addq.b	#2,routine(a0)
 	move.b	#$28,objoff_2B(a0)
 	move.b	#2,mapping_frame(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38B62:
@@ -75799,13 +75799,13 @@ loc_38B62:
 	bne.s	+
 	bsr.w	loc_38C22
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38B78:
 	subq.b	#2,routine(a0)
 	move.b	#$40,objoff_2B(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object A6 - Spiny (on wall) from CPZ
@@ -75853,14 +75853,14 @@ loc_38BC8:
 	jsrto	JmpTo26_ObjectMove
 	lea	(Ani_objA6).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38BEA:
 	addq.b	#2,routine(a0)
 	move.b	#$28,objoff_2B(a0)
 	move.b	#5,mapping_frame(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38BFE:
@@ -75870,13 +75870,13 @@ loc_38BFE:
 	bne.s	+
 	bsr.w	loc_38C6E
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38C14:
 	subq.b	#2,routine(a0)
 	move.b	#$40,objoff_2B(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_38C22:
@@ -76295,9 +76295,9 @@ ObjAB_Index:	offsetTable
 ObjAB_Init:
 	bra.w	LoadSubObject
 ; ===========================================================================
-; BranchTo10_JmpTo39_MarkObjGone
+; BranchTo10_JmpTo39_DespawnObject
 ObjAB_Main:
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; END OF OBJECT AB
 
@@ -76634,7 +76634,7 @@ ObjAD_Main:
 	move.w	#8,d3
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo27_SolidObject
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object AE - Clucker (chicken badnik) from WFZ
@@ -76672,11 +76672,11 @@ loc_39488:
 	addi.w	#$80,d2
 	cmpi.w	#$100,d2
 	blo.s	+
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_394A2:
@@ -76685,7 +76685,7 @@ loc_394A2:
 	jsrto	JmpTo25_AnimateSprite
 	cmp.b	routine(a0),d2
 	bne.s	+
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 +
 	lea	mapping_frame(a0),a1
@@ -76693,20 +76693,20 @@ loc_394A2:
 	clr.w	anim_frame_duration-mapping_frame(a1)
 	move.b	#8,(a1)
 	move.b	#6,collision_flags(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_394D2:
 	lea	(Ani_objAE_b).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_394E0:
 	tst.b	objoff_2A(a0)
 	beq.s	+
 	subq.b	#1,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
@@ -76715,19 +76715,19 @@ loc_394E0:
 	clr.w	anim_frame_duration-mapping_frame(a1)
 	move.b	#$B,(a1)
 	bsr.w	loc_39526
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_39508:
 	lea	(Ani_objAE_c).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_39516:
 	move.b	#8,routine(a0)
 	move.b	#$40,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_39526:
@@ -77357,7 +77357,7 @@ loc_39C92:
 loc_39CA0:
 	lea	(Ani_objAF_c).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_39CAE:
@@ -78593,7 +78593,7 @@ off_3AD38:	offsetTable
 ; ===========================================================================
 + ; loc_3AD3A:
 	jsrto	JmpTo26_ObjectMove
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3AD42:
@@ -79021,7 +79021,7 @@ ObjB4_Main:
 	moveq	#signextendB(SndID_Helicopter),d0
 	jsrto	JmpTo_PlaySoundLocal
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; off_3B3AC:
 ObjB4_SubObjData:
@@ -79070,7 +79070,7 @@ ObjB5_Main:
 	jsr	off_3B442(pc,d1.w)
 	lea	(Ani_objB5).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_3B442:	offsetTable
 		offsetTableEntry.w +	; 0
@@ -79081,7 +79081,7 @@ off_3B442:	offsetTable
 ObjB5_Animate:
 	lea	(Ani_objB5).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; loc_3B456:
 ObjB5_CheckPlayers:
@@ -79194,7 +79194,7 @@ loc_3B602:
 	move.b	routine_secondary(a0),d0
 	move.w	off_3B614(pc,d0.w),d1
 	jsr	off_3B614(pc,d1.w)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_3B614:	offsetTable
 		offsetTableEntry.w loc_3B61C	; 0
@@ -79239,7 +79239,7 @@ loc_3B65C:
 	move.b	routine_secondary(a0),d0
 	move.w	off_3B66E(pc,d0.w),d1
 	jsr	off_3B66E(pc,d1.w)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_3B66E:	offsetTable
 		offsetTableEntry.w loc_3B61C
@@ -79283,7 +79283,7 @@ loc_3B6C8:
 	move.b	routine_secondary(a0),d0
 	move.w	off_3B6DA(pc,d0.w),d1
 	jsr	off_3B6DA(pc,d1.w)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_3B6DA:	offsetTable
 		offsetTableEntry.w loc_3B6E2	; 0
@@ -79338,7 +79338,7 @@ loc_3B73C:
 	move.b	routine_secondary(a0),d0
 	move.w	off_3B74E(pc,d0.w),d1
 	jsr	off_3B74E(pc,d1.w)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_3B74E:	offsetTable
 		offsetTableEntry.w loc_3B756	; 0
@@ -79487,7 +79487,7 @@ ObjB7_Main:
 	beq.w	JmpTo65_DeleteObject
 	bchg	#0,objoff_2B(a0)
 	beq.w	return_37A48
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; off_3B8DA:
 ObjB7_SubObjData:
@@ -79526,12 +79526,12 @@ loc_3B980:
 	cmpi.w	#$C0,d2
 	blo.s	++
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
 	move.w	#2,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3B9AA:
@@ -79551,7 +79551,7 @@ loc_3B9C0:
 	move.w	#$60,objoff_2A(a0)
 	bsr.w	loc_3B9D8
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3B9D8:
@@ -79679,9 +79679,9 @@ ObjBA_Index:	offsetTable
 ObjBA_Init:
 	bra.w	LoadSubObject
 ; ===========================================================================
-; BranchTo14_JmpTo39_MarkObjGone
+; BranchTo14_JmpTo39_DespawnObject
 ObjBA_Main:
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; off_3BB66:
 ObjBA_SubObjData:
@@ -79710,9 +79710,9 @@ ObjBB_Index:	offsetTable
 ObjBB_Init:
 	bra.w	LoadSubObject
 ; ===========================================================================
-; BranchTo15_JmpTo39_MarkObjGone
+; BranchTo15_JmpTo39_DespawnObject
 ObjBB_Main:
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; off_3BB96:
 ObjBB_SubObjData:
@@ -79792,7 +79792,7 @@ loc_3BC3C:
 	move.w	#$40,objoff_2A(a0)
 	bsr.w	loc_3BCF8
 +
-	jmpto	JmpTo8_MarkObjGone3
+	jmpto	JmpTo8_DespawnObject3
 ; ===========================================================================
 
 loc_3BC50:
@@ -79800,7 +79800,7 @@ loc_3BC50:
 	move.b	routine_secondary(a0),d0
 	move.w	off_3BC62(pc,d0.w),d1
 	jsr	off_3BC62(pc,d1.w)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_3BC62:	offsetTable
 		offsetTableEntry.w loc_3BC6C	; 0
@@ -79858,7 +79858,7 @@ loc_3BCCC:
 loc_3BCD6:
 	bsr.w	loc_3B7BC
     if fixBugs
-	; 'DeleteObject' is called here, but then 'loc_3BC50' calls 'MarkObjGone' afterwards.
+	; 'DeleteObject' is called here, but then 'loc_3BC50' calls 'DespawnObject' afterwards.
 	; This can result in either the object being queued for display with 'DisplaySprite',
 	; or the object being deleted again with yet another call to 'DeleteObject'.
 	; To prevent this, just meddle with the stack to prevent returning to 'loc_3BC50', like this:
@@ -79937,38 +79937,38 @@ loc_3BDA2:
 	andi.b	#$F0,d0
 	cmp.b	subtype(a0),d0
 	beq.s	+
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ---------------------------------------------------------------------------
 +
 	addq.b	#2,routine(a0)
 	clr.b	anim(a0)
 	move.w	#$A0,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3BDC6:
 	lea	(Ani_objBE).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3BDD4:
 	subq.w	#1,objoff_2A(a0)
 	beq.s	+
 	bsr.w	loc_3BE04
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ---------------------------------------------------------------------------
 +
 	addq.b	#2,routine(a0)
 	move.b	#1,anim(a0)
 	bsr.w	loc_3B7BC
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3BDF4:
 	move.b	#2,routine(a0)
 	move.w	#$40,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3BE04:
@@ -80024,7 +80024,7 @@ ObjBF_Init:
 ObjBF_Animate:
 	lea	(Ani_objBF).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; off_3BECE:
 ObjBE_SubObjData2:
@@ -80080,7 +80080,7 @@ ObjC0_Main:
 	move.w	#$11,d3
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo9_PlatformObject
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 off_3BF60:	offsetTable
 		offsetTableEntry.w loc_3BF66
@@ -80274,7 +80274,7 @@ ObjC1_Main:
 +
 	move.b	(Ctrl_1_Press_Logical).w,d0
 	andi.w	#button_B_mask|button_C_mask|button_A_mask,d0	; is A/B/C being pressed?
-	beq.s	BranchTo16_JmpTo39_MarkObjGone		; if not, branch
+	beq.s	BranchTo16_JmpTo39_DespawnObject		; if not, branch
 ; loc_3C12E:
 ObjC1_Release:
 	clr.b	collision_flags(a0)
@@ -80286,15 +80286,15 @@ ObjC1_Release:
 ; loc_3C140:
 ObjC1_Grab:
 	tst.b	collision_property(a0)		; has Sonic touched the plating?
-	beq.s	BranchTo16_JmpTo39_MarkObjGone	; if not, branch
+	beq.s	BranchTo16_JmpTo39_DespawnObject	; if not, branch
 	lea	(MainCharacter).w,a1 ; a1=character
 	move.w	x_pos(a0),d0
 	subi.w	#$14,d0
 	cmp.w	x_pos(a1),d0
-	bhs.s	BranchTo16_JmpTo39_MarkObjGone
+	bhs.s	BranchTo16_JmpTo39_DespawnObject
 	clr.b	collision_property(a0)
 	cmpi.b	#4,routine(a1)			; is Sonic hurt, dying, etc?
-	bhs.s	BranchTo16_JmpTo39_MarkObjGone	; if yes, branch
+	bhs.s	BranchTo16_JmpTo39_DespawnObject	; if yes, branch
 	clr.w	x_vel(a1)
 	clr.w	y_vel(a1)
 	move.w	x_pos(a0),d0
@@ -80306,8 +80306,8 @@ ObjC1_Grab:
 	move.b	#1,(WindTunnel_holding_flag).w		; disable wind tunnel
 	move.b	#1,plating_grabbed(a0)		; begin break timer
 
-BranchTo16_JmpTo39_MarkObjGone ; BranchTo
-	jmpto	JmpTo39_MarkObjGone
+BranchTo16_JmpTo39_DespawnObject ; BranchTo
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; loc_3C19A:
 ObjC1_BeginBreakup:
@@ -80436,7 +80436,7 @@ ObjC2_Main:
 	jsrto	JmpTo27_SolidObject
 	btst	#p1_standing_bit,status(a0)
 	bne.s	ObjC2_Bust
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; loc_3C366:
 ObjC2_Bust:
@@ -80456,7 +80456,7 @@ ObjC2_Bust:
 	move.w	#$787A,(a1)+
 	move.b	#1,(Screen_redraw_flag).w
 +
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; off_3C3B8:
 ObjC2_SubObjData:
@@ -81589,7 +81589,7 @@ ObjC6_State4:
 	bmi.w	JmpTo65_DeleteObject
 	addi.w	#$10,y_vel(a0)
 	jsrto	JmpTo26_ObjectMove
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 ; off_3D0B2:
 ObjC6_SubObjData3:
@@ -81668,19 +81668,19 @@ loc_3D27C:
 	bsr.w	loc_3D416
 	lea	(Ani_objC8).l,a1
 	jsrto	JmpTo25_AnimateSprite
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 +
 	addq.b	#2,routine(a0)
 	move.w	#$3B,objoff_2A(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3D2A6:
 	subq.w	#1,objoff_2A(a0)
 	bmi.s	+
 	bsr.w	loc_3D416
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 +
 	move.b	#2,routine(a0)
@@ -81688,7 +81688,7 @@ loc_3D2A6:
 	neg.w	x_vel(a0)
 	bchg	#render_flags.x_flip,render_flags(a0)
 	bchg	#status.npc.x_flip,status(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3D2D4:
@@ -81704,7 +81704,7 @@ loc_3D2D4:
 	bclr	#status.npc.p1_standing,status(a0)
 	bne.w	loc_3D386
 	move.b	collision_property(a0),d0
-	beq.s	BranchTo18_JmpTo39_MarkObjGone
+	beq.s	BranchTo18_JmpTo39_DespawnObject
 	bclr	#0,collision_property(a0)
 	beq.s	+++
 	cmpi.b	#AniIDSonAni_Roll,anim(a1)
@@ -81740,8 +81740,8 @@ loc_3D2D4:
 +
 	clr.b	collision_property(a0)
 
-BranchTo18_JmpTo39_MarkObjGone ; BranchTo
-	jmpto	JmpTo39_MarkObjGone
+BranchTo18_JmpTo39_DespawnObject ; BranchTo
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3D36C:
@@ -81754,17 +81754,17 @@ loc_3D36C:
 
 loc_3D386:
 	move.b	#1,mapping_frame(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3D390:
 	move.b	#$17,collision_flags(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3D39A:
 	move.b	objoff_2C(a0),routine(a0)
-	jmpto	JmpTo39_MarkObjGone
+	jmpto	JmpTo39_DespawnObject
 ; ===========================================================================
 
 loc_3D3A4:
@@ -84040,7 +84040,7 @@ Scale_2x_RightPixels2:
 
 ; ===========================================================================
 
-	jmpTos0 JmpTo5_DisplaySprite3,JmpTo45_DisplaySprite,JmpTo65_DeleteObject,JmpTo19_AllocateObject,JmpTo39_MarkObjGone,JmpTo6_DeleteObject2,JmpTo12_PlaySound,JmpTo25_AllocateObjectAfterCurrent,JmpTo25_AnimateSprite,JmpTo_PlaySoundLocal,JmpTo6_RandomNumber,JmpTo2_MarkObjGone_P1,JmpTo_Pal_FadeToWhite.UpdateColour,JmpTo_LoadTailsDynPLC_Part2,JmpTo_LoadSonicDynPLC_Part2,JmpTo8_MarkObjGone3,JmpTo64_Adjust2PArtPointer,JmpTo5_PlayMusic,JmpTo_Boss_LoadExplosion,JmpTo9_PlatformObject,JmpTo27_SolidObject,JmpTo8_ObjectMoveAndFall,JmpTo26_ObjectMove
+	jmpTos0 JmpTo5_DisplaySprite3,JmpTo45_DisplaySprite,JmpTo65_DeleteObject,JmpTo19_AllocateObject,JmpTo39_DespawnObject,JmpTo6_DeleteObject2,JmpTo12_PlaySound,JmpTo25_AllocateObjectAfterCurrent,JmpTo25_AnimateSprite,JmpTo_PlaySoundLocal,JmpTo6_RandomNumber,JmpTo2_DespawnObject_P1,JmpTo_Pal_FadeToWhite.UpdateColour,JmpTo_LoadTailsDynPLC_Part2,JmpTo_LoadSonicDynPLC_Part2,JmpTo8_DespawnObject3,JmpTo64_Adjust2PArtPointer,JmpTo5_PlayMusic,JmpTo_Boss_LoadExplosion,JmpTo9_PlatformObject,JmpTo27_SolidObject,JmpTo8_ObjectMoveAndFall,JmpTo26_ObjectMove
 
 
 
@@ -84177,7 +84177,7 @@ loc_3F278:
 	jsr	(SolidObject).l
 	lea	(Ani_obj3E).l,a1
 	jsr	(AnimateSprite).l
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 ; ===========================================================================
 off_3F2AE:	offsetTable
 		offsetTableEntry.w loc_3F2B4	; 0
@@ -84249,7 +84249,7 @@ loc_3F354:
 	clr.b	(Update_HUD_timer).w
 	move.w	#1,objoff_32(a0)
 +
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 ; ===========================================================================
 
 loc_3F38E:
@@ -84259,7 +84259,7 @@ loc_3F38E:
 	_beq.w	JmpTo66_DeleteObject
 	jsr	(ObjectMoveAndFall).l
 +
-	jmp	(MarkObjGone).l
+	jmp	(DespawnObject).l
 
     if removeJmpTos
 JmpTo66_DeleteObject ; JmpTo
