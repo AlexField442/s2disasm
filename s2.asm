@@ -89190,14 +89190,6 @@ MiscKozP_SpecialObjectLocations:	BINCLUDE	"misc/Special stage object location li
 	even
 
 ;--------------------------------------------------------------------------------------
-; Filler (free space) (unnecessary; could be replaced with "even")
-;--------------------------------------------------------------------------------------
-	align $100
-
-
-
-
-;--------------------------------------------------------------------------------------
 ; Offset index of ring locations
 ;  The first commented number on each line is an array index; the second is the
 ;  associated zone.
@@ -89290,11 +89282,7 @@ Rings_ARZ_1:	BINCLUDE	"level/rings/ARZ_1.bin"
 Rings_ARZ_2:	BINCLUDE	"level/rings/ARZ_2.bin"
 Rings_SCZ_1:	BINCLUDE	"level/rings/SCZ_1.bin"
 Rings_SCZ_2:	BINCLUDE	"level/rings/SCZ_2.bin"
-
-; --------------------------------------------------------------------------------------
-; Filler (free space) (unnecessary; could be replaced with "even")
-; --------------------------------------------------------------------------------------
-	align $200
+	even
 
 ; --------------------------------------------------------------------------------------
 ; Offset index of object locations
@@ -89432,20 +89420,7 @@ Objects_SCZ_2:	BINCLUDE	"level/objects/SCZ_2.bin"
 	ObjectLayoutBoundary
 Objects_Null:
 	ObjectLayoutBoundary
-	; Another strange space for a layout
-	ObjectLayoutBoundary
-	; And another
-	ObjectLayoutBoundary
-	; And another
-	ObjectLayoutBoundary
-
-; --------------------------------------------------------------------------------------
-; Filler (free space) (unnecessary; could be replaced with "even")
-; --------------------------------------------------------------------------------------
-	align $1000
-
-
-
+	even
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to load the sound driver
