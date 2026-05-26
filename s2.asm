@@ -24,7 +24,7 @@ gameRevision = 1
 padToPowerOfTwo = 1
 ;	| If 1, pads the end of the ROM to the next power of two bytes (for real hardware)
 ;
-fixBugs = 0
+fixBugs = 1
 ;	| If 1, enables all bug-fixes
 ;	| See also the 'FixDriverBugs' flag in 's2.sounddriver.asm'
 ;	| See also the 'FixMusicAndSFXDataBugs' flag in 'build.lua'
@@ -37335,6 +37335,10 @@ Sonic_UpVelCap:
 	bge.s	return_1AB36		; if not, return
 	move.w	#-$FC0,y_vel(a0)	; cap upward speed
 
+    if fixBugs
+return_1ABA4:	; Bug fixes down below pushes the branch to return_1ABA4 out-of-range,
+		; so we'll move it here instead.	
+    endif
 return_1AB36:
 	rts
 ; End of subroutine Sonic_JumpHeight
@@ -37349,7 +37353,7 @@ return_1AB36:
 ; loc_1AB38: test_set_SS:
 Sonic_CheckGoSuper:
 	tst.b	(Super_Sonic_flag).w	; is Sonic already Super?
-	bne.s	return_1ABA4		; if yes, branch
+	bne.s	return_1ABA4
 	cmpi.b	#7,(Emerald_count).w	; does Sonic have exactly 7 emeralds?
 	bne.s	return_1ABA4		; if not, branch
 	cmpi.w	#50,(Ring_count).w	; does Sonic have at least 50 rings?
@@ -37362,8 +37366,7 @@ Sonic_CheckGoSuper:
 
     if fixBugs
 	; If Sonic was executing a roll-jump when he turned Super, then this
-	; will remove him from that state. The original code forgot to do
-	; this.
+	; will remove him from that state. The original code forgot to do this.
 	andi.b	#~(1<<status.player.rolling|1<<status.player.rolljumping),status(a0)	; Clear bits 2 and 4
 	move.b	#$13,y_radius(a0)
 	move.b	#9,x_radius(a0)
@@ -37371,12 +37374,28 @@ Sonic_CheckGoSuper:
 	move.b	#1,(Super_Sonic_palette).w
 	move.b	#$F,(Palette_timer).w
 	move.b	#1,(Super_Sonic_flag).w
+    if fixBugs
+	; The transformation sequence fails to set the drain counter, causing the
+	; player to lose a ring the moment they transform. This bug was fixed in
+	; Sonic 3 and Knuckles in Sonic 2.
+	move.w	#60,(Super_Sonic_frame_count).w
+    endif
 	move.b	#$81,obj_control(a0)
 	move.b	#AniIDSupSonAni_Transform,anim(a0)			; use transformation animation
 	move.b	#ObjID_SuperSonicStars,(SuperSonicStars+id).w ; load Obj7E (Super Sonic stars object) at $FFFFD040
 	move.w	#$A00,(Sonic_top_speed).w
 	move.w	#$30,(Sonic_acceleration).w
 	move.w	#$100,(Sonic_deceleration).w
+    if fixBugs
+	; The transformation sequence does not check for if Sonic is
+	; underwater, giving him his above-water speed.
+	btst	#status.player.underwater,status(a0)	; Check if underwater, branch if not
+	beq.s	+
+	move.w	#$500,(Sonic_top_speed).w
+	move.w	#$18,(Sonic_acceleration).w
+	move.w	#$80,(Sonic_deceleration).w
++
+    endif
 	move.w	#0,invincibility_time(a0)
 	bset	#status_secondary.invincible,status_secondary(a0)	; make Sonic invincible
 	move.w	#SndID_SuperTransform,d0
@@ -37385,8 +37404,10 @@ Sonic_CheckGoSuper:
 	jmp	(PlayMusic).l	; load the Super Sonic song and return
 
 ; ---------------------------------------------------------------------------
+    if ~~fixBugs
 return_1ABA4:
 	rts
+    endif
 ; End of subroutine Sonic_CheckGoSuper
 
 
@@ -37400,13 +37421,21 @@ return_1ABA4:
 Sonic_Super:
 	tst.b	(Super_Sonic_flag).w	; Ignore all this code if not Super Sonic
 	beq.w	return_1AC3C
-	tst.b	(Update_HUD_timer).w
-	beq.s	Sonic_RevertToNormal ; ?
+	tst.b	(Update_HUD_timer).w	; has the timer stopped?
+	beq.s	Sonic_RevertToNormal	; if yes, branch
+
+	; handle Super Sonic's ring drain
 	subq.w	#1,(Super_Sonic_frame_count).w
+    if ~~fixBugs
+	; This should actually be a bhi. Because of this, Super Sonic gets an
+	; extra frame before his ring count drains.
 	bpl.w	return_1AC3C
-	move.w	#60,(Super_Sonic_frame_count).w	; Reset frame counter to 60
-	tst.w	(Ring_count).w
-	beq.s	Sonic_RevertToNormal
+    else
+	bhi.w	return_1AC3C
+    endif
+	move.w	#60,(Super_Sonic_frame_count).w	; reset frame counter to 60
+	tst.w	(Ring_count).w		; has Sonic run out of rings?
+	beq.s	Sonic_RevertToNormal	; if yes, branch
 	ori.b	#1,(Update_HUD_rings).w
 	cmpi.w	#1,(Ring_count).w
 	beq.s	+
