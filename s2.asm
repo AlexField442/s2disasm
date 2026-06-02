@@ -36812,8 +36812,8 @@ Obj01_Traction:
 Obj01_CheckWallsOnGround:
     if fixBugs
 	; These lines were added in S3K to fix an oversight where Sonic could
-	; run through walls if he is upside-down, or standing on a wall when
-	; his angle was exactly $00 (most noticeable in Carnival Night in S3A).
+	; run through walls if he is upside-down, or moving on a wall when
+	; his angle was exactly $80 (most noticeable in Carnival Night in S3A).
 	move.b	angle(a0),d0
 	andi.b	#$3F,d0		; is Sonic standing on a flat surface in any of the four quadrants?
 	beq.s	.noearlyexit	; if yes, branch
@@ -39858,10 +39858,10 @@ Obj02_Traction:
 Obj02_CheckWallsOnGround:
     if fixBugs
 	; These lines were added in S3K to fix an oversight where Tails could
-	; run through walls if he is upside-down, or standing on a wall when
-	; his angle was exactly $00 (most noticeable in Carnival Night in S3A).
+	; run through walls if he is upside-down, or moving on a wall when
+	; his angle was exactly $80 (most noticeable in Carnival Night in S3A).
 	move.b	angle(a0),d0
-	andi.b	#$3F,d0		; is Sonic standing on a flat surface in any of the four quadrants?
+	andi.b	#$3F,d0		; is Tails standing on a flat surface in any of the four quadrants?
 	beq.s	.noearlyexit	; if yes, branch
     endif
 	move.b	angle(a0),d0
@@ -42191,6 +42191,10 @@ Obj0A_ReduceAir:
 	cmpa.w	#MainCharacter,a2
 	bne.s	+	; if it isn't player 1, branch
 	move.b	#1,(Deform_lock).w
+    if fixBugs
+	move.b	#2,routine(a2)		; force Sonic into their normal state
+	clr.b	(Update_HUD_timer).w	; stop the timer
+    endif
 +
 	rts
 ; ===========================================================================
@@ -88717,7 +88721,12 @@ DbgObjList_EHZ: dbglistheader
 	dbglistobj ObjID_Monitor,	Obj26_MapUnc_12D36,   8,   0, make_art_tile(ArtTile_ArtNem_Powerups,0,0)
 	dbglistobj ObjID_Starpost,	Obj79_MapUnc_1F424,   1,   0, make_art_tile(ArtTile_ArtNem_Checkpoint,0,0)
 	dbglistobj ObjID_PlaneSwitcher,	Obj03_MapUnc_1FFB8,   9,   1, make_art_tile(ArtTile_ArtNem_Ring,1,0)
+    if fixBugs
+	dbglistobj ObjID_EHZWaterfall,	Obj49_MapUnc_20C50,   0,   1, make_art_tile(ArtTile_ArtNem_Waterfall,1,0)
+    else
+	; Uses a blank frame (0) instead of the massive waterfall (1).
 	dbglistobj ObjID_EHZWaterfall,	Obj49_MapUnc_20C50,   0,   0, make_art_tile(ArtTile_ArtNem_Waterfall,1,0)
+    endif
 	dbglistobj ObjID_EHZWaterfall,	Obj49_MapUnc_20C50,   2,   3, make_art_tile(ArtTile_ArtNem_Waterfall,1,0)
 	dbglistobj ObjID_EHZWaterfall,	Obj49_MapUnc_20C50,   4,   5, make_art_tile(ArtTile_ArtNem_Waterfall,1,0)
 	dbglistobj ObjID_EHZPlatform,	Obj18_MapUnc_107F6,   1,   0, make_art_tile(ArtTile_ArtKos_LevelArt,2,0)
@@ -88922,7 +88931,11 @@ DbgObjList_CNZ: dbglistheader
 	dbglistobj ObjID_Flipper,	Obj86_MapUnc_2B45A,   0,   0, make_art_tile(ArtTile_ArtNem_CNZFlipper,2,0)
 	dbglistobj ObjID_Flipper,	Obj86_MapUnc_2B45A,   1,   4, make_art_tile(ArtTile_ArtNem_CNZFlipper,2,0)
 	dbglistobj ObjID_CNZRectBlocks,	ObjD2_MapUnc_2B694,   1,   0, make_art_tile(ArtTile_ArtNem_CNZSnake,2,0)
+    if ~~fixBugs
+	; The player can't even place this, since ObjD3 is dependent
+	; on ObjDC, making it worthless.
 	dbglistobj ObjID_BombPrize,	ObjD3_MapUnc_2B8D4,   0,   0, make_art_tile(ArtTile_ArtNem_CNZBonusSpike,0,0)
+    endif
 	dbglistobj ObjID_CNZBigBlock,	ObjD4_MapUnc_2B9CA,   0,   0, make_art_tile(ArtTile_ArtNem_BigMovingBlock,2,0)
 	dbglistobj ObjID_CNZBigBlock,	ObjD4_MapUnc_2B9CA,   2,   0, make_art_tile(ArtTile_ArtNem_BigMovingBlock,2,0)
 	dbglistobj ObjID_Elevator,	ObjD5_MapUnc_2BB40, $18,   0, make_art_tile(ArtTile_ArtNem_CNZElevator,2,0)
