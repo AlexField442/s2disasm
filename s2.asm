@@ -24294,6 +24294,9 @@ Obj2D_Init:
     if fixBugs
 	; This is sort of a hack. Chemical Plant and Death Egg use the wrong subtype,
 	; so a more proper fix would be to replace all instances with subtype 3.
+
+	; If you have replaced its layout with its fixed version, this line can be
+	; safely deleted.
 	move.b	#3,subtype(a0)
     endif
 +
@@ -24304,6 +24307,9 @@ Obj2D_Init:
     if fixBugs
 	; This is sort of a hack. Chemical Plant and Death Egg use the wrong subtype,
 	; so a more proper fix would be to replace all instances with subtype 3.
+
+	; If you have replaced its layout with its fixed version, this line can be
+	; safely deleted.
 	move.b	#3,subtype(a0)
     endif
 +
@@ -36162,30 +36168,29 @@ Obj01_Normal:
 ; ===========================================================================
 ; off_19F6A: Obj01_States:
 Obj01_Index:	offsetTable
-		offsetTableEntry.w Obj01_Init		;  0
-		offsetTableEntry.w Obj01_Control	;  2
-		offsetTableEntry.w Obj01_Hurt		;  4
-		offsetTableEntry.w Obj01_Dead		;  6
-		offsetTableEntry.w Obj01_Gone		;  8
-		offsetTableEntry.w Obj01_Respawning	; $A
+		offsetTableEntry.w Obj01_Init		;  0 - object init
+		offsetTableEntry.w Obj01_Control	;  2 - main mode
+		offsetTableEntry.w Obj01_Hurt		;  4 - while being knocked back from damage
+		offsetTableEntry.w Obj01_Dead		;  6 - while dying and falling off screen
+		offsetTableEntry.w Obj01_Gone		;  8 - after dying and waiting for the level to restart
+		offsetTableEntry.w Obj01_Respawning	; $A - while waiting for the camera to scroll to the respawn point
 ; ===========================================================================
 ; loc_19F76: Obj_01_Sub_0: Obj01_Main:
 Obj01_Init:
 	addq.b	#2,routine(a0)	; => Obj01_Control
-	move.b	#$13,y_radius(a0) ; this sets Sonic's collision height (2*pixels)
-	move.b	#9,x_radius(a0)
-	move.l	#MapUnc_Sonic,mappings(a0)
-	move.b	#2,priority(a0)
-	move.b	#$18,width_pixels(a0)
-	move.b	#1<<render_flags.level_fg,render_flags(a0)
+	move.b	#$13,y_radius(a0)	; this sets Sonic's collision height (2*pixels)
+	move.b	#9,x_radius(a0) 	; this sets Sonic's Collision width (2*pixels)
+	move.l	#MapUnc_Sonic,mappings(a0)	; load Sonic's mappings
+	move.b	#2,priority(a0)				; set sprite priority
+	move.b	#$18,width_pixels(a0)		; set render width
+	move.b	#1<<render_flags.level_fg,render_flags(a0)	; set to playfield-positioned mode
 	move.w	#$600,(Sonic_top_speed).w	; set Sonic's top speed
 	move.w	#$C,(Sonic_acceleration).w	; set Sonic's acceleration
 	move.w	#$80,(Sonic_deceleration).w	; set Sonic's deceleration
-	tst.b	(Last_star_pole_hit).w
-	bne.s	Obj01_Init_Continued
-	; only happens when not starting at a checkpoint:
-	move.w	#make_art_tile(ArtTile_ArtUnc_Sonic,0,0),art_tile(a0)
-	bsr.w	Adjust2PArtPointer
+	tst.b	(Last_star_pole_hit).w	; is Sonic starting at a checkpoint?
+	bne.s	Obj01_Init_Continued	; if so, branch
+	move.w	#make_art_tile(ArtTile_ArtUnc_Sonic,0,0),art_tile(a0)	; load Sonic's art
+	bsr.w	Adjust2PArtPointer	; adjust Sonic's art pointer if in 2-player mode
 	move.b	#$C,top_solid_bit(a0)
 	move.b	#$D,lrb_solid_bit(a0)
 	move.w	x_pos(a0),(Saved_x_pos).w
@@ -36194,10 +36199,10 @@ Obj01_Init:
 	move.w	top_solid_bit(a0),(Saved_Solid_bits).w
 
 Obj01_Init_Continued:
-	move.b	#0,flips_remaining(a0)
-	move.b	#4,flip_speed(a0)
-	move.b	#0,(Super_Sonic_flag).w
-	move.b	#30,air_left(a0)
+	move.b	#0,flips_remaining(a0)	; reset flips
+	move.b	#4,flip_speed(a0)		; reset flip speed(?)
+	move.b	#0,(Super_Sonic_flag).w	; reset Super Sonic flag
+	move.b	#30,air_left(a0)		; reset air count
 	subi.w	#$20,x_pos(a0)
 	addi_.w	#4,y_pos(a0)
 	move.w	#0,(Sonic_Pos_Record_Index).w
@@ -36240,24 +36245,24 @@ Obj01_Control:
 	bne.s	+				; if not, branch
 	andi.w	#$7FF,y_pos(a0) 		; perform wrapping of Sonic's y position
 +
-	bsr.s	Sonic_Display
-	bsr.w	Sonic_Super
-	bsr.w	Sonic_RecordPos
-	bsr.w	Sonic_Water
-	move.b	(Primary_Angle).w,next_tilt(a0)
-	move.b	(Secondary_Angle).w,tilt(a0)
-	tst.b	(WindTunnel_flag).w
-	beq.s	+
-	tst.b	anim(a0)
-	bne.s	+
-	move.b	prev_anim(a0),anim(a0)
+	bsr.s	Sonic_Display	; display Sonic sprite and handle power-up expiration
+	bsr.w	Sonic_Super		; handle Sonic in his Super form
+	bsr.w	Sonic_RecordPos	; record Sonic's previous position for invincibility stars and Tails
+	bsr.w	Sonic_Water		; handle Sonic while underwater
+	move.b	(Primary_Angle).w,next_tilt(a0)	; update front collision hot spot
+	move.b	(Secondary_Angle).w,tilt(a0)	; update rear collision hot spot
+	tst.b	(WindTunnel_flag).w		; is Sonic in a wind tunnel?
+	beq.s	+						; if not, branch
+	tst.b	anim(a0)				; is current animation null/id_Walk?
+	bne.s	+						; if not, branch
+	move.b	prev_anim(a0),anim(a0)	;  make sure Sonic is in the correct animation while in a wind tunnel
 +
-	bsr.w	Sonic_Animate
-	tst.b	obj_control(a0)
-	bmi.s	+
-	jsr	(TouchResponse).l
+	bsr.w	Sonic_Animate	; run Sonic's animation scripts
+	tst.b	obj_control(a0)	; is object interactions ignore flag set?
+	bmi.s	+				; if yes, branch
+	jsr	(TouchResponse).l	; handle object interactions with Sonic
 +
-	bra.w	LoadSonicDynPLC
+	bra.w	LoadSonicDynPLC	; update Sonic's graphics if necessary
 
 ; ===========================================================================
 ; secondary states under state Obj01_Control
@@ -36273,56 +36278,56 @@ Obj01_Modes:	offsetTable
 
 ; loc_1A0C6:
 Sonic_Display:
-	move.w	invulnerable_time(a0),d0
-	beq.s	Obj01_Display
-	subq.w	#1,invulnerable_time(a0)
-	lsr.w	#3,d0
-	bcc.s	Obj01_ChkInvin
+	move.w	invulnerable_time(a0),d0	; get Sonic's remaining invulnerability frames after getting hurt
+	beq.s	Obj01_Display				; if there are none, branch
+	subq.w	#1,invulnerable_time(a0)	; decrease invulnerability frames
+	lsr.w	#3,d0						; check every 3 or 4 frames
+	bcc.s	Obj01_ChkInvin				; don't render Sonic's sprite
 ; loc_1A0D4:
 Obj01_Display:
-	jsr	(DisplaySprite).l
+	jsr	(DisplaySprite).l				; display Sonic sprite normally
 ; loc_1A0DA:
-Obj01_ChkInvin:		; Checks if invincibility has expired and disables it if it has.
-	btst	#status_secondary.invincible,status_secondary(a0)
-	beq.s	Obj01_ChkShoes
-	tst.w	invincibility_time(a0)
-	beq.s	Obj01_ChkShoes	; If there wasn't any time left, that means we're in Super Sonic mode.
-	subq.w	#1,invincibility_time(a0)
-	bne.s	Obj01_ChkShoes
-	tst.b	(Current_Boss_ID).w	; Don't change music if in a boss fight
-	bne.s	Obj01_RmvInvin
-	cmpi.b	#12,air_left(a0)	; Don't change music if drowning
-	blo.s	Obj01_RmvInvin
-	move.w	(Level_Music).w,d0
-	jsr	(PlayMusic).l
+Obj01_ChkInvin:
+	btst	#status_secondary.invincible,status_secondary(a0)	; is Sonic invincible?
+	beq.s	Obj01_ChkShoes										; if not, branch
+	tst.w	invincibility_time(a0)		; is there time remaining for invincibility?
+	beq.s	Obj01_ChkShoes				; if not, branch
+	subq.w	#1,invincibility_time(a0)	; subtract 1 from time
+	bne.s	Obj01_ChkShoes				; if time remains, branch
+	tst.b	(Current_Boss_ID).w			; is a boss fight active?
+	bne.s	Obj01_RmvInvin				; if yes, branch
+	cmpi.b	#12,air_left(a0)			; is drowning countdown active?
+	blo.s	Obj01_RmvInvin				; if yes, branch
+	move.w	(Level_Music).w,d0			; load normal level music
+	jsr	(PlayMusic).l					; play normal level music
 ;loc_1A106:
 Obj01_RmvInvin:
-	bclr	#status_secondary.invincible,status_secondary(a0)
+	bclr	#status_secondary.invincible,status_secondary(a0)	; remove invincibility
 ; loc_1A10C:
-Obj01_ChkShoes:		; Checks if Speed Shoes have expired and disables them if they have.
-	btst	#status_secondary.speed_shoes,status_secondary(a0)
-	beq.s	Obj01_ExitChk
-	tst.w	speedshoes_time(a0)
-	beq.s	Obj01_ExitChk
-	subq.w	#1,speedshoes_time(a0)
-	bne.s	Obj01_ExitChk
-	move.w	#$600,(Sonic_top_speed).w
-	move.w	#$C,(Sonic_acceleration).w
-	move.w	#$80,(Sonic_deceleration).w
-	tst.b	(Super_Sonic_flag).w
-	beq.s	Obj01_RmvSpeed
-	move.w	#$A00,(Sonic_top_speed).w
-	move.w	#$30,(Sonic_acceleration).w
-	move.w	#$100,(Sonic_deceleration).w
+Obj01_ChkShoes:
+	btst	#status_secondary.speed_shoes,status_secondary(a0)	; does Sonic have speed shoes?
+	beq.s	Obj01_ExitChk					; if not, branch
+	tst.w	speedshoes_time(a0)				; is there time remaining for speed shoes?
+	beq.s	Obj01_ExitChk					; if not, branch
+	subq.w	#1,speedshoes_time(a0)			; subtract 1 from time
+	bne.s	Obj01_ExitChk					; if time remains, branch
+	move.w	#$600,(Sonic_top_speed).w		; restore Sonic's default top speed
+	move.w	#$C,(Sonic_acceleration).w 		; restore Sonic's default acceleration
+	move.w	#$80,(Sonic_deceleration).w		; restore Sonic's default deceleration
+	tst.b	(Super_Sonic_flag).w			; is Sonic in his Super form?
+	beq.s	Obj01_RmvSpeed					; if not, branch
+	move.w	#$A00,(Sonic_top_speed).w		; restore Super Sonic's top speed
+	move.w	#$30,(Sonic_acceleration).w		; restore Super Sonic's acceleration
+	move.w	#$100,(Sonic_deceleration).w	; restore Super Sonic's deceleration
 ; loc_1A14A:
 Obj01_RmvSpeed:
-	bclr	#status_secondary.speed_shoes,status_secondary(a0)
+	bclr	#status_secondary.speed_shoes,status_secondary(a0)	; remove speed shoes
 	move.w	#MusID_SlowDown,d0	; Slow down tempo
-	jmp	(PlayMusic).l
+	jmp	(PlayMusic).l			; play music at normal speed
 ; ---------------------------------------------------------------------------
 ; return_1A15A:
 Obj01_ExitChk:
-	rts
+	rts							; return
 ; End of subroutine Sonic_Display
 
 ; ---------------------------------------------------------------------------
@@ -36334,12 +36339,12 @@ Obj01_ExitChk:
 
 ; loc_1A15C:
 Sonic_RecordPos:
-	move.w	(Sonic_Pos_Record_Index).w,d0
-	lea	(Sonic_Pos_Record_Buf).w,a1
-	lea	(a1,d0.w),a1
-	move.w	x_pos(a0),(a1)+
-	move.w	y_pos(a0),(a1)+
-	addq.b	#4,(Sonic_Pos_Record_Index+1).w
+	move.w	(Sonic_Pos_Record_Index).w,d0	; get current index for the tracking array
+	lea	(Sonic_Pos_Record_Buf).w,a1			; load tracking array
+	lea	(a1,d0.w),a1						; set pointer to current index
+	move.w	x_pos(a0),(a1)+					; store Sonic's current X-position
+	move.w	y_pos(a0),(a1)+					; store Sonic's current Y-position
+	addq.b	#4,(Sonic_Pos_Record_Index+1).w	; advance to next tracking pointer (this is a byte, so it wraps from $FC back to $00)
 
 	lea	(Sonic_Stat_Record_Buf).w,a1
 	lea	(a1,d0.w),a1
@@ -36375,26 +36380,26 @@ Obj01_InWater:
 	bne.s	return_1A18C	; if already underwater, branch
 
 	movea.l	a0,a1
-	bsr.w	ResumeMusic
+	bsr.w	ResumeMusic	; replenish air (music won't resume here, we've only just entered water...)
 	move.b	#ObjID_SmallBubbles,(Sonic_BreathingBubbles+id).w ; load Obj0A (Sonic's breathing bubbles) at $FFFFD080
-	move.b	#$81,(Sonic_BreathingBubbles+subtype).w
+	move.b	#$81,(Sonic_BreathingBubbles+subtype).w	; prepare subtype so it sets itself to Drown_Countdown
 	move.l	a0,(Sonic_BreathingBubbles+obj0a_character).w
-	move.w	#$300,(Sonic_top_speed).w
-	move.w	#6,(Sonic_acceleration).w
-	move.w	#$40,(Sonic_deceleration).w
-	tst.b	(Super_Sonic_flag).w
-	beq.s	+
-	move.w	#$500,(Sonic_top_speed).w
-	move.w	#$18,(Sonic_acceleration).w
-	move.w	#$80,(Sonic_deceleration).w
+	move.w	#$300,(Sonic_top_speed).w	; change Sonic's top speed
+	move.w	#6,(Sonic_acceleration).w	; change Sonic's acceleration
+	move.w	#$40,(Sonic_deceleration).w	; change Sonic's deceleration
+	tst.b	(Super_Sonic_flag).w		; is Sonic in his Super form?
+	beq.s	+							; if not, branch
+	move.w	#$500,(Sonic_top_speed).w	; change Super Sonic's top speed
+	move.w	#$18,(Sonic_acceleration).w	; change Super Sonic's acceleration
+	move.w	#$80,(Sonic_deceleration).w	; change Super Sonic's deceleration
 +
-	asr.w	x_vel(a0)
-	asr.w	y_vel(a0)	; memory operands can only be shifted one bit at a time
-	asr.w	y_vel(a0)
-	beq.s	return_1A18C
-	move.w	#(1<<8)|(0<<0),(Sonic_Dust+anim).w	; splash animation
-	move.w	#SndID_Splash,d0	; splash sound
-	jmp	(PlaySound).l
+	asr.w	x_vel(a0)		; half X-speed when entering water
+	asr.w	y_vel(a0)		; divide Y-speed by 4 when entering water
+	asr.w	y_vel(a0)		; (memory operands can only be shifted one bit at a time)
+	beq.s	return_1A18C	; if Sonic's new Y-speed is 0, don't load splash object
+	move.w	#(1<<8)|(0<<0),(Sonic_Dust+anim).w	; load splash animation from Obj08
+	move.w	#SndID_Splash,d0	; load splash sound
+	jmp	(PlaySound).l			; play splash sound
 ; ---------------------------------------------------------------------------
 ; loc_1A1FE:
 Obj01_OutWater:
@@ -36402,31 +36407,31 @@ Obj01_OutWater:
 	beq.s	return_1A18C ; if already above water, branch
 
 	movea.l	a0,a1
-	bsr.w	ResumeMusic
-	move.w	#$600,(Sonic_top_speed).w
-	move.w	#$C,(Sonic_acceleration).w
-	move.w	#$80,(Sonic_deceleration).w
-	tst.b	(Super_Sonic_flag).w
-	beq.s	+
-	move.w	#$A00,(Sonic_top_speed).w
-	move.w	#$30,(Sonic_acceleration).w
-	move.w	#$100,(Sonic_deceleration).w
+	bsr.w	ResumeMusic	; replenish air and resume music if necessary
+	move.w	#$600,(Sonic_top_speed).w		; restore Sonic's default top speed
+	move.w	#$C,(Sonic_acceleration).w		; restore Sonic's default acceleration
+	move.w	#$80,(Sonic_deceleration).w		; restore Sonic's default deceleration
+	tst.b	(Super_Sonic_flag).w			; is Sonic in his Super form?
+	beq.s	+								; if not, branch
+	move.w	#$A00,(Sonic_top_speed).w		; restore Super Sonic's top speed
+	move.w	#$30,(Sonic_acceleration).w		; restore Super Sonic's acceleration
+	move.w	#$100,(Sonic_deceleration).w	; restore Super Sonic's deceleration
 +
 	cmpi.b	#4,routine(a0)	; is Sonic falling back from getting hurt?
 	beq.s	+		; if yes, branch
-	asl	y_vel(a0)
+	asl	y_vel(a0)	; double Y-speed while exiting water
 +
-	tst.w	y_vel(a0)
-	beq.w	return_1A18C
-	move.w	#(1<<8)|(0<<0),(Sonic_Dust+anim).w	; splash animation
+	tst.w	y_vel(a0)		; test Sonic's Y-speed
+	beq.w	return_1A18C	; branch if 0
+	move.w	#(1<<8)|(0<<0),(Sonic_Dust+anim).w	; load splash animation from Obj08
 	movea.l	a0,a1
-	bsr.w	ResumeMusic
-	cmpi.w	#-$1000,y_vel(a0)
-	bgt.s	+
-	move.w	#-$1000,y_vel(a0)	; limit upward y velocity exiting the water
+	bsr.w	ResumeMusic	; (why is this repeated?)
+	cmpi.w	#-$1000,y_vel(a0)	; is Sonic's new Y-speed too fast?
+	bgt.s	+					; if not, branch
+	move.w	#-$1000,y_vel(a0)	; limit upward Y-speed
 +
-	move.w	#SndID_Splash,d0	; splash sound
-	jmp	(PlaySound).l
+	move.w	#SndID_Splash,d0	; load splash sound
+	jmp	(PlaySound).l			; play splash sound
 ; End of subroutine Sonic_Water
 
 ; ===========================================================================
@@ -36440,41 +36445,41 @@ Obj01_MdNormal_Checks:
 	; impatiently, then make him blink once the player starts moving
 	; again. Likewise, if he's been waiting for so long that he's laying
 	; down, then make him play an animation of standing up.
-	move.b	(Ctrl_1_Press_Logical).w,d0
-	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0
-	bne.s	Obj01_MdNormal
-	cmpi.b	#AniIDSonAni_Blink,anim(a0)
-	beq.s	Obj01_MdNormal_Skip
-	cmpi.b	#AniIDSonAni_GetUp,anim(a0)
-	beq.s	Obj01_MdNormal_Skip
-	cmpi.b	#AniIDSonAni_Wait,anim(a0)
-	bne.s	Obj01_MdNormal
-	cmpi.b	#$1E,anim_frame(a0)
-	blo.s	Obj01_MdNormal
-	move.b	(Ctrl_1_Held_Logical).w,d0
-	andi.b	#button_up_mask|button_down_mask|button_left_mask|button_right_mask|button_B_mask|button_C_mask|button_A_mask,d0
-	beq.s	Obj01_MdNormal_Skip
-	move.b	#AniIDSonAni_Blink,anim(a0)
-	cmpi.b	#$AC,anim_frame(a0)
-	blo.s	Obj01_MdNormal_Skip
-	move.b	#AniIDSonAni_GetUp,anim(a0)
-	bra.s	Obj01_MdNormal_Skip
+	move.b	(Ctrl_1_Press_Logical).w,d0						; load currently pressed buttons
+	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0	; is A, B, or C pressed?
+	bne.s	Obj01_MdNormal									; if yes, branch
+	cmpi.b	#AniIDSonAni_Blink,anim(a0)		; is Sonic's animation "Blink"?
+	beq.s	Obj01_MdNormal_Skip				; if yes, branch
+	cmpi.b	#AniIDSonAni_GetUp,anim(a0)		; is Sonic's animation "GetUp"?				
+	beq.s	Obj01_MdNormal_Skip				; if yes, branch
+	cmpi.b	#AniIDSonAni_Wait,anim(a0)		; is Sonic's animation "Wait"?
+	bne.s	Obj01_MdNormal					; if not, branch
+	cmpi.b	#$1E,anim_frame(a0)				; is the animation frame $1E or higher?
+	blo.s	Obj01_MdNormal					; if not, branch
+	move.b	(Ctrl_1_Held_Logical).w,d0		; load currently held buttons
+	andi.b	#button_up_mask|button_down_mask|button_left_mask|button_right_mask|button_B_mask|button_C_mask|button_A_mask,d0	; are the D-Pad or face buttons being held?
+	beq.s	Obj01_MdNormal_Skip				; if not, branch
+	move.b	#AniIDSonAni_Blink,anim(a0)		; set Sonic's animation to "Blink"
+	cmpi.b	#$AC,anim_frame(a0)				; is the animation frame $AC or higher?
+	blo.s	Obj01_MdNormal_Skip				; if not, branch
+	move.b	#AniIDSonAni_GetUp,anim(a0)		; set Sonic's animation to "GetUp"
+	bra.s	Obj01_MdNormal_Skip				; skip normal checks (beware the fixBugs below)
 ; ---------------------------------------------------------------------------
 ; loc_1A2B8:
 Obj01_MdNormal:
-	bsr.w	Sonic_CheckSpindash
-	bsr.w	Sonic_Jump
-	bsr.w	Sonic_SlopeResist
-	bsr.w	Sonic_Move
-	bsr.w	Sonic_Roll
+	bsr.w	Sonic_CheckSpindash	; check for spindash
+	bsr.w	Sonic_Jump			; check for jumping
+	bsr.w	Sonic_SlopeResist	; handle resistance from running up slopes
+	bsr.w	Sonic_Move			; handle Sonic's left/right movement
+	bsr.w	Sonic_Roll			; check for rolling
 
     if fixBugs
 Obj01_MdNormal_Skip:
     endif
-	bsr.w	Sonic_LevelBound
-	jsr	(ObjectMove).l
-	bsr.w	AnglePos
-	bsr.w	Sonic_SlopeRepel
+	bsr.w	Sonic_LevelBound	; keep Sonic within level bounds and handle bottomless pits
+	jsr	(ObjectMove).l			; update Sonic's position based on his current velocities
+	bsr.w	AnglePos			; update Sonic's current angle as he walks along the floor
+	bsr.w	Sonic_SlopeRepel	; handle Sonic detaching from walls if not fast enough
 
     if ~~fixBugs
 ; return_1A2DE:
@@ -36487,16 +36492,16 @@ Obj01_MdNormal_Skip:
 ; Called if Sonic is airborne, but not in a ball (thus, probably not jumping)
 ; loc_1A2E0: Obj01_MdJump
 Obj01_MdAir:
-	bsr.w	Sonic_JumpHeight
-	bsr.w	Sonic_ChgJumpDir
-	bsr.w	Sonic_LevelBound
-	jsr	(ObjectMoveAndFall).l
+	bsr.w	Sonic_JumpHeight	; handle Sonic's jump height based on whether the jump button is still held
+	bsr.w	Sonic_ChgJumpDir	; handle midair direction adjustments while jumping
+	bsr.w	Sonic_LevelBound	; keep Sonic within level bounds and handle bottomless pits
+	jsr	(ObjectMoveAndFall).l	; apply gravity and update Sonic's position based on his current velocities
 	btst	#status.player.underwater,status(a0)	; is Sonic underwater?
-	beq.s	+		; if not, branch
-	subi.w	#$28,y_vel(a0)	; reduce gravity by $28 ($38-$28=$10)
+	beq.s	+										; if not, branch
+	subi.w	#$28,y_vel(a0)			; reduce gravity by $28 ($38-$28=$10)
 +
-	bsr.w	Sonic_JumpAngle
-	bsr.w	Sonic_DoLevelCollision
+	bsr.w	Sonic_JumpAngle			; steadily return Sonic's angle while jumping to 0
+	bsr.w	Sonic_DoLevelCollision	; handle collision with level while airborne
 	rts
 ; End of subroutine Obj01_MdAir
 ; ===========================================================================
@@ -36504,16 +36509,16 @@ Obj01_MdAir:
 ; Called if Sonic is in a ball, but not airborne (thus, probably rolling)
 ; loc_1A30A:
 Obj01_MdRoll:
-	tst.b	pinball_mode(a0)
-	bne.s	+
-	bsr.w	Sonic_Jump
+	tst.b	pinball_mode(a0)	; is Sonic in pinball mode?
+	bne.s	+					; if yes, branch
+	bsr.w	Sonic_Jump			; check for jumping
 +
-	bsr.w	Sonic_RollRepel
-	bsr.w	Sonic_RollSpeed
-	bsr.w	Sonic_LevelBound
-	jsr	(ObjectMove).l
-	bsr.w	AnglePos
-	bsr.w	Sonic_SlopeRepel
+	bsr.w	Sonic_RollRepel		; handle resistance from rolling up slopes
+	bsr.w	Sonic_RollSpeed		; update speed as Sonic rolls
+	bsr.w	Sonic_LevelBound	; keep Sonic within level bounds and handle bottomless pits
+	jsr	(ObjectMove).l			; update Sonic's position based on his current velocities
+	bsr.w	AnglePos			; update Sonic's current angle as he walks along the floor
+	bsr.w	Sonic_SlopeRepel	; handle Sonic detaching from walls if not fast enough
 	rts
 ; End of subroutine Obj01_MdRoll
 ; ===========================================================================
@@ -36523,16 +36528,16 @@ Obj01_MdRoll:
 ;        Why they gave it a separate copy of the code, I don't know.
 ; loc_1A330: Obj01_MdJump2:
 Obj01_MdJump:
-	bsr.w	Sonic_JumpHeight
-	bsr.w	Sonic_ChgJumpDir
-	bsr.w	Sonic_LevelBound
-	jsr	(ObjectMoveAndFall).l
+	bsr.w	Sonic_JumpHeight	; handle Sonic's jump height based on whether the jump button is still held
+	bsr.w	Sonic_ChgJumpDir	; handle midair direction adjustments while jumping
+	bsr.w	Sonic_LevelBound	; keep Sonic within level bounds and handle bottomless pits
+	jsr	(ObjectMoveAndFall).l	; apply gravity and update Sonic's position based on his current velocities
 	btst	#status.player.underwater,status(a0)	; is Sonic underwater?
-	beq.s	+		; if not, branch
-	subi.w	#$28,y_vel(a0)	; reduce gravity by $28 ($38-$28=$10)
+	beq.s	+										; if not, branch
+	subi.w	#$28,y_vel(a0)			; reduce gravity by $28 ($38-$28=$10)
 +
-	bsr.w	Sonic_JumpAngle
-	bsr.w	Sonic_DoLevelCollision
+	bsr.w	Sonic_JumpAngle			; steadily return Sonic's angle while jumping to 0
+	bsr.w	Sonic_DoLevelCollision	; handle collision with level while airborne
 	rts
 ; End of subroutine Obj01_MdJump
 
@@ -36544,158 +36549,158 @@ Obj01_MdJump:
 
 ; loc_1A35A:
 Sonic_Move:
-	move.w	(Sonic_top_speed).w,d6
-	move.w	(Sonic_acceleration).w,d5
-	move.w	(Sonic_deceleration).w,d4
-	_btst	#status_secondary.sliding,status_secondary(a0)
-	_bne.w	Obj01_Traction
-	tst.w	move_lock(a0)
-	bne.w	Obj01_ResetScr
+	move.w	(Sonic_top_speed).w,d6		; load Sonic's current top speed
+	move.w	(Sonic_acceleration).w,d5	; load Sonic's current acceleration
+	move.w	(Sonic_deceleration).w,d4	; load Sonic's current deceleration
+	_btst	#status_secondary.sliding,status_secondary(a0)	; is Sonic sliding?
+	_bne.w	Obj01_Traction									; if yes, branch
+	tst.w	move_lock(a0)									; is D-Pad input locked?
+	bne.w	Obj01_ResetScr									; if yes, branch
 	btst	#button_left,(Ctrl_1_Held_Logical).w	; is left being pressed?
-	beq.s	Obj01_NotLeft			; if not, branch
-	bsr.w	Sonic_MoveLeft
+	beq.s	Obj01_NotLeft							; if not, branch
+	bsr.w	Sonic_MoveLeft							; else, branch
 ; loc_1A382:
 Obj01_NotLeft:
 	btst	#button_right,(Ctrl_1_Held_Logical).w	; is right being pressed?
-	beq.s	Obj01_NotRight			; if not, branch
-	bsr.w	Sonic_MoveRight
+	beq.s	Obj01_NotRight							; if not, branch
+	bsr.w	Sonic_MoveRight							; else, branch
 ; loc_1A38E:
 Obj01_NotRight:
-	move.b	angle(a0),d0
-	addi.b	#$20,d0
-	andi.b	#$C0,d0		; is Sonic on a slope?
+	move.b	angle(a0),d0	; load Sonic's current angle
+	addi.b	#$20,d0			; rotate it 45 degrees clockwise
+	andi.b	#$C0,d0			; snap to nearest multiple of 90 degrees
+	bne.w	Obj01_ResetScr	; if Sonic is on a slope, then branch
+	tst.w	inertia(a0)		; is Sonic moving?
 	bne.w	Obj01_ResetScr	; if yes, branch
-	tst.w	inertia(a0)	; is Sonic moving?
-	bne.w	Obj01_ResetScr	; if yes, branch
-	bclr	#status.player.pushing,status(a0)
-	move.b	#AniIDSonAni_Wait,anim(a0)	; use "standing" animation
-	btst	#status.player.on_object,status(a0)
-	beq.w	Sonic_Balance
-	moveq	#0,d0
-	move.b	interact(a0),d0
+	bclr	#status.player.pushing,status(a0)	; clear pushing flag
+	move.b	#AniIDSonAni_Wait,anim(a0)			; use "standing" animation
+	btst	#status.player.on_object,status(a0)	; is Sonic standing on a platform object?
+	beq.w	Sonic_Balance						; if not, branch
+	moveq	#0,d0								; clear d0
+	move.b	interact(a0),d0			; get OST index of object Sonic is currently standing on
     if object_size=$40
-	lsl.w	#object_size_bits,d0
+	lsl.w	#object_size_bits,d0	; multiply by $40
     else
-	mulu.w	#object_size,d0
+	mulu.w	#object_size,d0			; multiply by object_size
     endif
-	lea	(Object_RAM).w,a1 ; a1=character
-	lea	(a1,d0.w),a1 ; a1=object
+	lea	(Object_RAM).w,a1	; load object space (a1=character)
+	lea	(a1,d0.w),a1		; load stood-on object (a1=object)
 	_btst	#status.npc.no_balancing,status(a1)
 	_bne.w	Sonic_Lookup
-	moveq	#0,d1
-	move.b	width_pixels(a1),d1
-	move.w	d1,d2
-	add.w	d2,d2
-	subq.w	#2,d2
-	add.w	x_pos(a0),d1
-	sub.w	x_pos(a1),d1
-	tst.b	(Super_Sonic_flag).w
-	bne.w	SuperSonic_Balance
-	cmpi.w	#2,d1
-	blt.s	Sonic_BalanceOnObjLeft
-	cmp.w	d2,d1
-	bge.s	Sonic_BalanceOnObjRight
-	bra.w	Sonic_Lookup
+	moveq	#0,d1				; clear d1
+	move.b	width_pixels(a1),d1	; get physical width of stood-on object
+	move.w	d1,d2				; copy width
+	add.w	d2,d2				; double it
+	subq.w	#2,d2				; minus 4
+	add.w	x_pos(a0),d1		; get Sonic's current X-position
+	sub.w	x_pos(a1),d1		; subtract stood-on object's X-position
+	tst.b	(Super_Sonic_flag).w	; is Sonic in his Super form?
+	bne.w	SuperSonic_Balance		; if yes, branch
+	cmpi.w	#2,d1					; is Sonic within 2px of the objects left edge?
+	blt.s	Sonic_BalanceOnObjLeft	; if yes, branch
+	cmp.w	d2,d1					; is Sonic within 2px of the objects right edge?
+	bge.s	Sonic_BalanceOnObjRight	; if yes, branch
+	bra.w	Sonic_Lookup			; else, branch
 ; ---------------------------------------------------------------------------
 ; loc_1A3FE:
 SuperSonic_Balance:
-	cmpi.w	#2,d1
-	blt.w	SuperSonic_BalanceOnObjLeft
-	cmp.w	d2,d1
-	bge.w	SuperSonic_BalanceOnObjRight
-	bra.w	Sonic_Lookup
+	cmpi.w	#2,d1							; is Super Sonic within 2px of the objects left edge?
+	blt.w	SuperSonic_BalanceOnObjLeft		; if yes, branch
+	cmp.w	d2,d1							; is Super Sonic within 2px of the objects right edge?
+	bge.w	SuperSonic_BalanceOnObjRight	; if yes, branch
+	bra.w	Sonic_Lookup					; else, branch
 ; ---------------------------------------------------------------------------
 ; balancing checks for when you're on the right edge of an object
 ; loc_1A410:
 Sonic_BalanceOnObjRight:
-	btst	#status.player.x_flip,status(a0)
-	bne.s	+
-	move.b	#AniIDSonAni_Balance,anim(a0)
+	btst	#status.player.x_flip,status(a0)	; is Sonic facing right?
+	bne.s	+									; if not, branch
+	move.b	#AniIDSonAni_Balance,anim(a0)		; set Sonic's animation to "Balance"
 	addq.w	#6,d2
 	cmp.w	d2,d1
 	blt.w	Obj01_ResetScr
-	move.b	#AniIDSonAni_Balance2,anim(a0)
+	move.b	#AniIDSonAni_Balance2,anim(a0)		; set Sonic's animation to "Balance2"
 	bra.w	Obj01_ResetScr
 	; on right edge of object but facing left:
-+	move.b	#AniIDSonAni_Balance3,anim(a0)
++	move.b	#AniIDSonAni_Balance3,anim(a0)		; set Sonic's animation to "Balance3"
 	addq.w	#6,d2
 	cmp.w	d2,d1
 	blt.w	Obj01_ResetScr
-	move.b	#AniIDSonAni_Balance4,anim(a0)
-	bclr	#status.player.x_flip,status(a0)
+	move.b	#AniIDSonAni_Balance4,anim(a0)		; set Sonic's animation to "Balance4"
+	bclr	#status.player.x_flip,status(a0)	; clear X-flip flag (face right)
 	bra.w	Obj01_ResetScr
 ; ---------------------------------------------------------------------------
 ; balancing checks for when you're on the left edge of an object
 ; loc_1A44E:
 Sonic_BalanceOnObjLeft:
-	btst	#status.player.x_flip,status(a0)
-	beq.s	+
-	move.b	#AniIDSonAni_Balance,anim(a0)
+	btst	#status.player.x_flip,status(a0)	; is Sonic facing left?
+	beq.s	+									; if not, branch
+	move.b	#AniIDSonAni_Balance,anim(a0)		; set Sonic's animation to "Balance"
 	cmpi.w	#-4,d1
 	bge.w	Obj01_ResetScr
-	move.b	#AniIDSonAni_Balance2,anim(a0)
+	move.b	#AniIDSonAni_Balance2,anim(a0)		; set Sonic's animation to "Balance2"
 	bra.w	Obj01_ResetScr
 	; on left edge of object but facing right:
-+	move.b	#AniIDSonAni_Balance3,anim(a0)
++	move.b	#AniIDSonAni_Balance3,anim(a0)		; set Sonic's animation to "Balance3"
 	cmpi.w	#-4,d1
 	bge.w	Obj01_ResetScr
-	move.b	#AniIDSonAni_Balance4,anim(a0)
-	bset	#status.player.x_flip,status(a0)
+	move.b	#AniIDSonAni_Balance4,anim(a0)		; set Sonic's animation to "Balance4"
+	bset	#status.player.x_flip,status(a0)	; set X-flip flag (face left)
 	bra.w	Obj01_ResetScr
 ; ---------------------------------------------------------------------------
 ; balancing checks for when you're on the edge of part of the level
 ; loc_1A48C:
 Sonic_Balance:
-	jsr	(ChkFloorEdge).l
-	cmpi.w	#$C,d1
-	blt.w	Sonic_Lookup
-	tst.b	(Super_Sonic_flag).w
-	bne.w	SuperSonic_Balance2
+	jsr	(ChkFloorEdge).l	; get distance of Sonic to nearest floor
+	cmpi.w	#$C,d1			; is he within $C (12px) to floor?
+	blt.w	Sonic_Lookup	; if yes, don't do balance animation (would look awkward)
+	tst.b	(Super_Sonic_flag).w	; is Sonic in his Super form?
+	bne.w	SuperSonic_Balance2		; if yes, branch
 	cmpi.b	#3,next_tilt(a0)
 	bne.s	Sonic_BalanceLeft
-	btst	#status.player.x_flip,status(a0)
-	bne.s	+
-	move.b	#AniIDSonAni_Balance,anim(a0)
+	btst	#status.player.x_flip,status(a0)	; is Sonic facing right?
+	bne.s	+									; if not, branch
+	move.b	#AniIDSonAni_Balance,anim(a0)		; set Sonic's animation to "Balance"
 	move.w	x_pos(a0),d3
 	subq.w	#6,d3
 	jsr	(ChkFloorEdge_Part2).l
 	cmpi.w	#$C,d1
 	blt.w	Obj01_ResetScr
-	move.b	#AniIDSonAni_Balance2,anim(a0)
+	move.b	#AniIDSonAni_Balance2,anim(a0)		; set Sonic's animation to "Balance2"
 	bra.w	Obj01_ResetScr
 	; on right edge but facing left:
-+	move.b	#AniIDSonAni_Balance3,anim(a0)
++	move.b	#AniIDSonAni_Balance3,anim(a0)		; set Sonic's animation to "Balance3"
 	move.w	x_pos(a0),d3
 	subq.w	#6,d3
 	jsr	(ChkFloorEdge_Part2).l
 	cmpi.w	#$C,d1
 	blt.w	Obj01_ResetScr
-	move.b	#AniIDSonAni_Balance4,anim(a0)
+	move.b	#AniIDSonAni_Balance4,anim(a0)		; set Sonic's animation to "Balance4"
 	bclr	#status.player.x_flip,status(a0)
 	bra.w	Obj01_ResetScr
 ; ---------------------------------------------------------------------------
 Sonic_BalanceLeft:
 	cmpi.b	#3,tilt(a0)
 	bne.s	Sonic_Lookup
-	btst	#status.player.x_flip,status(a0)
-	beq.s	+
-	move.b	#AniIDSonAni_Balance,anim(a0)
+	btst	#status.player.x_flip,status(a0)	; is Sonic facing left?
+	beq.s	+									; if not, branch
+	move.b	#AniIDSonAni_Balance,anim(a0)		; set Sonic's animation to "Balance"
 	move.w	x_pos(a0),d3
 	addq.w	#6,d3
 	jsr	(ChkFloorEdge_Part2).l
 	cmpi.w	#$C,d1
 	blt.w	Obj01_ResetScr
-	move.b	#AniIDSonAni_Balance2,anim(a0)
+	move.b	#AniIDSonAni_Balance2,anim(a0)		; set Sonic's animation to "Balance2"
 	bra.w	Obj01_ResetScr
 	; on left edge but facing right:
-+	move.b	#AniIDSonAni_Balance3,anim(a0)
++	move.b	#AniIDSonAni_Balance3,anim(a0)		; set Sonic's animation to "Balance3"
 	move.w	x_pos(a0),d3
 	addq.w	#6,d3
 	jsr	(ChkFloorEdge_Part2).l
 	cmpi.w	#$C,d1
 	blt.w	Obj01_ResetScr
-	move.b	#AniIDSonAni_Balance4,anim(a0)
-	bset	#status.player.x_flip,status(a0)
+	move.b	#AniIDSonAni_Balance4,anim(a0)		; set Sonic's animation to "Balance4"
+	bset	#status.player.x_flip,status(a0)	; set X-flip flag (face left)
 	bra.w	Obj01_ResetScr
 ; ---------------------------------------------------------------------------
 ; loc_1A55E:
@@ -36705,7 +36710,7 @@ SuperSonic_Balance2:
 
 ; loc_1A566:
 SuperSonic_BalanceOnObjRight:
-	bclr	#status.player.x_flip,status(a0)
+	bclr	#status.player.x_flip,status(a0)	; clear X-flip flag (face right)
 	bra.s	loc_1A57C
 ; ---------------------------------------------------------------------------
 loc_1A56E:
@@ -36714,17 +36719,17 @@ loc_1A56E:
 
 ; loc_1A576:
 SuperSonic_BalanceOnObjLeft:
-	bset	#status.player.x_flip,status(a0)
+	bset	#status.player.x_flip,status(a0)	; set X-flip flag (face left)
 
 loc_1A57C:
-	move.b	#AniIDSonAni_Balance,anim(a0)
+	move.b	#AniIDSonAni_Balance,anim(a0)		; set Sonic's animation to "Balance"
 	bra.s	Obj01_ResetScr
 ; ---------------------------------------------------------------------------
 ; loc_1A584:
 Sonic_Lookup:
 	btst	#button_up,(Ctrl_1_Held_Logical).w	; is up being pressed?
-	beq.s	Sonic_Duck			; if not, branch
-	move.b	#AniIDSonAni_LookUp,anim(a0)			; use "looking up" animation
+	beq.s	Sonic_Duck							; if not, branch
+	move.b	#AniIDSonAni_LookUp,anim(a0)		; use "looking up" animation
 	addq.w	#1,(Sonic_Look_delay_counter).w
 	cmpi.w	#$78,(Sonic_Look_delay_counter).w
 	blo.s	Obj01_ResetScr_Part2
@@ -36737,8 +36742,8 @@ Sonic_Lookup:
 ; loc_1A5B2:
 Sonic_Duck:
 	btst	#button_down,(Ctrl_1_Held_Logical).w	; is down being pressed?
-	beq.s	Obj01_ResetScr			; if not, branch
-	move.b	#AniIDSonAni_Duck,anim(a0)			; use "ducking" animation
+	beq.s	Obj01_ResetScr							; if not, branch
+	move.b	#AniIDSonAni_Duck,anim(a0)				; use "ducking" animation
 	addq.w	#1,(Sonic_Look_delay_counter).w
 	cmpi.w	#$78,(Sonic_Look_delay_counter).w
 	blo.s	Obj01_ResetScr_Part2
@@ -36766,46 +36771,46 @@ Obj01_ResetScr_Part2:
 ; ---------------------------------------------------------------------------
 ; sub_1A5F8:
 Obj01_UpdateSpeedOnGround:
-	tst.b	(Super_Sonic_flag).w
-	beq.w	+
-	move.w	#$C,d5
+	tst.b	(Super_Sonic_flag).w	; is Sonic in his Super form?
+	beq.w	+						; if not, branch
+	move.w	#$C,d5					; hardcoded Super Sonic deceleration override
 +
-	move.b	(Ctrl_1_Held_Logical).w,d0
-	andi.b	#button_left_mask|button_right_mask,d0 ; is left/right pressed?
-	bne.s	Obj01_Traction	; if yes, branch
-	move.w	inertia(a0),d0
-	beq.s	Obj01_Traction
-	bmi.s	Obj01_SettleLeft
+	move.b	(Ctrl_1_Held_Logical).w,d0				; load currently held buttons
+	andi.b	#button_left_mask|button_right_mask,d0	; is left/right pressed?
+	bne.s	Obj01_Traction							; if yes, branch
+	move.w	inertia(a0),d0							; get Sonic's current ground speed
+	beq.s	Obj01_Traction							; is he standing still? if yes, branch
+	bmi.s	Obj01_SettleLeft						; is he moving to the left? if yes, branch
 
 ; slow down when facing right and not pressing a direction
 ; Obj01_SettleRight:
-	sub.w	d5,d0
-	bcc.s	+
-	move.w	#0,d0
+	sub.w	d5,d0					; reduce current rightward speed by acceleration
+	bcc.s	+						; if result is still to the right, branch
+	move.w	#0,d0					; reset speed to zero on sign change
 +
-	move.w	d0,inertia(a0)
-	bra.s	Obj01_Traction
+	move.w	d0,inertia(a0)			; set Sonic's new ground speed
+	bra.s	Obj01_Traction			; skip over
 ; ---------------------------------------------------------------------------
 ; slow down when facing left and not pressing a direction
 ; loc_1A624:
 Obj01_SettleLeft:
-	add.w	d5,d0
-	bcc.s	+
-	move.w	#0,d0
+	add.w	d5,d0					; reduce current leftward speed by acceleration
+	bcc.s	+						; if result is still to the left, branch
+	move.w	#0,d0					; reset speed to zero on sign change
 +
-	move.w	d0,inertia(a0)
+	move.w	d0,inertia(a0)			; set Sonic's new ground speed
 
 ; increase or decrease speed on the ground
 ; loc_1A630:
 Obj01_Traction:
-	move.b	angle(a0),d0
-	jsr	(CalcSine).l
-	muls.w	inertia(a0),d1
-	asr.l	#8,d1
-	move.w	d1,x_vel(a0)
-	muls.w	inertia(a0),d0
-	asr.l	#8,d0
-	move.w	d0,y_vel(a0)
+	move.b	angle(a0),d0			; get Sonic's current angle in relation to the floor
+	jsr	(CalcSine).l				; get sine and cosine values based on angle
+	muls.w	inertia(a0),d1			; multiply cosine value by current ground speed
+	asr.l	#8,d1					; shift result up a byte
+	move.w	d1,x_vel(a0)			; set new X-velocity
+	muls.w	inertia(a0),d0			; multiply sine value by current ground spee
+	asr.l	#8,d0					; shift result up a byte
+	move.w	d0,y_vel(a0)			; set new Y-velocity
 
 ; stops Sonic from running through walls that meet the ground
 ; loc_1A64E:
@@ -36814,54 +36819,55 @@ Obj01_CheckWallsOnGround:
 	; These lines were added in S3K to fix an oversight where Sonic could
 	; run through walls if he is upside-down, or moving on a wall when
 	; his angle was exactly $80 (most noticeable in Carnival Night in S3A).
-	move.b	angle(a0),d0
-	andi.b	#$3F,d0		; is Sonic standing on a flat surface in any of the four quadrants?
+	move.b	angle(a0),d0	; get Sonic's current angle in relation to the floor
+	andi.b	#$3F,d0			; is Sonic standing on a flat surface in any of the four quadrants?
 	beq.s	.noearlyexit	; if yes, branch
     endif
-	move.b	angle(a0),d0
-	addi.b	#$40,d0
-	bmi.s	return_1A6BE
+	move.b	angle(a0),d0	; get Sonic's current angle in relation to the floor
+	addi.b	#$40,d0			; rotate it by 90 degrees
+	bmi.s	return_1A6BE	; if Sonic is upside down, branch (to prevent potential collision issues with loops)
     if fixBugs
 .noearlyexit:
     endif
 	move.b	#$40,d1			; Rotate 90 degrees clockwise
 	tst.w	inertia(a0)		; Check inertia
-	beq.s	return_1A6BE		; If not moving, don't do anything
-	bmi.s	+			; If negative, branch
-	neg.w	d1			; Otherwise, we want to rotate counterclockwise
+	beq.s	return_1A6BE	; If not moving, don't do anything
+	bmi.s	+				; If negative, branch
+	neg.w	d1				; Otherwise, we want to rotate counterclockwise
 +
-	move.b	angle(a0),d0
-	add.b	d1,d0
-	move.w	d0,-(sp)
-	bsr.w	CalcRoomInFront
-	move.w	(sp)+,d0
-	tst.w	d1
-	bpl.s	return_1A6BE
-	asl.w	#8,d1
-	addi.b	#$20,d0
-	andi.b	#$C0,d0
-	beq.s	loc_1A6BA
-	cmpi.b	#$40,d0
-	beq.s	loc_1A6A8
-	cmpi.b	#$80,d0
-	beq.s	loc_1A6A2
-	add.w	d1,x_vel(a0)
-	bset	#status.player.pushing,status(a0)
-	move.w	#0,inertia(a0)
+	move.b	angle(a0),d0	; get Sonic's current angle in relation to the floor
+	add.b	d1,d0			; rotate it by 90 degrees depending on directional speed
+	move.w	d0,-(sp)		; backup d0
+	bsr.w	CalcRoomInFront	; calculate distance to the wall in front of Sonic (if any)
+	move.w	(sp)+,d0		; restore d0
+	tst.w	d1				; has Sonic touched a wall?
+	bpl.s	return_1A6BE	; if not, branch
+	asl.w	#8,d1			; convert diff to wall into 8.8 fixed point for adjusting velocity
+	addi.b	#$20,d0			; rotate angle by 45 degrees clockwise
+	andi.b	#$C0,d0			; snap angle to nearest multiple of 90 degrees
+	beq.s	loc_1A6BA		; if Sonic is facing down, branch
+	cmpi.b	#$40,d0			; is Sonic facing left?
+	beq.s	loc_1A6A8		; if yes, branch
+	cmpi.b	#$80,d0			; is Sonic facing up?
+	beq.s	loc_1A6A2		; if yes, branch
+	; d0 is $C0, Sonic is facing right
+	add.w	d1,x_vel(a0)	; adjust X-velocity to prevent Sonic from walking into the wall
+	bset	#status.player.pushing,status(a0)	; set pushing flag
+	move.w	#0,inertia(a0)						; clear ground speed
 	rts
 ; ---------------------------------------------------------------------------
-loc_1A6A2:
-	sub.w	d1,y_vel(a0)
+loc_1A6A2: ; d0 is $80, Sonic is facing up
+	sub.w	d1,y_vel(a0)	; adjust Y-velocity to prevent Sonic from walking into the ceiling
 	rts
 ; ---------------------------------------------------------------------------
-loc_1A6A8:
-	sub.w	d1,x_vel(a0)
-	bset	#status.player.pushing,status(a0)
-	move.w	#0,inertia(a0)
+loc_1A6A8: ; d0 is $40, Sonic is facing left
+	sub.w	d1,x_vel(a0)	; adjust X-velocity to prevent Sonic from walking into the wall
+	bset	#status.player.pushing,status(a0)	; set pushing flag
+	move.w	#0,inertia(a0)						; clear ground speed
 	rts
 ; ---------------------------------------------------------------------------
-loc_1A6BA:
-	add.w	d1,y_vel(a0)
+loc_1A6BA: ; d0 is $00, Sonic is facing down
+	add.w	d1,y_vel(a0)	; adjust Y-velocity to prevent Sonic from walking into the floor
 
 return_1A6BE:
 	rts
@@ -36872,61 +36878,61 @@ return_1A6BE:
 
 ; loc_1A6C0:
 Sonic_MoveLeft:
-	move.w	inertia(a0),d0
-	beq.s	+
-	bpl.s	Sonic_TurnLeft ; if Sonic is already moving to the right, branch
+	move.w	inertia(a0),d0	; get Sonic's current ground speed
+	beq.s	+				; is Sonic standing still? if yes, branch
+	bpl.s	Sonic_TurnLeft	; if Sonic is already moving to the right, branch
 +
-	bset	#status.player.x_flip,status(a0)
-	bne.s	+
-	bclr	#status.player.pushing,status(a0)
-	move.b	#AniIDSonAni_Run,prev_anim(a0)	; force walking animation to restart if it's already in-progress
+	bset	#status.player.x_flip,status(a0)	; set X-flip flag (Sonic is facing left)
+	bne.s	+									; if he already was facing left, branch
+	bclr	#status.player.pushing,status(a0)	; clear pushing flag
+	move.b	#AniIDSonAni_Run,prev_anim(a0)		; force walking animation to restart if it's already in-progress
 +
 	sub.w	d5,d0	; add acceleration to the left
-	move.w	d6,d1
-	neg.w	d1
+	move.w	d6,d1	; get current top speed
+	neg.w	d1		; negate it for left-side check
 	cmp.w	d1,d0	; compare new speed with top speed
-	bgt.s	+	; if new speed is less than the maximum, branch
+	bgt.s	+		; if new speed is less than the maximum, branch
 	add.w	d5,d0	; remove this frame's acceleration change
 	cmp.w	d1,d0	; compare speed with top speed
-	ble.s	+	; if speed was already greater than the maximum, branch
+	ble.s	+		; if speed was already greater than the maximum, branch
 	move.w	d1,d0	; limit speed on ground going left
 +
-	move.w	d0,inertia(a0)
+	move.w	d0,inertia(a0)				; set new ground speed
 	move.b	#AniIDSonAni_Walk,anim(a0)	; use walking animation
 	rts
 ; ---------------------------------------------------------------------------
 ; loc_1A6FA:
 Sonic_TurnLeft:
-	sub.w	d4,d0
-	bcc.s	+
-	move.w	#-$80,d0
+	sub.w	d4,d0			; apply deceleration to current speed
+	bcc.s	+				; if still decelerating, branch
+	move.w	#-$80,d0		; set minimum speed on sign change
 +
-	move.w	d0,inertia(a0)
+	move.w	d0,inertia(a0)	; set new ground speed
     if fixBugs
-	move.b	angle(a0),d1
-	addi.b	#$20,d1
-	andi.b	#$C0,d1
+	move.b	angle(a0),d1	; get Sonic's current angle
+	addi.b	#$20,d1			; rotate by 45 degrees clockwise
+	andi.b	#$C0,d1			; snap to nearest multiple of 90 degrees
     else
 	; These three instructions partially overwrite the inertia value in
 	; 'd0'! This causes the character to trigger their skidding
 	; animation at different speeds depending on whether they're going
 	; right or left. To fix this, make these instructions use 'd1'
 	; instead.
-	move.b	angle(a0),d0
-	addi.b	#$20,d0
-	andi.b	#$C0,d0
+	move.b	angle(a0),d0	; get Sonic's current angle (and partially overwrite d0...)
+	addi.b	#$20,d0			; rotate by 45 degrees clockwise
+	andi.b	#$C0,d0			; snap to nearest multiple of 90 degrees
     endif
-	bne.s	return_1A744
-	cmpi.w	#$400,d0
-	blt.s	return_1A744
-	move.b	#AniIDSonAni_Stop,anim(a0)	; use "stopping" animation
-	bclr	#status.player.x_flip,status(a0)
-	move.w	#SndID_Skidding,d0
-	jsr	(PlaySound).l
-	cmpi.b	#12,air_left(a0)
-	blo.s	return_1A744	; if he's drowning, branch to not make dust
-	move.b	#6,(Sonic_Dust+routine).w
-	move.b	#$15,(Sonic_Dust+mapping_frame).w
+	bne.s	return_1A744	; if Sonic is on a wall or ceiling, prevent stopping animation
+	cmpi.w	#$400,d0		; has Sonic changed direction while being really fast?
+	blt.s	return_1A744	; if not, don't play skidding animation/sound
+	move.b	#AniIDSonAni_Stop,anim(a0)			; use "stopping" animation
+	bclr	#status.player.x_flip,status(a0)	; clear X-flip flag (Sonic is now facing right)
+	move.w	#SndID_Skidding,d0					; load skidding sound
+	jsr	(PlaySound).l							; play skidding sound
+	cmpi.b	#12,air_left(a0)					; is Sonic drowning?
+	blo.s	return_1A744						; if yes, branch
+	move.b	#6,(Sonic_Dust+routine).w			; set Obj08's routine to skidding
+	move.b	#$15,(Sonic_Dust+mapping_frame).w	; set skidding dust's frame
 
 return_1A744:
 	rts
@@ -36937,57 +36943,57 @@ return_1A744:
 
 ; loc_1A746:
 Sonic_MoveRight:
-	move.w	inertia(a0),d0
+	move.w	inertia(a0),d0	; get Sonic's current ground speed
 	bmi.s	Sonic_TurnRight	; if Sonic is already moving to the left, branch
-	bclr	#status.player.x_flip,status(a0)
-	beq.s	+
-	bclr	#status.player.pushing,status(a0)
-	move.b	#AniIDSonAni_Run,prev_anim(a0)	; force walking animation to restart if it's already in-progress
+	bclr	#status.player.x_flip,status(a0)	; clear X-flip flag (Sonic is facing right)
+	beq.s	+									; if he already was facing right, branch
+	bclr	#status.player.pushing,status(a0)	; clear pushing flag
+	move.b	#AniIDSonAni_Run,prev_anim(a0)		; force walking animation to restart if it's already in-progress
 +
 	add.w	d5,d0	; add acceleration to the right
 	cmp.w	d6,d0	; compare new speed with top speed
-	blt.s	+	; if new speed is less than the maximum, branch
+	blt.s	+		; if new speed is less than the maximum, branch
 	sub.w	d5,d0	; remove this frame's acceleration change
 	cmp.w	d6,d0	; compare speed with top speed
-	bge.s	+	; if speed was already greater than the maximum, branch
+	bge.s	+		; if speed was already greater than the maximum, branch
 	move.w	d6,d0	; limit speed on ground going right
 +
-	move.w	d0,inertia(a0)
+	move.w	d0,inertia(a0)				; set new ground speed
 	move.b	#AniIDSonAni_Walk,anim(a0)	; use walking animation
 	rts
 ; ---------------------------------------------------------------------------
 ; loc_1A77A:
 Sonic_TurnRight:
-	add.w	d4,d0
-	bcc.s	+
-	move.w	#$80,d0
+	add.w	d4,d0	; apply deceleration to current speed
+	bcc.s	+		; if still decelerating, branch
+	move.w	#$80,d0	; set minimum speed on sign change
 +
-	move.w	d0,inertia(a0)
+	move.w	d0,inertia(a0)	; set new ground speed
     if fixBugs
-	move.b	angle(a0),d1
-	addi.b	#$20,d1
-	andi.b	#$C0,d1
+	move.b	angle(a0),d1	; get Sonic's current angle
+	addi.b	#$20,d1			; rotate by 45 degrees clockwise
+	andi.b	#$C0,d1			; snap to nearest multiple of 90 degrees
     else
 	; These three instructions partially overwrite the inertia value in
 	; 'd0'! This causes the character to trigger their skidding
 	; animation at different speeds depending on whether they're going
 	; right or left. To fix this, make these instructions use 'd1'
 	; instead.
-	move.b	angle(a0),d0
-	addi.b	#$20,d0
-	andi.b	#$C0,d0
+	move.b	angle(a0),d0	; get Sonic's current angle (and partially overwrite d0...)
+	addi.b	#$20,d0			; rotate by 45 degrees clockwise
+	andi.b	#$C0,d0			; snap to nearest multiple of 90 degrees
     endif
-	bne.s	return_1A7C4
-	cmpi.w	#-$400,d0
-	bgt.s	return_1A7C4
-	move.b	#AniIDSonAni_Stop,anim(a0)	; use "stopping" animation
-	bset	#status.player.x_flip,status(a0)
-	move.w	#SndID_Skidding,d0	; use "stopping" sound
-	jsr	(PlaySound).l
-	cmpi.b	#12,air_left(a0)
-	blo.s	return_1A7C4	; if he's drowning, branch to not make dust
-	move.b	#6,(Sonic_Dust+routine).w
-	move.b	#$15,(Sonic_Dust+mapping_frame).w
+	bne.s	return_1A7C4	; if Sonic is on a wall or ceiling, prevent stopping animation
+	cmpi.w	#-$400,d0		; has Sonic changed direction while being really fast?
+	bgt.s	return_1A7C4	; if not, don't play skidding animation/sound
+	move.b	#AniIDSonAni_Stop,anim(a0)			; use "stopping" animation
+	bset	#status.player.x_flip,status(a0)	; set X-flip flag (Sonic is now facing left)
+	move.w	#SndID_Skidding,d0					; load skidding sound
+	jsr	(PlaySound).l							; play skidding sound
+	cmpi.b	#12,air_left(a0)					; is Sonic drowning?
+	blo.s	return_1A7C4						; if yes, branch
+	move.b	#6,(Sonic_Dust+routine).w			; set Obj08's routine to skidding
+	move.b	#$15,(Sonic_Dust+mapping_frame).w	; set skidding dust's frame
 
 return_1A7C4:
 	rts
@@ -42453,6 +42459,11 @@ JmpTo7_DeleteObject ; JmpTo
 ; ----------------------------------------------------------------------------
 ; Object 35 - Invincibility Stars
 ; ----------------------------------------------------------------------------
+
+obj35_table_offset = objoff_34
+obj35_frames_addr = objoff_30
+obj35_other_layer_id = objoff_36
+
 ; Sprite_1D97E:
 Obj35:
 	moveq	#0,d0
@@ -42462,27 +42473,33 @@ Obj35:
 ; ===========================================================================
 ; off_1D98C:
 Obj35_Index:	offsetTable
-		offsetTableEntry.w loc_1D9A4	; 0
-		offsetTableEntry.w loc_1DA0C	; 2
-		offsetTableEntry.w loc_1DA80	; 4
+		offsetTableEntry.w Obj35_Main	; 0
+		offsetTableEntry.w Obj35_Layer0Update	; 2
+		offsetTableEntry.w Obj35_OtherLayersUpdate	; 4
+; off_1D992:
+Obj35_Layers:
+	dc.l Obj35_Layer1Frames1
+	dc.b 0 ; offset for Obj35_PositionOffsetTable; here it's overwritten right before Obj35_Layer0Update
+	dc.b Obj35_Layer1Frames2-Obj35_Layer1Frames1
 
-off_1D992:
-	dc.l byte_1DB8F
-	dc.w $B
-	dc.l byte_1DBA4
-	dc.w $160D
-	dc.l byte_1DBBD
-	dc.w $2C0D
+	dc.l Obj35_Layer2Frames1
+	dc.b 22
+	dc.b Obj35_Layer2Frames2-Obj35_Layer2Frames1
+
+	dc.l Obj35_Layer3Frames1
+	dc.b 44
+	dc.b Obj35_Layer3Frames2-Obj35_Layer3Frames1
 ; ===========================================================================
-
-loc_1D9A4:
+; loc_1D9A4:
+Obj35_Main:
 	moveq	#0,d2
-	lea	off_1D992-6(pc),a2
+	lea	Obj35_Layers-6(pc),a2
 	lea	(a0),a1
 
-	moveq	#3,d1
+	moveq	#3,d1 ; 3 star layers
+
 -	_move.b	id(a0),id(a1) ; load obj35
-	move.b	#4,objoff_A(a1)		; => loc_1DA80
+	move.b	#4,objoff_A(a1)		; => Obj35_OtherLayersUpdate
 	move.l	#Obj35_MapUnc_1DCBC,mappings(a1)
 	move.w	#make_art_tile(ArtTile_ArtNem_Invincible_stars,0,0),art_tile(a1)
 	bsr.w	Adjust2PArtPointer2
@@ -42491,17 +42508,18 @@ loc_1D9A4:
 	move.b	#$10,mainspr_width(a1)
 	move.b	#2,mainspr_childsprites(a1)
 	move.w	parent(a0),parent(a1)
-	move.b	d2,objoff_36(a1)
+	move.b	d2,obj35_other_layer_id(a1)
 	addq.w	#1,d2
-	move.l	(a2)+,objoff_30(a1)
+	move.l	(a2)+,obj35_frames_addr(a1)
 	move.w	(a2)+,objoff_34(a1)
 	lea	next_object(a1),a1 ; a1=object
 	dbf	d1,-
 
-	move.b	#2,objoff_A(a0)		; => loc_1DA0C
-	move.b	#4,objoff_34(a0)
+	move.b	#2,objoff_A(a0)		; => Obj35_Layer0Update
+	move.b	#4,obj35_table_offset(a0)
 
-loc_1DA0C:
+; loc_1DA0C:
+Obj35_Layer0Update:
     if fixBugs
 	; If Sonic is invincible and he turns Super, then the invincibility
 	; stars will not go away. S3K fixes this by doing this:
@@ -42516,42 +42534,44 @@ loc_1DA0C:
 	move.w	y_pos(a1),d1
 	move.w	d1,y_pos(a0)
 	lea	subspr_data(a0),a2
-	lea	byte_1DB82(pc),a3
+	lea	Obj35_Layer0Frames(pc),a3
 	moveq	#0,d5
 
-loc_1DA34:
-	move.w	objoff_38(a0),d2
-	move.b	(a3,d2.w),d5
+-	move.w	objoff_38(a0),d2
+	move.b	(a3,d2.w),d5 ; frame
 	bpl.s	loc_1DA44
 	clr.w	objoff_38(a0)
-	bra.s	loc_1DA34
+	bra.s	-
 ; ===========================================================================
 
 loc_1DA44:
 	addq.w	#1,objoff_38(a0)
-	lea	byte_1DB42(pc),a6
-	move.b	objoff_34(a0),d6
-	jsr	loc_1DB2C(pc)
+	lea	Obj35_PositionOffsetTable(pc),a6
+	move.b	obj35_table_offset(a0),d6
+
+	jsr	Obj35_GetSpriteParams(pc)
 	move.w	d2,(a2)+	; sub2_x_pos
 	move.w	d3,(a2)+	; sub2_y_pos
 	move.w	d5,(a2)+	; sub2_mapframe
-	addi.w	#$20,d6
-	jsr	loc_1DB2C(pc)
+
+	addi.w	#16*2,d6	; add 16 positions (add 180 degrees to the angle)
+
+	jsr	Obj35_GetSpriteParams(pc)
 	move.w	d2,(a2)+	; sub3_x_pos
 	move.w	d3,(a2)+	; sub3_y_pos
 	move.w	d5,(a2)+	; sub3_mapframe
-	moveq	#$12,d0
-	btst	#status.player.x_flip,status(a1)
-	beq.s	loc_1DA74
+
+	moveq	#9*2,d0	; add 9 positions (18 bytes) to the table offset
+	btst	#status.player.x_flip,status(a1)	; if the player is looking to the left, negate the speed
+	beq.s	+
 	neg.w	d0
 
-loc_1DA74:
-	add.b	d0,objoff_34(a0)
++	add.b	d0,obj35_table_offset(a0)
 	move.w	#object_display_list_size*1,d0
 	bra.w	DisplaySprite3
 ; ===========================================================================
-
-loc_1DA80:
+; loc_1DA80:
+Obj35_OtherLayersUpdate:
     if fixBugs
 	; If Sonic is invincible and he turns Super, then the invincibility
 	; stars will not go away. S3K fixes this by doing this:
@@ -42562,94 +42582,128 @@ loc_1DA80:
 	btst	#status_secondary.invincible,status_secondary(a1)
 	beq.w	DeleteObject
 	cmpi.w	#2,(Player_mode).w
-	beq.s	loc_1DAA4
+	beq.s	+
 	lea	(Sonic_Pos_Record_Index).w,a5
 	lea	(Sonic_Pos_Record_Buf).w,a6
 	tst.b	parent+1(a0)
-	beq.s	loc_1DAAC
+	beq.s	++
 
-loc_1DAA4:
-	lea	(Tails_Pos_Record_Index).w,a5
++	lea	(Tails_Pos_Record_Index).w,a5
 	lea	(Tails_Pos_Record_Buf).w,a6
 
-loc_1DAAC:
-	move.b	objoff_36(a0),d1
++	move.b	obj35_other_layer_id(a0),d1	; calculate the player position table offset
 	lsl.b	#2,d1
 	move.w	d1,d2
 	add.w	d1,d1
 	add.w	d2,d1
 	move.w	(a5),d0
-	sub.b	d1,d0
+	sub.b	d1,d0	; d0 (offset) = obj35_other_layer_id * 12 bytes (obj35_other_layer_id * 3 positions)
 	lea	(a6,d0.w),a2
-	move.w	(a2)+,d0
+	move.w	(a2)+,d0	; save the previous player position in d0, d1
 	move.w	(a2)+,d1
 	move.w	d0,x_pos(a0)
 	move.w	d1,y_pos(a0)
 	lea	subspr_data(a0),a2
-	movea.l	objoff_30(a0),a3
+	movea.l	obj35_frames_addr(a0),a3
 
-loc_1DAD4:
-	move.w	objoff_38(a0),d2
-	move.b	(a3,d2.w),d5
+-	move.w	objoff_38(a0),d2
+	move.b	(a3,d2.w),d5 ; load frame 1
 	bpl.s	loc_1DAE4
 	clr.w	objoff_38(a0)
-	bra.s	loc_1DAD4
+	bra.s	-
 ; ===========================================================================
 
 loc_1DAE4:
 	swap	d5
 	add.b	objoff_35(a0),d2
-	move.b	(a3,d2.w),d5
+	move.b	(a3,d2.w),d5 ; load frame 2
 	addq.w	#1,objoff_38(a0)
-	lea	byte_1DB42(pc),a6
-	move.b	objoff_34(a0),d6
-	jsr	loc_1DB2C(pc)
+	lea	Obj35_PositionOffsetTable(pc),a6
+	move.b	obj35_table_offset(a0),d6
+
+	jsr	Obj35_GetSpriteParams(pc)
 	move.w	d2,(a2)+	; sub2_x_pos
 	move.w	d3,(a2)+	; sub2_y_pos
-	move.w	d5,(a2)+	; sub2_mapframe
-	addi.w	#$20,d6
+	move.w	d5,(a2)+	; sub2_mapframe, use frame 2
+
+	addi.w	#16*2,d6	; add 16 positions (add 180 degrees to the angle)
 	swap	d5
-	jsr	loc_1DB2C(pc)
+	
+	jsr	Obj35_GetSpriteParams(pc)
 	move.w	d2,(a2)+	; sub3_x_pos
 	move.w	d3,(a2)+	; sub3_y_pos
-	move.w	d5,(a2)+	; sub3_mapframe
-	moveq	#2,d0
-	btst	#status.player.x_flip,status(a1)
-	beq.s	loc_1DB20
+	move.w	d5,(a2)+	; sub3_mapframe, use frame 1
+	
+	moveq	#1*2,d0	; add 1 positions (2 bytes) to the table offset
+	btst	#status.player.x_flip,status(a1)	; if the player is looking to the left, negate the speed
+	beq.s	+
 	neg.w	d0
 
-loc_1DB20:
-	add.b	d0,objoff_34(a0)
++	add.b	d0,obj35_table_offset(a0)
 	move.w	#object_display_list_size*1,d0
 	bra.w	DisplaySprite3
 ; ===========================================================================
-
-loc_1DB2C:
-	andi.w	#$3E,d6
-	move.b	(a6,d6.w),d2
+; loc_1DB2C:
+Obj35_GetSpriteParams:
+	andi.w	#$3E,d6	; 31*2, 64 bytes in the array (32 positions)
+	move.b	(a6,d6.w),d2	; read the X and Y position into d2 and d3 respectively
 	move.b	1(a6,d6.w),d3
 	ext.w	d2
 	ext.w	d3
-	add.w	d0,d2
+	add.w	d0,d2	; add the previous player position to d2 and d3
 	add.w	d1,d3
 	rts
 ; ===========================================================================
-; unknown
-byte_1DB42:	dc.w   $F00,  $F03,  $E06,  $D08,  $B0B,  $80D,  $60E,  $30F
-		dc.w    $10, -$3F1, -$6F2, -$8F3, -$BF5, -$DF8, -$EFA, -$FFD
-		dc.w  $F000, -$F04, -$E07, -$D09, -$B0C, -$80E, -$60F, -$310
-		dc.w   -$10,  $3F0,  $6F1,  $8F2,  $BF4,  $DF7,  $EF9,  $FFC
+; byte_1DB42:
+Obj35_PositionOffsetTable:
+		;		X, Y
+		dc.b	15, 0	; 0 degrees
+		dc.b	15, 3
+		dc.b	14, 6
+		dc.b	13, 8
+		dc.b	11, 11
+		dc.b	8, 13
+		dc.b	6, 14
+		dc.b	3, 15
+		dc.b	0, 16	; 90
+		dc.b	-4, 15
+		dc.b	-7, 14
+		dc.b	-9, 13
+		dc.b	-12, 11
+		dc.b	-14, 8
+		dc.b	-15, 6
+		dc.b	-16, 3
+		dc.b	-16, 0	; 180
+		dc.b	-16, -4
+		dc.b	-15, -7
+		dc.b	-14, -9
+		dc.b	-12, -12
+		dc.b	-9, -14
+		dc.b	-7, -15
+		dc.b	-4, -16
+		dc.b	-1, -16	; 270
+		dc.b	3, -16
+		dc.b	6, -15
+		dc.b	8, -14
+		dc.b	11, -12
+		dc.b	13, -9
+		dc.b	14, -7
+		dc.b	15, -4
 
-byte_1DB82:	dc.b   8,  5,  7,  6,  6,  7,  5,  8,  6,  7,  7,  6,$FF
+; byte_1DB82:
+Obj35_Layer0Frames:		dc.b   8,  5,  7,  6,  6,  7,  5,  8,  6,  7,  7,  6,$FF
 	rev02even
-byte_1DB8F:	dc.b   8,  7,  6,  5,  4,  3,  4,  5,  6,  7,$FF
-		dc.b   3,  4,  5,  6,  7,  8,  7,  6,  5,  4
+; byte_1DB8F:
+Obj35_Layer1Frames1:	dc.b   8,  7,  6,  5,  4,  3,  4,  5,  6,  7,$FF
+Obj35_Layer1Frames2:	dc.b   3,  4,  5,  6,  7,  8,  7,  6,  5,  4
 	rev02even
-byte_1DBA4:	dc.b   8,  7,  6,  5,  4,  3,  2,  3,  4,  5,  6,  7,$FF
-		dc.b   2,  3,  4,  5,  6,  7,  8,  7,  6,  5,  4,  3
+; byte_1DBA4:
+Obj35_Layer2Frames1:	dc.b   8,  7,  6,  5,  4,  3,  2,  3,  4,  5,  6,  7,$FF
+Obj35_Layer2Frames2:	dc.b   2,  3,  4,  5,  6,  7,  8,  7,  6,  5,  4,  3
 	rev02even
-byte_1DBBD:	dc.b   7,  6,  5,  4,  3,  2,  1,  2,  3,  4,  5,  6,$FF
-		dc.b   1,  2,  3,  4,  5,  6,  7,  6,  5,  4,  3,  2
+; byte_1DBBD:
+Obj35_Layer3Frames1:	dc.b   7,  6,  5,  4,  3,  2,  1,  2,  3,  4,  5,  6,$FF
+Obj35_Layer3Frames2:	dc.b   1,  2,  3,  4,  5,  6,  7,  6,  5,  4,  3,  2
 	even
 
 ; animation script
@@ -43033,7 +43087,7 @@ loc_1E292:
 	lea	(Primary_Angle).w,a4	; write angle here
 	movea.w	#$10,a3				; tile height
 	move.w	#0,d6
-	bsr.w	FindFloor 
+	bsr.w	FindFloor
 	move.w	d1,-(sp)			; save d1 (distance to floor) to stack
 	move.w	y_pos(a0),d2
 	move.w	x_pos(a0),d3
@@ -45575,9 +45629,14 @@ word_1FCB8_End
 
 
 ; ===========================================================================
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Object 03 - Collision plane/layer switcher
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
+; OST Variables:
+planeswitch_radius =	objoff_32	; word ; half-height of x-switcher or half-width of y-switcher
+planeswitch_p1_flag = 	objoff_34	; byte ; 0 if player 1 is above or left of switcher; 1 if below or to right
+planeswitch_p2_flag =	objoff_35	; byte ; same as above, but for player 2
+
 ; Sprite_1FCDC:
 Obj03:
 	moveq	#0,d0
@@ -45610,17 +45669,17 @@ Obj03_Init:
 	move.b	d0,mapping_frame(a0)
 	andi.w	#3,d0
 	add.w	d0,d0
-	move.w	word_1FD68(pc,d0.w),objoff_32(a0)
+	move.w	word_1FD68(pc,d0.w),planeswitch_radius(a0)
 	move.w	y_pos(a0),d1
 	lea	(MainCharacter).w,a1 ; a1=character
 	cmp.w	y_pos(a1),d1
 	bhs.s	+
-	move.b	#1,objoff_34(a0)
+	move.b	#1,planeswitch_p1_flag(a0)
 +
 	lea	(Sidekick).w,a1 ; a1=character
 	cmp.w	y_pos(a1),d1
 	bhs.s	+
-	move.b	#1,objoff_35(a0)
+	move.b	#1,planeswitch_p2_flag(a0)
 +
 	bra.w	Obj03_MainY
 ; ===========================================================================
@@ -45635,17 +45694,17 @@ Obj03_Init_CheckX:
 	andi.w	#3,d0
 	move.b	d0,mapping_frame(a0)
 	add.w	d0,d0
-	move.w	word_1FD68(pc,d0.w),objoff_32(a0)
+	move.w	word_1FD68(pc,d0.w),planeswitch_radius(a0)
 	move.w	x_pos(a0),d1
 	lea	(MainCharacter).w,a1 ; a1=character
 	cmp.w	x_pos(a1),d1
 	bhs.s	+
-	move.b	#1,objoff_34(a0)
+	move.b	#1,planeswitch_p1_flag(a0)
 +
 	lea	(Sidekick).w,a1 ; a1=character
 	cmp.w	x_pos(a1),d1
 	bhs.s	+
-	move.b	#1,objoff_35(a0)
+	move.b	#1,planeswitch_p2_flag(a0)
 +
 
 ; loc_1FDA4:
@@ -45653,7 +45712,7 @@ Obj03_MainX:
 	tst.w	(Debug_placement_mode).w
 	bne.w	return_1FEAC
 	move.w	x_pos(a0),d1
-	lea	objoff_34(a0),a2
+	lea	planeswitch_p1_flag(a0),a2
 	lea	(MainCharacter).w,a1 ; a1=character
 	bsr.s	+
 	lea	(Sidekick).w,a1 ; a1=character
@@ -45665,7 +45724,7 @@ Obj03_MainX:
 	move.b	#1,-1(a2)
 	move.w	y_pos(a0),d2
 	move.w	d2,d3
-	move.w	objoff_32(a0),d4
+	move.w	planeswitch_radius(a0),d4
 	sub.w	d4,d2
 	add.w	d4,d3
 	move.w	y_pos(a1),d4
@@ -45700,7 +45759,7 @@ Obj03_MainX_Alt:
 	move.b	#0,-1(a2)
 	move.w	y_pos(a0),d2
 	move.w	d2,d3
-	move.w	objoff_32(a0),d4
+	move.w	planeswitch_radius(a0),d4
 	sub.w	d4,d2
 	add.w	d4,d3
 	move.w	y_pos(a1),d4
@@ -45735,7 +45794,7 @@ Obj03_MainY:
 	tst.w	(Debug_placement_mode).w
 	bne.w	return_1FFB6
 	move.w	y_pos(a0),d1
-	lea	objoff_34(a0),a2
+	lea	planeswitch_p1_flag(a0),a2
 	lea	(MainCharacter).w,a1 ; a1=character
 	bsr.s	+
 	lea	(Sidekick).w,a1 ; a1=character
@@ -45747,7 +45806,7 @@ Obj03_MainY:
 	move.b	#1,-1(a2)
 	move.w	x_pos(a0),d2
 	move.w	d2,d3
-	move.w	objoff_32(a0),d4
+	move.w	planeswitch_radius(a0),d4
 	sub.w	d4,d2
 	add.w	d4,d3
 	move.w	x_pos(a1),d4
@@ -45782,7 +45841,7 @@ Obj03_MainY_Alt:
 	move.b	#0,-1(a2)
 	move.w	x_pos(a0),d2
 	move.w	d2,d3
-	move.w	objoff_32(a0),d4
+	move.w	planeswitch_radius(a0),d4
 	sub.w	d4,d2
 	add.w	d4,d3
 	move.w	x_pos(a1),d4
@@ -45812,9 +45871,9 @@ Obj03_MainY_Alt:
 return_1FFB6:
 	rts
 ; ===========================================================================
-; -------------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; sprite mappings
-; -------------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 Obj03_MapUnc_1FFB8:	include "mappings/sprite/obj03.asm"
 ; ===========================================================================
 
@@ -50195,9 +50254,10 @@ Obj07_End:
 ; Object 45 - Pressure spring from OOZ
 ; ---------------------------------------------------------------------------
 ; OST Variables:
-obj45_strength = objoff_30
-obj45_frame = objoff_32
-obj45_original_x_pos = objoff_34
+obj45_strength			=	objoff_30	; word ; strength of spring
+obj45_frame				= 	objoff_32	; word ; frame counter used to track level of compression
+obj45_original_x_pos 	=	objoff_34	; word ; backup of initial x-pos
+obj45_compress			=	objoff_36	; byte ; flag set if spring is compressing
 
 ; Sprite_240F8:
 Obj45:
@@ -50228,6 +50288,9 @@ Obj45_Init:
 	; This bugfix is a bit of a hack: ideally, the Oil Ocean Zone Act 2
 	; object layout should be corrected to not contain instances of this
 	; object with an invalid subtype, but this will have to do.
+
+	; If you have replaced its layout with its fixed version, this line
+	; can be safely deleted.
 	andi.w	#2,d0
     else
 	; Some instances of this object use a subtype of $30, which results
@@ -50363,7 +50426,7 @@ return_24278:
 ; ===========================================================================
 ; loc_2427A:
 Obj45_Horizontal:
-	move.b	#0,objoff_36(a0)
+	move.b	#0,obj45_compress(a0)
 	move.w	#31,d1
 	move.w	#12,d2
 	move.w	#13,d3
@@ -50404,7 +50467,7 @@ loc_242E6:
 	bsr.s	loc_2433C
 
 loc_242EE:
-	tst.b	objoff_36(a0)
+	tst.b	obj45_compress(a0)
 	bne.s	return_2433A
 	move.w	obj45_original_x_pos(a0),d0
 	cmp.w	x_pos(a0),d0
@@ -50491,7 +50554,7 @@ loc_243C0:
 	move.b	d0,mapping_frame(a0)
 
 loc_243C8:
-	move.b	#1,objoff_36(a0)
+	move.b	#1,obj45_compress(a0)
 
 return_243CE:
 	rts
@@ -54329,6 +54392,17 @@ Obj6A_MapUnc_27D30:	include "mappings/sprite/obj6A.asm"
 ; ---------------------------------------------------------------------------
 ; Object 6B - Immobile platform from MTZ
 ; ---------------------------------------------------------------------------
+; subtype bits: .ffftttt
+; t = platform behavior (see Obj6B_Types)
+; f = sprite frame and width (indexes Obj6B_Properties)
+; ---------------------------------------------------------------------------
+; Some movement types use status.npc.x_flip to determine movement direction
+; ---------------------------------------------------------------------------
+obj6B_base_flip		= objoff_2E ; byte
+obj6B_y_origin		= objoff_30 ; word
+obj6B_x_origin		= objoff_34 ; word
+obj6B_acceleration	= objoff_38 ; byte
+
 ; Sprite_27D6C:
 Obj6B:
 	moveq	#0,d0
@@ -54352,51 +54426,52 @@ Obj6B_Properties:
 ; ===========================================================================
 ; loc_27D86:
 Obj6B_Init:
-	addq.b	#2,routine(a0)
+	addq.b	#2,routine(a0)	; => Obj6B_Main
 	move.l	#Obj65_Obj6A_Obj6B_MapUnc_26EC8,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtKos_LevelArt,3,0),art_tile(a0)
 	cmpi.b	#chemical_plant_zone,(Current_Zone).w
-	bne.s	+
+	bne.s	.notCPZ
 	move.l	#Obj6B_MapUnc_2800E,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_CPZStairBlock,3,0),art_tile(a0)
-+
+
+.notCPZ:
 	jsrto	JmpTo34_Adjust2PArtPointer
 	move.b	#1<<render_flags.level_fg,render_flags(a0)
 	move.b	#3,priority(a0)
 	moveq	#0,d0
-	move.b	subtype(a0),d0
-	lsr.w	#2,d0
-	andi.w	#$1C,d0
+	move.b	subtype(a0),d0		; get sprite frame bits (.fff....)
+	lsr.w	#4-2,d0			; ... shift into place for f*4...
+	andi.w	#%11100,d0		; ... remove other bits to index table
 	lea	Obj6B_Properties(pc,d0.w),a2
 	move.b	(a2)+,width_pixels(a0)
 	move.b	(a2)+,y_radius(a0)
 	move.b	(a2)+,mapping_frame(a0)
-	move.w	x_pos(a0),objoff_34(a0)
-	move.w	y_pos(a0),objoff_30(a0)
-	move.b	status(a0),objoff_2E(a0)
+	move.w	x_pos(a0),obj6B_x_origin(a0)
+	move.w	y_pos(a0),obj6B_y_origin(a0)
+	move.b	status(a0),obj6B_base_flip(a0)
 	moveq	#0,d0
 	move.b	subtype(a0),d0
-	andi.w	#$F,d0
-	subq.w	#8,d0
-	bcs.s	Obj6B_Main
+	andi.w	#%1111,d0
+	subq.w	#8,d0			; is it one of the Obj6B_Stair types?
+	bcs.s	Obj6B_Main		; if not, branch
 	lsl.w	#2,d0
 	lea	(Oscillating_Data+$2A).w,a2
 	lea	(a2,d0.w),a2
 	tst.w	(a2)
 	bpl.s	Obj6B_Main
-	bchg	#status.npc.x_flip,objoff_2E(a0)
+	bchg	#status.npc.x_flip,obj6B_base_flip(a0)
 ; loc_27E0E:
 Obj6B_Main:
 	move.w	x_pos(a0),-(sp)
 	moveq	#0,d0
-	move.b	subtype(a0),d0
-	andi.w	#$F,d0
-	add.w	d0,d0
+	move.b	subtype(a0),d0		; get behavior bits (....mmmm)
+	andi.w	#%1111,d0		; ... remove other bits...
+	add.w	d0,d0			; ... and scale to m*2 to index table
 	move.w	Obj6B_Types(pc,d0.w),d1
 	jsr	Obj6B_Types(pc,d1.w)
 	move.w	(sp)+,d4
 	_btst	#render_flags.on_screen,render_flags(a0)
-	_beq.s	+
+	_beq.s	.offScreen
 	moveq	#0,d1
 	move.b	width_pixels(a0),d1
 	addi.w	#$B,d1
@@ -54405,221 +54480,324 @@ Obj6B_Main:
 	move.w	d2,d3
 	addq.w	#1,d3
 	jsrto	JmpTo14_SolidObject
-+
-	move.w	objoff_34(a0),d0
+
+.offScreen:
+	move.w	obj6B_x_origin(a0),d0
 	jmpto	JmpTo4_MarkObjGone2
 ; ===========================================================================
 ; off_27E4E:
 Obj6B_Types:	offsetTable
-		offsetTableEntry.w Obj6B_Type_Immobile	;  0
-		offsetTableEntry.w loc_27E68		;  1
-		offsetTableEntry.w loc_27E74		;  2
-		offsetTableEntry.w loc_27E96		;  3
-		offsetTableEntry.w loc_27EA2		;  4
-		offsetTableEntry.w loc_27EC4		;  5
-		offsetTableEntry.w loc_27EE2		;  6
-		offsetTableEntry.w loc_27F10		;  7
-		offsetTableEntry.w loc_27F4E		;  8
-		offsetTableEntry.w loc_27F60		;  9
-		offsetTableEntry.w loc_27F70		; $A
-		offsetTableEntry.w loc_27F80		; $B
+	offsetTableEntry.w Obj6B_Type_Immobile		;  0
+	offsetTableEntry.w Obj6B_Horizontal		;  1
+	offsetTableEntry.w Obj6B_Horizontal.long	;  2
+	offsetTableEntry.w Obj6B_Vertical		;  3
+	offsetTableEntry.w Obj6B_Vertical.long		;  4
+	offsetTableEntry.w Obj6B_Sinking		;  5
+	offsetTableEntry.w Obj6B_Sink			;  6
+	offsetTableEntry.w Obj6B_Descend		;  7
+	offsetTableEntry.w Obj6B_Stair.smallest		;  8
+	offsetTableEntry.w Obj6B_Stair.small		;  9
+	offsetTableEntry.w Obj6B_Stair.large		; $A
+	offsetTableEntry.w Obj6B_Stair.largest		; $B
 ; ===========================================================================
+; 0 - Platform that doesn't move
+; ---------------------------------------------------------------------------
 ; return_27E66:
 Obj6B_Type_Immobile:
 	rts
 ; ===========================================================================
-
-loc_27E68:
-	move.w	#$40,d1
+; 1 - Horizontally moving platform, small range
+; ---------------------------------------------------------------------------
+; Movement has a(n imperfect) range of $40
+; !status.npc.x_flip - Move between -$3F and 0, starting at 0
+;  status.npc.x_flip - Move between -$40 and -1, starting at -$40
+; ---------------------------------------------------------------------------
+; loc_27E68:
+Obj6B_Horizontal:
+	move.w	#$40,d1				; assume a range of $40
 	moveq	#0,d0
-	move.b	(Oscillating_Data+8).w,d0
-	bra.s	+
+	move.b	(Oscillating_Data+8).w,d0	; range: 0..$3F
+	bra.s	.moveX
 ; ===========================================================================
-
-loc_27E74:
-	move.w	#$80,d1
+; 2 - Horizontally moving platform, large range
+; ---------------------------------------------------------------------------
+; Movement has a(n imperfect) range of $80
+; !status.npc.x_flip - Move between -$7F and 0, starting at 0
+;  status.npc.x_flip - Move between -$80 and -1, starting at -$80
+; ---------------------------------------------------------------------------
+; loc_27E74:
+.long:
+	move.w	#$80,d1				; assume a range of $80
 	moveq	#0,d0
-	move.b	(Oscillating_Data+$1C).w,d0
-+
+	move.b	(Oscillating_Data+$1C).w,d0	; range: 0..$7F
+
+.moveX:
 	btst	#status.npc.x_flip,status(a0)
-	beq.s	+
-	neg.w	d0
-	add.w	d1,d0
-+
-	move.w	objoff_34(a0),d1
+	beq.s	.notReverse
+	neg.w	d0				; flip range
+	add.w	d1,d0				; ''
+
+.notReverse:
+	move.w	obj6B_x_origin(a0),d1
 	sub.w	d0,d1
 	move.w	d1,x_pos(a0)
 	rts
 ; ===========================================================================
-
-loc_27E96:
-	move.w	#$40,d1
+; 3 - Vertically moving platform, small range
+; ---------------------------------------------------------------------------
+; Movement has a(n imperfect) range of $40
+; !status.npc.x_flip - Move between -$3F and 0, starting at 0
+;  status.npc.x_flip - Move between -$40 and -1, starting at -$40
+; ---------------------------------------------------------------------------
+; loc_27E96:
+Obj6B_Vertical:
+	move.w	#$40,d1				; assume a range of $40
 	moveq	#0,d0
-	move.b	(Oscillating_Data+8).w,d0
-	bra.s	loc_27EAC
+	move.b	(Oscillating_Data+8).w,d0	; range: 0..$3F
+	bra.s	.moveY
 ; ===========================================================================
-
-loc_27EA2:
-	move.w	#$80,d1
+; 4 - Vertically moving platform, large range
+; ---------------------------------------------------------------------------
+; Movement has a(n imperfect) range of $80
+; !status.npc.x_flip - Move between -$7F and 0, starting at 0
+;  status.npc.x_flip - Move between -$80 and -1, starting at -$80
+; ---------------------------------------------------------------------------
+; loc_27EA2:
+.long:
+	move.w	#$80,d1				; assume a range of $80
 	moveq	#0,d0
-	move.b	(Oscillating_Data+$1C).w,d0
+	move.b	(Oscillating_Data+$1C).w,d0	; range: 0..$7F
 
-loc_27EAC:
+; loc_27EAC:
+.moveY:
 	btst	#status.npc.x_flip,status(a0)
-	beq.s	loc_27EB8
-	neg.w	d0
-	add.w	d1,d0
+	beq.s	.notReverse
+	neg.w	d0				; flip range
+	add.w	d1,d0				; ''
 
-loc_27EB8:
-	move.w	objoff_30(a0),d1
+; loc_27EB8:
+.notReverse:
+	move.w	obj6B_y_origin(a0),d1
 	sub.w	d0,d1
 	move.w	d1,y_pos(a0)
 	rts
 ; ===========================================================================
-
-loc_27EC4:
-	move.b	(Oscillating_Data).w,d0
-	lsr.w	#1,d0
-	add.w	objoff_30(a0),d0
-	move.w	d0,y_pos(a0)
+; 5 - Platform that sinks once stood on
+; ---------------------------------------------------------------------------
+; loc_27EC4:
+Obj6B_Sinking:
+	move.b	(Oscillating_Data).w,d0		; range: 0..$1F
+	lsr.w	#1,d0				; range: 0..$F
+	add.w	obj6B_y_origin(a0),d0		; bob on top of the lava
+	move.w	d0,y_pos(a0)			; ''
 	move.b	status(a0),d1
 	andi.b	#standing_mask,d1
-	beq.s	return_27EE0
-	addq.b	#1,subtype(a0)
+	beq.s	.return
+	addq.b	#1,subtype(a0)	; => Obj6B_Sink
 
-return_27EE0:
+; return_27EE0:
+.return:
 	rts
 ; ===========================================================================
-
-loc_27EE2:
+; 6 - Platform as it is sinking
+; ---------------------------------------------------------------------------
+; Platform accelerates downward until it goes under the level's lower
+; boundary*, then stops.
+; * This doesn't work as intended in MTZ due to the screen wrapping. The
+; platform can sometimes loop around and eventually come to a stop somewhere
+; above its starting position.
+; ---------------------------------------------------------------------------
+; loc_27EE2:
+Obj6B_Sink:
 	move.l	y_pos(a0),d3
-	move.w	y_vel(a0),d0
-	ext.l	d0
-	asl.l	#8,d0
-	add.l	d0,d3
-	move.l	d3,y_pos(a0)
+	move.w	y_vel(a0),d0		; align velocity with position
+	ext.l	d0			; ''
+	asl.l	#8,d0			; ''
+	add.l	d0,d3			; apply velocity
+	move.l	d3,y_pos(a0)		; ''
 	addi_.w	#8,y_vel(a0)
+	; this check was likey adapted from Obj18, but doesn't work right with
+	; MTZ's screen wrapping
 	move.w	(Camera_Max_Y_pos).w,d0
 	addi.w	#screen_height,d0
 	cmp.w	y_pos(a0),d0
-	bhs.s	return_27F0E
-	move.b	#0,subtype(a0)
+	bhs.s	.return
+	move.b	#0,subtype(a0)	; => Obj6B_Type_Immobile
 
-return_27F0E:
+; return_27F0E:
+.return:
 	rts
 ; ===========================================================================
-
-loc_27F10:
-	tst.b	objoff_38(a0)
-	bne.s	loc_27F26
+; 7 - Platform that descends once stood on, accelerating towards its halfway
+; point, then decelerating to ease into its destination.
+; The destination is $E1 units below its starting point.
+; ---------------------------------------------------------------------------
+; __
+;   \
+;    \ <-- inflection point
+;     \__ <-- stationary point
+;
+; ---------------------------------------------------------------------------
+; loc_27F10:
+Obj6B_Descend:
+	tst.b	obj6B_acceleration(a0)	; has movement started?
+	bne.s	.moveY			; if yes, branch
 	move.b	status(a0),d0
 	andi.b	#standing_mask,d0
-	beq.s	return_27F4C
-	move.b	#8,objoff_38(a0)
+	beq.s	.return
+	move.b	#8,obj6B_acceleration(a0)
 
-loc_27F26:
+; loc_27F26:
+.moveY:
 	jsrto	JmpTo14_ObjectMove
-	andi.w	#$7FF,y_pos(a0)
-	cmpi.w	#$2A8,y_vel(a0)
-	bne.s	loc_27F3C
-	neg.b	objoff_38(a0)
+	andi.w	#$7FF,y_pos(a0)		; wrap position
+	cmpi.w	#$2A8,y_vel(a0)		; has curve reached inflection point?
+	bne.s	.accelerate		; if not, branch
+	neg.b	obj6B_acceleration(a0)	; reverse curvature's sign
 
-loc_27F3C:
-	move.b	objoff_38(a0),d1
+; loc_27F3C:
+.accelerate:
+	move.b	obj6B_acceleration(a0),d1
 	ext.w	d1
 	add.w	d1,y_vel(a0)
-	bne.s	return_27F4C
-	clr.b	subtype(a0)
+	bne.s	.return		; branch, if stationary point isn't reached
+	clr.b	subtype(a0)	; => Obj6B_Type_Immobile
 
-return_27F4C:
+; return_27F4C:
+.return:
 	rts
 ; ===========================================================================
-
-loc_27F4E:
-	move.w	#$10,d1
+; 8 - Block used to construct a rotating stairway. Follows a square path
+; clockwise around its origin point.
+; This subtype uses a radius of $10.
+; ---------------------------------------------------------------------------
+; loc_27F4E:
+Obj6B_Stair:
+.smallest:
+	move.w	#$10,d1				; assume a radius of $10
 	moveq	#0,d0
-	move.b	(Oscillating_Data+$28).w,d0
-	lsr.w	#1,d0
+	move.b	(Oscillating_Data+$28).w,d0	; range 0..$3F
+	lsr.w	#1,d0				; scale to 0..$1F
 	move.w	(Oscillating_Data+$2A).w,d3
-	bra.s	loc_27F8E
+	bra.s	.tstCorner
 ; ===========================================================================
-
-loc_27F60:
-	move.w	#$30,d1
+; 9 - Block used to construct a rotating stairway. Follows a square path
+; clockwise around its origin point.
+; This subtype uses a radius of $30.
+; ---------------------------------------------------------------------------
+; loc_27F60:
+.small:
+	move.w	#$30,d1				; assume a radius of $30
 	moveq	#0,d0
-	move.b	(Oscillating_Data+$2C).w,d0
+	move.b	(Oscillating_Data+$2C).w,d0	; range 0..$5F
 	move.w	(Oscillating_Data+$2E).w,d3
-	bra.s	loc_27F8E
+	bra.s	.tstCorner
 ; ===========================================================================
-
-loc_27F70:
-	move.w	#$50,d1
+; $A - Block used to construct a rotating stairway. Follows a square path
+; clockwise around its origin point.
+; This subtype uses a radius of $50. Left over from S1, but unused here.
+; ---------------------------------------------------------------------------
+; loc_27F70:
+.large:
+	move.w	#$50,d1				; assume a radius of $50
 	moveq	#0,d0
-	move.b	(Oscillating_Data+$30).w,d0
+	move.b	(Oscillating_Data+$30).w,d0	; range 0..$9E
 	move.w	(Oscillating_Data+$32).w,d3
-	bra.s	loc_27F8E
+	bra.s	.tstCorner
 ; ===========================================================================
-
-loc_27F80:
-	move.w	#$70,d1
+; $B - Block used to construct a rotating stairway. Follows a square path
+; clockwise around its origin point.
+; This subtype uses a radius of $70. Left over from S1, but unused here.
+; ---------------------------------------------------------------------------
+; loc_27F80:
+.largest:
+	move.w	#$70,d1				; assume a radius of $70
 	moveq	#0,d0
-	move.b	(Oscillating_Data+$34).w,d0
+	move.b	(Oscillating_Data+$34).w,d0	; range 0..$DE
 	move.w	(Oscillating_Data+$36).w,d3
 
-loc_27F8E:
-	tst.w	d3
-	bne.s	loc_27F9C
-	addq.b	#1<<status.npc.x_flip,objoff_2E(a0)
-	andi.b	#1<<status.npc.x_flip|1<<status.npc.y_flip,objoff_2E(a0)
+; loc_27F8E:
+.tstCorner:
+	tst.w	d3			; has stair block reached a corner?
+	bne.s	.moveBlock		; if not, branch
+	; When the oscillator reaches a stationary point, that means
+	; the stair block has reached a corner and needs to change its
+	; movement direction, which is acheived by changing the flip flags.
+	addq.b	#1<<status.npc.x_flip,obj6B_base_flip(a0)
+	andi.b	#1<<status.npc.x_flip|1<<status.npc.y_flip,obj6B_base_flip(a0)
 
-loc_27F9C:
-	move.b	objoff_2E(a0),d2
+; loc_27F9C:
+.moveBlock:
+	move.b	obj6B_base_flip(a0),d2
 	andi.b	#1<<status.npc.x_flip|1<<status.npc.y_flip,d2
-	bne.s	loc_27FBC
-	sub.w	d1,d0
-	add.w	objoff_34(a0),d0
-	move.w	d0,x_pos(a0)
-	neg.w	d1
-	add.w	objoff_30(a0),d1
-	move.w	d1,y_pos(a0)
+	bne.s	.topToBottom
+
+; ===========================================================================
+; Case ~~y_flip && ~~x_flip
+; ---------------------------------------------------------------------------
+; Move x_pos from -radius to +radius, oscillator is counting up
+; Offset y_pos by -radius
+; ---------------------------------------------------------------------------
+;.leftToRight:
+	sub.w	d1,d0				; offset range by radius...
+	add.w	obj6B_x_origin(a0),d0		; ... center around origin...
+	move.w	d0,x_pos(a0)			; ... and move horizontally
+	neg.w	d1				; use -radius for y position
+	add.w	obj6B_y_origin(a0),d1		; ''
+	move.w	d1,y_pos(a0)			; ''
 	rts
 ; ===========================================================================
-
-loc_27FBC:
+; Case ~~y_flip && x_flip
+; ---------------------------------------------------------------------------
+; Move y_pos from -radius to +radius, oscillator is counting down
+; Offset x_pos by +radius
+; ---------------------------------------------------------------------------
+; loc_27FBC:
+.topToBottom:
 	subq.b	#1,d2
-	bne.s	loc_27FDA
-	subq.w	#1,d1
-	sub.w	d1,d0
-	neg.w	d0
-	add.w	objoff_30(a0),d0
-	move.w	d0,y_pos(a0)
-	addq.w	#1,d1
-	add.w	objoff_34(a0),d1
-	move.w	d1,x_pos(a0)
+	bne.s	.rightToLeft
+	subq.w	#1,d1			; account for range being off by 1
+	sub.w	d1,d0				; offset range by radius...
+	neg.w	d0				; ... reverse motion...
+	add.w	obj6B_y_origin(a0),d0		; ... center around origin...
+	move.w	d0,y_pos(a0)			; ... and move vertically
+	addq.w	#1,d1				; undo change to radius
+	add.w	obj6B_x_origin(a0),d1		; use radius for x position
+	move.w	d1,x_pos(a0)			; ''
 	rts
 ; ===========================================================================
-
-loc_27FDA:
+; Case y_flip && ~~x_flip
+; ---------------------------------------------------------------------------
+; Move x_pos from +radius to -radius, oscillator is counting up
+; Offset y_pos by +radius
+; ---------------------------------------------------------------------------
+; loc_27FDA:
+.rightToLeft:
 	subq.b	#1,d2
-	bne.s	loc_27FF8
-	subq.w	#1,d1
-	sub.w	d1,d0
-	neg.w	d0
-	add.w	objoff_34(a0),d0
-	move.w	d0,x_pos(a0)
-	addq.w	#1,d1
-	add.w	objoff_30(a0),d1
-	move.w	d1,y_pos(a0)
+	bne.s	.bottomToTop
+	subq.w	#1,d1			; account for range being off by 1
+	sub.w	d1,d0				; offset range by radius...
+	neg.w	d0				; ... reverse motion...
+	add.w	obj6B_x_origin(a0),d0		; ... center around origin...
+	move.w	d0,x_pos(a0)			; ... and move horizontally
+	addq.w	#1,d1				; undo change to radius
+	add.w	obj6B_y_origin(a0),d1		; use radius for y position
+	move.w	d1,y_pos(a0)			; ''
 	rts
 ; ===========================================================================
-
-loc_27FF8:
-	sub.w	d1,d0
-	add.w	objoff_30(a0),d0
-	move.w	d0,y_pos(a0)
-	neg.w	d1
-	add.w	objoff_34(a0),d1
-	move.w	d1,x_pos(a0)
+; Case y_flip && x_flip
+; ---------------------------------------------------------------------------
+; Move y_pos from +radius to -radius, oscillator is counting down
+; Offset x_pos by -radius
+; ---------------------------------------------------------------------------
+; loc_27FF8:
+.bottomToTop:
+	sub.w	d1,d0				; offset range by radius...
+	add.w	obj6B_y_origin(a0),d0		; ... center around origin...
+	move.w	d0,y_pos(a0)			; ... and move vertically
+	neg.w	d1				; use -radius for x position
+	add.w	obj6B_x_origin(a0),d1		; ''
+	move.w	d1,x_pos(a0)			; ''
 	rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -65628,6 +65806,43 @@ BranchTo_JmpTo55_DeleteObject ; BranchTo
 ; ===========================================================================
 ; loc_30CCC:
 Obj89_Arrow_Platform:
+    if fixBugs
+	; PlatformObject originally only ran while the decay timer was zero, so once
+	; Sonic/Tails stepped on the arrow (and timer gets set) it stopped running
+	; for the whole countdown. They were then held only by a stale on_object
+	; state, letting them walk on air off the arrow's top until it fell or they
+	; jumped. This runs PlatformObject every frame the arrow is stuck and handles
+	; the decay timer separately below, fixing the bug.
+	move.w	#$1B,d1
+	move.w	#1,d2
+	move.w	#2,d3
+	move.w	x_pos(a0),d4
+	jsrto	JmpTo8_PlatformObject
+	; AI Tails normally does not cause the arrow they are standing on
+	; to fall, this fixes that.
+	btst	#status.npc.p2_standing,status(a0)	; is Tails standing on the arrow?
+	beq.s	.notTails				; if not, branch
+	tst.w	obj89_arrow_timer(a0)			; is the timer already counting down?
+	bne.s	.notTails				; if so, don't restart it
+	move.w	#$1F,obj89_arrow_timer(a0)		; else, set timer
+
+.notTails:
+	btst	#status.npc.p1_standing,status(a0)	; is Sonic standing on the arrow?
+	beq.s	.chkTimer				; if not, branch
+	tst.w	obj89_arrow_timer(a0)			; is the timer already counting down?
+	bne.s	.chkTimer				; if so, don't restart it
+	move.w	#$1F,obj89_arrow_timer(a0)		; else, set timer
+
+.chkTimer:
+	tst.w	obj89_arrow_timer(a0)		; is the timer set?
+	beq.s	return_30D02			; if not, branch
+	subi_.w	#1,obj89_arrow_timer(a0)	; decrement timer
+	bne.s	return_30D02			; branch, if timer hasn't expired
+	move.b	#6,obj89_arrow_routine(a0)	; => Obj89_Arrow_Sub6
+
+return_30D02:
+	rts
+    else
 	tst.w	obj89_arrow_timer(a0)		; is timer set?
 	bne.s	Obj89_Arrow_Platform_Decay	; if yes, branch
 	move.w	#$1B,d1
@@ -65635,15 +65850,6 @@ Obj89_Arrow_Platform:
 	move.w	#2,d3
 	move.w	x_pos(a0),d4
 	jsrto	JmpTo8_PlatformObject
-    if fixBugs
-	; AI Tails normally does not cause the arrow they are standing on
-	; to fall, this fixes that.
-	btst	#status.npc.p2_standing,status(a0)	; is Tails standing on the arrow?
-	beq.s	.notTails				; if not, branch
-	move.w	#$1F,obj89_arrow_timer(a0)		; else, set timer
-
-.notTails:
-    endif
 	btst	#status.npc.p1_standing,status(a0)	; is Sonic standing on the arrow?
 	beq.s	return_30D02				; if not, branch
 	move.w	#$1F,obj89_arrow_timer(a0)		; else, set timer
@@ -65656,6 +65862,7 @@ Obj89_Arrow_Platform_Decay:
 
 return_30D02:
 	rts
+    endif
 ; ===========================================================================
 ; loc_30D04:
 Obj89_Arrow_ChkDropPlayers:
@@ -80868,88 +81075,99 @@ ObjC1:
 ; ===========================================================================
 ; off_3C0BA:
 ObjC1_Index:	offsetTable
-		offsetTableEntry.w ObjC1_Init	; 0
-		offsetTableEntry.w ObjC1_Main	; 2
+		offsetTableEntry.w ObjC1_Init		; 0
+		offsetTableEntry.w ObjC1_Main		; 2
 		offsetTableEntry.w ObjC1_FallOff	; 4
 ; ===========================================================================
 ; loc_3C0C0:
 ObjC1_Init:
 	move.w	#($44<<1),d0
 	bsr.w	LoadSubObject_Part2
-	moveq	#0,d0
-	; Yes, this is actually configurable, but in practice is redundant
-	; since all of them are set to break after 2 seconds.
-	move.b	subtype(a0),d0
-	mulu.w	#60,d0			; multiply by 60 (1 second)
-	move.w	d0,plating_time(a0)	; set breakage time
+
+	; This object can be configured, but this goes unused in practice since
+	; all of them are set to break after 2 seconds.
+	moveq	#0,d0				; clear d0 for mulu
+	move.b	subtype(a0),d0			; get subtype of plating
+	mulu.w	#60,d0				; multiply by 60 frames (1 second)
+	move.w	d0,plating_time(a0)		; set breakage time
+; ---------------------------------------------------------------------------
 
 ObjC1_Main:
-	tst.b	plating_grabbed(a0)	; has plating already been grabbed?
-	beq.s	ObjC1_Grab		; if not, branch
-	tst.w	plating_time(a0)
-	beq.s	+
-	subq.w	#1,plating_time(a0)	; decrement time until break
-	beq.s	ObjC1_Release
-+
-	lea	(MainCharacter).w,a1 ; a1=character
-	move.w	y_pos(a0),d0
-	subi.w	#$18,d0
-	btst	#button_up,(Ctrl_1_Held).w	; is Up being pressed?
-	beq.s	+			; if not, branch
-	subq.w	#1,y_pos(a1)		; move Sonic up
-	cmp.w	y_pos(a1),d0
-	blo.s	+			; but stop if he's about to fall off
-	move.w	d0,y_pos(a1)
-+
-	addi.w	#$30,d0
-	btst	#button_down,(Ctrl_1_Held).w	; is Down being pressed?
-	beq.s	+			; if not, branch
-	addq.w	#1,y_pos(a1)		; move Sonic down
-	cmp.w	y_pos(a1),d0
-	bhs.s	+			; but stop if he's about to fall off
-	move.w	d0,y_pos(a1)
-+
-	move.b	(Ctrl_1_Press_Logical).w,d0
-	andi.w	#button_B_mask|button_C_mask|button_A_mask,d0	; is A/B/C being pressed?
+	tst.b	plating_grabbed(a0)		; has plating already been grabbed?
+	beq.s	ObjC1_Grab			; if not, branch
+
+	tst.w	plating_time(a0)		; has plating already broken?
+	beq.s	.checkMoveUp			; if not, branch to allow Sonic moving up/down
+	subq.w	#1,plating_time(a0)		; decrement time until break
+	beq.s	ObjC1_Release			; force Sonic to let go of pole
+; ===========================================================================
+
+.checkMoveUp:
+	lea	(MainCharacter).w,a1		; load player object
+	move.w	y_pos(a0),d0			; get plating's Y-position
+	subi.w	#24,d0				; allow moving up to 24px up from center
+	btst	#button_up,(Ctrl_1_Held).w	; is Up being held?
+	beq.s	.checkMoveDown			; if not, branch
+	subq.w	#1,y_pos(a1)			; move player up at 1px/frame
+	cmp.w	y_pos(a1),d0			; has player hit top end of the plating?
+	blo.s	.checkMoveDown			; if not, branch
+	move.w	d0,y_pos(a1)			; forces player to not exceed top end of plating
+
+.checkMoveDown:
+	addi.w	#24+24,d0			; allow moving up to 24px down from center (and undo above subtraction)
+	btst	#button_down,(Ctrl_1_Held).w	; is Down being held?
+	beq.s	.checkLetGo			; if not, branch
+	addq.w	#1,y_pos(a1)			; move player down at 1px/frame
+	cmp.w	y_pos(a1),d0			; has player hit bottom end of plating?
+	bhs.s	.checkLetGo			; if not, branch
+	move.w	d0,y_pos(a1)			; force player to not exceed bottom end of plating
+; ---------------------------------------------------------------------------
+
+.checkLetGo:
+	move.b	(Ctrl_1_Press_Logical).w,d0	; get current button presses for player
+	andi.w	#button_B_mask|button_C_mask|button_A_mask,d0	; was A/B/C be pressed?
 	beq.s	BranchTo16_JmpTo39_MarkObjGone		; if not, branch
 ; loc_3C12E:
 ObjC1_Release:
-	clr.b	collision_flags(a0)
-	clr.b	(MainCharacter+obj_control).w
-	clr.b	(WindTunnel_holding_flag).w
-	clr.b	plating_grabbed(a0)
-	bra.s	ObjC1_BeginBreakup
+	clr.b	collision_flags(a0)		; clear TouchResponse touched flag
+	clr.b	(MainCharacter+obj_control).w	; clear control override flag
+	clr.b	(WindTunnel_holding_flag).w	; re-enable wind tunnels
+	clr.b	plating_grabbed(a0)		; clear plating-grabbed flag
+	bra.s	ObjC1_BeginBreakup		; begin breaking animation
 ; ===========================================================================
 ; loc_3C140:
 ObjC1_Grab:
-	tst.b	collision_property(a0)		; has Sonic touched the plating?
+	tst.b	collision_property(a0)		; has player touched the plating? (set from TouchResponse)
 	beq.s	BranchTo16_JmpTo39_MarkObjGone	; if not, branch
-	lea	(MainCharacter).w,a1 ; a1=character
-	move.w	x_pos(a0),d0
-	subi.w	#$14,d0
-	cmp.w	x_pos(a1),d0
-	bhs.s	BranchTo16_JmpTo39_MarkObjGone
-	clr.b	collision_property(a0)
-	cmpi.b	#4,routine(a1)			; is Sonic hurt, dying, etc?
-	bhs.s	BranchTo16_JmpTo39_MarkObjGone	; if yes, branch
-	clr.w	x_vel(a1)
-	clr.w	y_vel(a1)
-	move.w	x_pos(a0),d0
-	subi.w	#$14,d0
-	move.w	d0,x_pos(a1)
-	bset	#status.player.x_flip,status(a1)
-	move.b	#AniIDSonAni_Hang,anim(a1)
-	move.b	#1,(MainCharacter+obj_control).w	; lock controls
-	move.b	#1,(WindTunnel_holding_flag).w		; disable wind tunnel
-	move.b	#1,plating_grabbed(a0)		; begin break timer
 
-BranchTo16_JmpTo39_MarkObjGone ; BranchTo
+	lea	(MainCharacter).w,a1		; load player object
+	move.w	x_pos(a0),d0			; get plating's X-position
+	subi.w	#20,d0				; check 20px to the left of the plating
+	cmp.w	x_pos(a1),d0			; is player in range of plating?
+	bhs.s	BranchTo16_JmpTo39_MarkObjGone	; if not, branch
+	clr.b	collision_property(a0)		; clear grab flag from TouchResponse
+	cmpi.b	#4,routine(a1)			; is player hurt, dying, etc?
+	bhs.s	BranchTo16_JmpTo39_MarkObjGone	; if yes, branch
+
+	clr.w	x_vel(a1)			; stop player moving horizontally
+	clr.w	y_vel(a1)			; stop player moving vertically
+	move.w	x_pos(a0),d0			; get plating's X-position
+	subi.w	#20,d0				; align player 20px to the left of the pole
+	move.w	d0,x_pos(a1)			; set player's aligned X-position
+	bset	#status.player.x_flip,status(a1)	; clear player's X-flip flag
+	move.b	#AniIDSonAni_Hang,anim(a1)	; set player's animation to "hanging" ($11)
+	move.b	#1,(MainCharacter+obj_control).w	; set player control override flag
+	move.b	#1,(WindTunnel_holding_flag).w	; disable wind tunnel
+	move.b	#1,plating_grabbed(a0)		; begin break timerset flag that plating has been grabbed
+; ---------------------------------------------------------------------------
+
+BranchTo16_JmpTo39_MarkObjGone
 	jmpto	JmpTo39_MarkObjGone
 ; ===========================================================================
 ; loc_3C19A:
 ObjC1_BeginBreakup:
-	lea	(ObjC1_Positions).l,a4
-	lea	(ObjC1_BreakTimes).l,a2
+	lea	(ObjC1_Positions).l,a4		; get positions for plating
+	lea	(ObjC1_BreakTimes).l,a2		; get time until the plating breaks
 	bsr.w	loc_3C1F4
 ; ObjC1_Breakup:
 ObjC1_FallOff:
@@ -83028,7 +83246,7 @@ loc_3D9D6:
     if fixBugs
 	jsr	(PlayMusic).l
     else
-	; PlaySound ends up being clogged up by the explosion sounds, 
+	; PlaySound ends up being clogged up by the explosion sounds,
 	; preventing the music from fading out as it should.
 	jsrto	JmpTo12_PlaySound
     endif
@@ -91481,7 +91699,7 @@ ArtNem_MtzLavaBubble:		BINCLUDE	"art/nemesis/Lava bubble from MTZ.nem"
 ArtNem_LavaCup:			BINCLUDE	"art/nemesis/Lava cup from MTZ.nem"
 	even
 ArtNem_BoltEnd_Rope:		BINCLUDE	"art/nemesis/Bolt end and rope from MTZ.nem"
-	even	
+	even
 ArtNem_MtzCog:			BINCLUDE	"art/nemesis/Small cog from MTZ.nem"
 	even
 ArtNem_MtzSpinTubeFlash:	BINCLUDE	"art/nemesis/Spin tube flash from MTZ.nem"
