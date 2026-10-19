@@ -1428,10 +1428,10 @@ Hint_flag:			ds.w	1	; unless this is 1, H-int won't run
 Water_Level_1:			ds.w	1
 Water_Level_2:			ds.w	1
 Water_Level_3:			ds.w	1
-Water_on:			ds.b	1	; is set based on Water_flag
 Water_routine:			ds.b	1
 Water_fullscreen_flag:		ds.b	1	; was "Water_move"
 Do_Updates_in_H_int:		ds.b	1
+				ds.b	1	; $FFFFF64F ; unused
 
 PalCycle_Frame_CNZ:		ds.w	1
 PalCycle_Frame2:		ds.w	1
@@ -1890,8 +1890,7 @@ Sound_Queue:			SoundQueue
 
 Demo_mode_flag:			ds.w	1 ; 1 if a demo is playing (2 bytes)
 Demo_number:			ds.w	1 ; which demo will play next (2 bytes)
-Ending_demo_number:		ds.w	1 ; zone for the ending demos (2 bytes, unused)
-				ds.w	1
+				ds.b	4 ; $FFFFFFF8-$FFFFFFFB ; unused
 Graphics_Flags:			ds.w	1 ; misc. bitfield
 Debug_mode_flag:		ds.w	1 ; (2 bytes)
 Checksum_fourcc:		ds.l	1 ; (4 bytes)
