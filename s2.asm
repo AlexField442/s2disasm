@@ -4314,14 +4314,14 @@ TitleScreen:
 	bsr.w	NemDec
 
 	; Clear some variables.
-	move.b	#0,(Last_star_pole_hit).w
-	move.b	#0,(Last_star_pole_hit_2P).w
-	move.w	#0,(Debug_placement_mode).w
-	move.w	#0,(Demo_mode_flag).w
-	move.w	#0,(unk_FFDA).w
-	move.w	#0,(PalCycle_Timer).w
-	move.w	#0,(Two_player_mode).w
-	move.b	#0,(Level_started_flag).w
+	moveq	#0,d0
+	move.b	d0,(Last_star_pole_hit).w
+	move.b	d0,(Last_star_pole_hit_2P).w
+	move.w	d0,(Debug_placement_mode).w
+	move.b	d0,(Demo_mode_flag).w
+	move.w	d0,(PalCycle_Timer).w
+	move.w	d0,(Two_player_mode).w
+	move.b	d0,(Level_started_flag).w
 
 	; And finally fade out.
 	bsr.w	Pal_FadeToBlack
@@ -4594,9 +4594,9 @@ TitleScreen_Demo:
 	addq.w	#1,(Demo_number).w
 	cmpi.w	#(DemoLevels_End-DemoLevels)/2,(Demo_number).w
 	blo.s	+
-	move.w	#0,(Demo_number).w
+	clr.w	(Demo_number).w
 +
-	move.w	#1,(Demo_mode_flag).w
+	move.b	#1,(Demo_mode_flag).w
 	move.b	#GameModeID_Demo,(Game_Mode).w ; => Level (Demo mode)
 	cmpi.w	#emerald_hill_zone_act_1,(Current_ZoneAndAct).w
 	bne.s	+
@@ -5255,13 +5255,10 @@ UpdateWaterSurface:
 	rts
 ; End of function UpdateWaterSurface
 
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
 ; ---------------------------------------------------------------------------
 ; Subroutine to do special water effects
 ; ---------------------------------------------------------------------------
-; sub_450E: ; LZWaterEffects:
+; sub_450E: LZWaterEffects:
 WaterEffects:
 	tst.b	(Water_flag).w	; does level have water?
 	beq.s	NonWaterEffects	; if not, branch
@@ -5662,7 +5659,7 @@ OilSlides_Chunks_End:
 
 ; sub_481E:
 MoveSonicInDemo:
-	tst.w	(Demo_mode_flag).w	; is demo mode on?
+	tst.b	(Demo_mode_flag).w	; is demo mode on?
 	bne.w	MoveDemo_On	; if yes, branch
 	rts
 ; ---------------------------------------------------------------------------
@@ -32607,19 +32604,15 @@ loc_175EA:
 	move.w	x_vel(a0),d1
 	move.w	y_vel(a0),d2
 	jsr	(CalcAngle).l
-	move.b	d0,(unk_FFDC).w
 	sub.w	d3,d0
 	mvabs.w	d0,d1
 	neg.w	d0
 	add.w	d3,d0
-	move.b	d0,(unk_FFDD).w
-	move.b	d1,(unk_FFDF).w
 	cmpi.b	#$38,d1
 	blo.s	loc_17618
 	move.w	d3,d0
 
 loc_17618:
-	move.b	d0,(unk_FFDE).w
 	jsr	(CalcSine).l
 	muls.w	#-$A00,d1
 	asr.l	#8,d1

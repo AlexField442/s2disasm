@@ -1868,11 +1868,7 @@ Correct_cheat_entries:		ds.w	1
 Correct_cheat_entries_2:	ds.w	1	; for 14 continues or 7 emeralds codes
 
 Two_player_mode:		ds.w	1	; flag (0 for main game)
-unk_FFDA:			ds.w	1	; Written to once at title screen, never read from
-unk_FFDC:			ds.b	1	; Written to near loc_175EA, never read from
-unk_FFDD:			ds.b	1	; Written to near loc_175EA, never read from
-unk_FFDE:			ds.b	1	; Written to near loc_175EA, never read from
-unk_FFDF:			ds.b	1	; Written to near loc_175EA, never read from
+				ds.b	6	; $FFFFFFDA-$FFFFFFDF ; unused
 
 ; Values in these variables are passed to the sound driver during V-INT.
 ; They use a playlist index, not a sound test index.
@@ -1886,11 +1882,11 @@ SoundQueue ENDSTRUCT
 
 Sound_Queue:			SoundQueue
 
-				ds.b	$B	; $FFFFFFE5-$FFFFFFEF ; seems unused
+				ds.b	$C	; $FFFFFFE5-$FFFFFFF0 ; seems unused
 
-Demo_mode_flag:			ds.w	1 ; 1 if a demo is playing (2 bytes)
+Demo_mode_flag:			ds.b	1 ; 1 if a demo is playing (2 bytes)
 Demo_number:			ds.w	1 ; which demo will play next (2 bytes)
-				ds.b	4 ; $FFFFFFF8-$FFFFFFFB ; unused
+				ds.b	4 ; $FFFFFFF4-$FFFFFFF7 ; unused
 Graphics_Flags:			ds.w	1 ; misc. bitfield
 Debug_mode_flag:		ds.w	1 ; (2 bytes)
 Checksum_fourcc:		ds.l	1 ; (4 bytes)
