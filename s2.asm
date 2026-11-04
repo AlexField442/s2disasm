@@ -81207,10 +81207,11 @@ ObjC3_Main:
 ; off_3C438:
 ObjC3_SubObjData:
 	subObjData Obj27_MapUnc_21120,make_art_tile(ArtTile_ArtNem_Explosion,0,0),1<<render_flags.level_fg,5,$C,0
+
 ; ===========================================================================
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Object C5 - WFZ boss
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Sprite_3C442:
 ObjC5:
 	moveq	#0,d0
@@ -81518,6 +81519,7 @@ ObjC5_End:	; play music and change camera speed
 	move.w	#$720,d0
 	move.w	d0,(Camera_Max_Y_pos).w
 	move.w	d0,(Camera_Max_Y_pos_target).w
+	clr.b	(Update_HUD_timer).w
 	jsrto	JmpTo65_DeleteObject
 	addq.w	#4,sp
 	rts
