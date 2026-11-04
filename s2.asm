@@ -438,6 +438,7 @@ GameMode_ContinueScreen:bra.w	ContinueScreen		; Continue mode
 GameMode_2PResults:	bra.w	TwoPlayerResults	; 2P results mode
 GameMode_2PLevelSelect:	bra.w	LevelSelectMenu2P	; 2P level select mode
 GameMode_EndingSequence:bra.w	JmpTo_EndingSequence	; End sequence mode
+GameMode_Credits:	bra.w	JmpTo_Credits		; Credits mode
 GameMode_OptionsMenu:	bra.w	OptionsMenu		; Options mode
 GameMode_LevelSelect:	bra.w	LevelSelectMenu		; Level select mode
 ; ===========================================================================
@@ -473,6 +474,10 @@ OptionsMenu: ;;
 ; loc_402:
 LevelSelectMenu: ;;
 	jmp	(MenuScreen).l
+; ===========================================================================
+
+JmpTo_Credits: ;;
+	jmp	(EndgameCredits.SkipTrigger).l
 ; ===========================================================================
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -13107,6 +13112,11 @@ EndingSequence:
 EndgameCredits:
 	tst.b	(Credits_Trigger).w
 	beq.w	.return
+
+.SkipTrigger:
+	moveq	#signextendB(MusID_FadeOut),d0
+	jsr	(PlayMusic).l
+
 	bsr.w	Pal_FadeToBlack
 	lea	(VDP_control_port).l,a6
 	move.w	#$8004,(a6)		; H-INT disabled
