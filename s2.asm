@@ -17,7 +17,7 @@
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; ASSEMBLY OPTIONS:
 ;
-gameRevision = 1
+gameRevision = 2
 ;	| If 0, a REV00 ROM is built
 ;	| If 1, a REV01 ROM is built, which contains some fixes
 ;	| If 2, a (theoretical) REV02 ROM is built, which contains even more fixes
@@ -28,22 +28,22 @@ fixBugs = 0
 ;	| If 1, enables all bug-fixes
 ;	| See also the 'FixDriverBugs' flag in 's2.sounddriver.asm'
 ;	| See also the 'FixMusicAndSFXDataBugs' flag in 'build.lua'
-allOptimizations = 0
+allOptimizations = 1
 ;	| If 1, enables all optimizations
 ;
 skipChecksumCheck = 0
 ;	| If 1, disables the slow bootup checksum calculation
 ;
-zeroOffsetOptimization = 0|allOptimizations
+zeroOffsetOptimization = 1|allOptimizations
 ;	| If 1, makes a handful of zero-offset instructions smaller
 ;
-removeJmpTos = 0|(gameRevision>=2)|allOptimizations
+removeJmpTos = 1|(gameRevision>=2)|allOptimizations
 ;	| If 1, many unnecessary JmpTos are removed, improving performance
 ;
-addsubOptimize = 0|(gameRevision=2)|allOptimizations
+addsubOptimize = 1|(gameRevision=2)|allOptimizations
 ;	| If 1, some add/sub instructions are optimized to addq/subq
 ;
-relativeLea = 0|(gameRevision<2)|allOptimizations
+relativeLea = 1|(gameRevision<2)|allOptimizations
 ;	| If 1, makes some instructions use pc-relative addressing, instead of absolute long
 ;
 useFullWaterTables = 0
@@ -12451,7 +12451,7 @@ LevelSelect_PressStart:
 	cmpi.w	#$4000,d0
 	bne.s	LevelSelect_StartZone
 
-;LevelSelect_SpecialStage:
+; LevelSelect_SpecialStage:
 	move.b	#GameModeID_SpecialStage,(Game_Mode).w ; => SpecialStage
     if emerald_hill_zone_act_1=0
 	clr.w	(Current_ZoneAndAct).w ; emerald_hill_zone_act_1
@@ -12526,14 +12526,13 @@ LevelSelect_StartZone:
 	move.l	d0,(Timer_2P).w
 	move.l	d0,(Score_2P).w
 	move.b	d0,(Continue_count).w
+	move.b	d0,(Demo_mode_flag).w
+	move.w	d0,(Two_player_mode).w
+	move.w	d0,(Two_player_mode_copy).w
 	move.l	#5000,(Next_Extra_life_score).w
 	move.l	#5000,(Next_Extra_life_score_2P).w
 	move.b	#MusID_FadeOut,d0
-	jsrto	JmpTo_PlaySound
-	moveq	#0,d0
-	move.w	d0,(Two_player_mode_copy).w
-	move.w	d0,(Two_player_mode).w
-	rts
+	jmp	(PlaySound).l
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -12546,7 +12545,6 @@ LevSelControls:
 	bne.s	+	; up/down pressed
 	subq.w	#1,(LevSel_HoldTimer).w
 	bpl.s	LevSelControls_CheckLR
-
 +
 	move.w	#$B,(LevSel_HoldTimer).w
 	move.b	(Ctrl_1_Held).w,d1
@@ -12558,7 +12556,6 @@ LevSelControls:
 	subq.w	#1,d0	; decrease by 1
 	bcc.s	+	; >= 0?
 	moveq	#$15,d0	; set to $15
-
 +
 	btst	#button_down,d1
 	beq.s	+
@@ -12566,7 +12563,6 @@ LevSelControls:
 	cmpi.w	#$16,d0
 	blo.s	+	; smaller than $16?
 	moveq	#0,d0	; if not, set to 0
-
 +
 	move.w	d0,(Level_select_zone).w
 	rts
@@ -12582,7 +12578,6 @@ LevSelControls_CheckLR:
 	subq.b	#1,d0
 	bcc.s	+
 	moveq	#$7F,d0
-
 +
 	btst	#button_right,d1
 	beq.s	+
@@ -12590,20 +12585,18 @@ LevSelControls_CheckLR:
 	cmpi.w	#$80,d0
 	blo.s	+
 	moveq	#0,d0
-
 +
 	btst	#button_A,d1
 	beq.s	+
 	addi.b	#$10,d0
 	andi.b	#$7F,d0
-
 +
 	move.w	d0,(Sound_test_sound).w
 	andi.w	#button_B_mask|button_C_mask,d1
 	beq.s	+	; rts
 	move.w	(Sound_test_sound).w,d0
 	addi.w	#$80,d0
-	jsrto	JmpTo_PlayMusic
+	jsr	(PlayMusic).l
 	lea	(debug_cheat).l,a0
 	lea	(super_sonic_cheat).l,a2
 	lea	(Debug_options_flag).w,a1	; Also S1_hidden_credits_flag
@@ -12617,10 +12610,18 @@ LevSelControls_CheckLR:
 LevSelControls_SwitchSide:	; not in soundtest, not up/down pressed
 	move.b	(Ctrl_1_Press).w,d1
 	andi.b	#button_left_mask|button_right_mask,d1
-	beq.s	+				; no direction key pressed
+	beq.s	LevelSelect_PickCharacter	; no direction key pressed
 	move.w	(Level_select_zone).w,d0	; left or right pressed
 	move.b	LevelSelect_SwitchTable(pc,d0.w),d0 ; set selected zone according to table
 	move.w	d0,(Level_select_zone).w
+
+LevelSelect_PickCharacter:
+	btst	#button_C,(Ctrl_1_Press).w	; is C pressed?
+	beq.s	+				; if not, branch
+	addq.w	#1,(Player_option).w
+	cmpi.w	#3,(Player_option).w
+	blo.s	+
+	clr.w	(Player_option).w
 +
 	rts
 ; ===========================================================================
@@ -12709,15 +12710,22 @@ LevelSelect_MarkFields:
 
 +
 	cmpi.w	#$15,(Level_select_zone).w
-	bne.s	+	; rts
-	bsr.w	LevelSelect_DrawSoundNumber
-+
-	rts
+	bne.s	LevelSelect_DrawCharacterNumber
+	bra.w	LevelSelect_DrawSoundNumber
+; ---------------------------------------------------------------------------
+
+LevelSelect_DrawCharacterNumber:
+	move.l	#vdpComm(VRAM_Plane_A_Name_Table+planeLoc(64,14,4),VRAM,WRITE),(VDP_control_port).l
+	move.w	(Player_option).w,d0
+	bra.s	LevelSelect_DrawContinued
+
 ; ===========================================================================
 ;loc_965A:
 LevelSelect_DrawSoundNumber:
 	move.l	#vdpComm(VRAM_Plane_A_Name_Table+planeLoc(64,34,18),VRAM,WRITE),(VDP_control_port).l
 	move.w	(Sound_test_sound).w,d0
+
+LevelSelect_DrawContinued:
 	move.b	d0,d2
 	lsr.b	#4,d0
 	bsr.s	+
