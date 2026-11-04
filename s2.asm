@@ -88595,7 +88595,7 @@ return_41CB6:
 
 ; sub_41CB8:
 Debug_ResetPlayerStats:
-    if FixBugs
+    if fixBugs
 	; When exiting Debug Mode in Sonic 3 & Knuckles, the call to HUD_DrawInitial
 	; ends up making d0 dirty. This miraculously doesn't cause problems in regular
 	; gameplay due to the lives HUD resetting d0 to 0, but since the standard HUD
