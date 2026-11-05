@@ -471,8 +471,9 @@ GameModeID_ContinueScreen =	id(GameMode_ContinueScreen) ; 14
 GameModeID_2PResults =		id(GameMode_2PResults) ; 18
 GameModeID_2PLevelSelect =	id(GameMode_2PLevelSelect) ; 1C
 GameModeID_EndingSequence =	id(GameMode_EndingSequence) ; 20
-GameModeID_OptionsMenu =	id(GameMode_OptionsMenu) ; 24
-GameModeID_LevelSelect =	id(GameMode_LevelSelect) ; 28
+GameModeID_Credits =		id(GameMode_Credits) ; 24
+GameModeID_OptionsMenu =	id(GameMode_OptionsMenu) ; 28
+GameModeID_LevelSelect =	id(GameMode_LevelSelect) ; 2C
 GameModeFlag_TitleCard =	7 ; flag bit
 GameModeID_TitleCard =		1<<GameModeFlag_TitleCard ; flag mask
 
@@ -1725,7 +1726,8 @@ Saved_Extra_life_flags_2P:	ds.b	1	; stored, but never restored
 Saved_Camera_Max_Y_pos:		ds.w	1
 Saved_Dynamic_Resize_Routine:	ds.b	1
 
-				ds.b	5	; $FFFFFE59-$FFFFFE5D ; seems unused
+Disable_death_planes:		ds.b	1
+				ds.b	4	; $FFFFFE58-$FFFFFE5D ; seems unused
 Oscillating_Numbers:
 Oscillation_Control:		ds.w	1
 Oscillating_variables:
@@ -2244,9 +2246,8 @@ ArtTile_ArtUnc_Giant_Sonic            = $0088
 ArtTile_ArtNem_Title                  = $0000
 ArtTile_ArtNem_TitleSprites           = $0150
 ArtTile_ArtNem_MenuJunk               = $03F2
-ArtTile_ArtNem_Player1VS2             = $0402
+ArtTile_ArtNem_FontStuff_TtlScr       = $0402
 ArtTile_ArtNem_CreditText             = $0500
-ArtTile_ArtNem_FontStuff_TtlScr       = $0680
 
 ; Credits screen
 ArtTile_ArtNem_CreditText_CredScr     = $0001

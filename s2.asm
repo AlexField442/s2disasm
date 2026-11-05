@@ -4310,10 +4310,6 @@ TitleScreen:
 	lea	(ArtNem_MenuJunk).l,a0
 	bsr.w	NemDec
 
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_Player1VS2),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_Player1VS2).l,a0
-	bsr.w	NemDec
-
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_FontStuff_TtlScr),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_FontStuff).l,a0
 	bsr.w	NemDec
@@ -4669,14 +4665,6 @@ TailsNameCheat_Buttons:
 	dc.b	button_down_mask
 	dc.b	button_up_mask
 	dc.b	0	; end
-	even
-; ---------------------------------------------------------------------------------
-; Nemesis compressed art
-; 10 blocks
-; Player 1 2 VS Text
-; ---------------------------------------------------------------------------------
-; ArtNem_3DF4:
-ArtNem_Player1VS2:	BINCLUDE	"art/nemesis/1Player2VS.nem"
 	even
 
 	charset '0','9',0 ; Add character set for numbers
@@ -27166,7 +27154,7 @@ Obj0F_Init:
 	move.w	#spriteScreenPositionXCentered(8),x_pixel(a0)
 	move.w	#spriteScreenPositionYCentered(92),y_pixel(a0)
 	move.l	#Obj0F_MapUnc_13B70,mappings(a0)
-	move.w	#make_art_tile(ArtTile_VRAM_Start,0,0),art_tile(a0)
+	move.w	#make_art_tile(ArtTile_ArtNem_FontStuff_TtlScr,0,0),art_tile(a0)
 	bsr.w	Adjust2PArtPointer
 	andi.b	#1,(Title_screen_option).w
 	move.b	(Title_screen_option).w,mapping_frame(a0)

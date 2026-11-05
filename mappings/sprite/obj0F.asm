@@ -1,39 +1,56 @@
-Map_obj0F:	mappingsTable
-	mappingsTableEntry.w	Map_obj0F_0006
-	mappingsTableEntry.w	Map_obj0F_0048
-	mappingsTableEntry.w	Map_obj0F_008A
+Map_5b45: mappingsTable
+	mappingsTableEntry.w	Map_5b45_0
+	mappingsTableEntry.w	Map_5b45_1
+	mappingsTableEntry.w	Map_5b45_2
 
-Map_obj0F_0006:	spriteHeader
-	spritePiece	-$2C, -$C, 1, 1, $402, 0, 0, 3, 0
-	spritePiece	-$1C, -$C, 4, 1, $403, 0, 0, 3, 0
-	spritePiece	4, -$C, 2, 1, $407, 0, 0, 3, 0
-	spritePiece	-$2C, 4, 1, 1, $409, 0, 0, 0, 0
-	spritePiece	-$1C, 4, 4, 1, $403, 0, 0, 0, 0
-	spritePiece	4, 4, 2, 1, $407, 0, 0, 0, 0
-	spritePiece	$1C, 4, 2, 1, $40A, 0, 0, 0, 0
-	spritePiece	-$44, -$C, 2, 1, $3FA, 0, 0, 3, 0
-Map_obj0F_0006_End
+Map_5b45_0:	spriteHeader
+ spritePiece -$2C, -$C, 1, 1, 1, 0, 0, 3, 0
+ spritePiece -$1C, -$C, 1, 1, $1D, 0, 0, 3, 0
+ spritePiece -$14, -$C, 1, 1, $19, 0, 0, 3, 0
+ spritePiece -$C, -$C, 1, 1, $E, 0, 0, 3, 0
+ spritePiece -4, -$C, 1, 1, $26, 0, 0, 3, 0
+ spritePiece 4, -$C, 1, 1, $12, 0, 0, 3, 0
+ spritePiece $C, -$C, 1, 1, $1F, 0, 0, 3, 0
+ spritePiece -$2C, 4, 1, 1, 2, 0, 0, 0, 0
+ spritePiece -$1C, 4, 1, 1, $1D, 0, 0, 0, 0
+ spritePiece -$14, 4, 1, 1, $19, 0, 0, 0, 0
+ spritePiece -$C, 4, 1, 1, $E, 0, 0, 0, 0
+ spritePiece -4, 4, 1, 1, $26, 0, 0, 0, 0
+ spritePiece 4, 4, 1, 1, $12, 0, 0, 0, 0
+ spritePiece $C, 4, 1, 1, $1F, 0, 0, 0, 0
+ spritePiece $1C, 4, 1, 1, $23, 0, 0, 0, 0
+ spritePiece $24, 4, 1, 1, $20, 0, 0, 0, 0
+ spritePiece -$44, -$C, 2, 1, $58, 0, 0, 3, 0
+Map_5b45_0_End
 
-Map_obj0F_0048:	spriteHeader
-	spritePiece	-$2C, -$C, 1, 1, $402, 0, 0, 0, 0
-	spritePiece	-$1C, -$C, 4, 1, $403, 0, 0, 0, 0
-	spritePiece	4, -$C, 2, 1, $407, 0, 0, 0, 0
-	spritePiece	-$2C, 4, 1, 1, $409, 0, 0, 3, 0
-	spritePiece	-$1C, 4, 4, 1, $403, 0, 0, 3, 0
-	spritePiece	4, 4, 2, 1, $407, 0, 0, 3, 0
-	spritePiece	$1C, 4, 2, 1, $40A, 0, 0, 3, 0
-	spritePiece	-$44, 4, 2, 1, $3FA, 0, 0, 3, 0
-Map_obj0F_0048_End
+Map_5b45_1:	spriteHeader
+ spritePiece -$2C, -$C, 1, 1, 1, 0, 0, 0, 0
+ spritePiece -$1C, -$C, 1, 1, $1D, 0, 0, 0, 0
+ spritePiece -$14, -$C, 1, 1, $19, 0, 0, 0, 0
+ spritePiece -$C, -$C, 1, 1, $E, 0, 0, 0, 0
+ spritePiece -4, -$C, 1, 1, $26, 0, 0, 0, 0
+ spritePiece 4, -$C, 1, 1, $12, 0, 0, 0, 0
+ spritePiece $C, -$C, 1, 1, $1F, 0, 0, 0, 0
+ spritePiece -$2C, 4, 1, 1, 2, 0, 0, 3, 0
+ spritePiece -$1C, 4, 1, 1, $1D, 0, 0, 3, 0
+ spritePiece -$14, 4, 1, 1, $19, 0, 0, 3, 0
+ spritePiece -$C, 4, 1, 1, $E, 0, 0, 3, 0
+ spritePiece -4, 4, 1, 1, $26, 0, 0, 3, 0
+ spritePiece 4, 4, 1, 1, $12, 0, 0, 3, 0
+ spritePiece $C, 4, 1, 1, $1F, 0, 0, 3, 0
+ spritePiece $1C, 4, 1, 1, $23, 0, 0, 3, 0
+ spritePiece $24, 4, 1, 1, $20, 0, 0, 3, 0
+ spritePiece -$44, 4, 2, 1, $58, 0, 0, 3, 0
+Map_5b45_1_End
 
-Map_obj0F_008A:	spriteHeader
-	spritePiece	-$24, -8, 1, 1, $69C, 0, 0, 3, 0
-	spritePiece	-$1C, -8, 1, 1, $69D, 0, 0, 3, 0
-	spritePiece	-$14, -8, 1, 1, $6A1, 0, 0, 3, 0
-	spritePiece	-$C, -8, 1, 1, $696, 0, 0, 3, 0
-	spritePiece	-4, -8, 1, 1, $69C, 0, 0, 3, 0
-	spritePiece	4, -8, 1, 1, $69B, 0, 0, 3, 0
-	spritePiece	$C, -8, 1, 1, $6A0, 0, 0, 3, 0
-	spritePiece	-$44, -8, 2, 1, $3FA, 0, 0, 3, 0
-Map_obj0F_008A_End
+Map_5b45_2:	spriteHeader
+ spritePiece -$24, -8, 2, 1, $1C, 0, 0, 3, 0
+ spritePiece -$14, -8, 1, 1, $21, 0, 0, 3, 0
+ spritePiece -$C, -8, 1, 1, $16, 0, 0, 3, 0
+ spritePiece -4, -8, 1, 1, $1C, 0, 0, 3, 0
+ spritePiece 4, -8, 1, 1, $1B, 0, 0, 3, 0
+ spritePiece $C, -8, 1, 1, $20, 0, 0, 3, 0
+ spritePiece -$44, -8, 2, 1, $58, 0, 0, 3, 0
+Map_5b45_2_End
 
 	even
