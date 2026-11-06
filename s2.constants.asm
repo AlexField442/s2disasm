@@ -2583,7 +2583,7 @@ ArtTile_LevelName                     = $05DE
 ; End of level.
 ArtTile_ArtNem_Signpost               = $0434
 ArtTile_HUD_Bonus_Score               = $0520
-ArtTile_ArtNem_Perfect                = $0540
+ArtTile_ArtNem_Perfect                = $0542
 ArtTile_ArtNem_ResultsText            = $05B0
 ArtTile_ArtUnc_Signpost               = $05E8
 ArtTile_ArtNem_MiniCharacter          = $05F4

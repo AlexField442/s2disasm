@@ -28873,7 +28873,7 @@ EOL_Total:	spriteHeader	; Total text
 	spritePiece	-$48, 0, 3, 2, $5E6, 0, 0, 1, 1
 	spritePiece	-$30, 0, 2, 2, $5EC, 0, 0, 1, 1
 	spritePiece	-$2C, 0, 2, 2, $5F0, 0, 0, 0, 1
-	spritePiece	$38, 0, 4, 2, $520, 0, 0, 0, 1
+	spritePiece	$38, 0, 4, 2, $522, 0, 0, 0, 1
 	spritePiece	$58, 0, 1, 2, $6F0, 0, 0, 0, 1
 EOL_Total_End
 
@@ -28882,8 +28882,9 @@ EOL_TimeBonus:	spriteHeader	; Time Bonus text
 	spritePiece	-$5C, 0, 4, 2, $6DA, 0, 0, 1, 1
 	spritePiece	-$34, 0, 4, 2, $5DE, 0, 0, 1, 1
 	spritePiece	-$14, 0, 1, 2, $6CA, 0, 0, 1, 1
+        spritePiece     $30, 0, 1, 2, $520, 0, 0, 0, 1
 	spritePiece	-$18, 0, 2, 2, $5F0, 0, 0, 0, 1
-	spritePiece	$38, 0, 4, 2, $528, 0, 0, 0, 1
+	spritePiece	$38, 0, 4, 2, $52A, 0, 0, 0, 1
 	spritePiece	$58, 0, 1, 2, $6F0, 0, 0, 0, 1
 EOL_TimeBonus_End
 
@@ -28893,7 +28894,7 @@ EOL_RingBonus:	spriteHeader	; Ring Bonus text
 	spritePiece	-$34, 0, 4, 2, $5DE, 0, 0, 1, 1
 	spritePiece	-$14, 0, 1, 2, $6CA, 0, 0, 1, 1
 	spritePiece	-$18, 0, 2, 2, $5F0, 0, 0, 0, 1
-	spritePiece	$38, 0, 4, 2, $530, 0, 0, 0, 1
+	spritePiece	$38, 0, 4, 2, $532, 0, 0, 0, 1
 	spritePiece	$58, 0, 1, 2, $6F0, 0, 0, 0, 1
 EOL_RingBonus_End
 
@@ -28909,12 +28910,12 @@ EOL_SonFrame2_End
 
 ; word_14E96:
 EOL_Perfect:	spriteHeader	; Perfect text
-	spritePiece	-$68, 0, 4, 2, $540, 0, 0, 1, 1
-	spritePiece	-$48, 0, 3, 2, $548, 0, 0, 1, 1
+	spritePiece	-$68, 0, 4, 2, $542, 0, 0, 1, 1
+	spritePiece	-$48, 0, 3, 2, $54A, 0, 0, 1, 1
 	spritePiece	-$28, 0, 4, 2, $5DE, 0, 0, 1, 1
 	spritePiece	-8, 0, 1, 2, $6CA, 0, 0, 1, 1
 	spritePiece	-$C, 0, 2, 2, $5F0, 0, 0, 0, 1
-	spritePiece	$38, 0, 4, 2, $538, 0, 0, 0, 1
+	spritePiece	$38, 0, 4, 2, $53A, 0, 0, 0, 1
 	spritePiece	$58, 0, 1, 2, $6F0, 0, 0, 0, 1
 EOL_Perfect_End
 
@@ -86150,8 +86151,11 @@ Dynamic_HTZ:
 ; ===========================================================================
 
 Dynamic_CNZ:
+	tst.b	(Update_HUD_timer).w
+	bne.s	+
 	tst.b	(Current_Boss_ID).w
-	beq.s	+
+	beq.s	++
++
 	rts
 ; ---------------------------------------------------------------------------
 +
@@ -87715,7 +87719,7 @@ Hud_ChkBonus:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_HUD_Bonus_Score),VRAM,WRITE),(VDP_control_port).l
 	moveq	#0,d1
 	move.w	(Total_Bonus_Countdown).w,d1
-	bsr.w	Hud_TimeRingBonus
+	bsr.w	Hud_Total
 	moveq	#0,d1
 	move.w	(Bonus_Countdown_1).w,d1	 ; load time bonus
 	bsr.w	Hud_TimeRingBonus
@@ -87771,7 +87775,7 @@ loc_40EDC:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_HUD_Bonus_Score),VRAM,WRITE),(VDP_control_port).l
 	moveq	#0,d1
 	move.w	(Total_Bonus_Countdown).w,d1
-	bsr.w	Hud_TimeRingBonus
+	bsr.w	Hud_Total
 	moveq	#0,d1
 	move.w	(Bonus_Countdown_1).w,d1
 	bsr.w	Hud_TimeRingBonus
@@ -88218,10 +88222,18 @@ loc_4123E:
 ; ---------------------------------------------------------------------------
 
 ; ===========================================================================
+
+Hud_Total:
+	lea_	Hud_10000,a2
+	moveq	#Hud_10000.loop_counter,d6
+	bra.s	Hud_TimeRingBonus_cont
+
 ; loc_41274:
 Hud_TimeRingBonus:
 	lea_	Hud_1000,a2
 	moveq	#Hud_1000.loop_counter,d6
+
+Hud_TimeRingBonus_cont:
 	moveq	#0,d4
 	lea	Art_Hud(pc),a1
 ; loc_41280:
