@@ -4577,8 +4577,16 @@ TitleScreen_CheckIfChose2P:
 ; ---------------------------------------------------------------------------
 ; loc_3D20:
 TitleScreen_ChoseOptions:
+	subq.b	#1,d0
+	bne.s	TitleScreen_ChoseCredits
+
 	move.b	#GameModeID_OptionsMenu,(Game_Mode).w ; => OptionsMenu
 	move.b	#0,(Options_menu_box).w
+	rts
+; ---------------------------------------------------------------------------
+
+TitleScreen_ChoseCredits:
+	move.b	#GameModeID_Credits,(Game_Mode).w	; => EndgameCredits.SkipTrigger
 	rts
 ; ===========================================================================
 ; loc_3D2E:
@@ -13084,6 +13092,11 @@ EndingSequence:
 	jsr	(RandomNumber).l
 	jsr	(RunObjects).l
 	jsr	(BuildSprites).l
+	andi.b	#button_start_mask,(Ctrl_1_Press).w
+	beq.s	.skipEnding
+	move.b	#1,(Credits_Trigger).w
+ 
+.skipEnding:
 	tst.b	(Ending_PalCycle_flag).w
 	beq.s	+
 	jsrto	JmpTo_PalCycle_Load
@@ -13178,6 +13191,10 @@ EndgameCredits:
 
 /	move.b	#VintID_Ending,(Vint_routine).w
 	bsr.w	WaitForVint
+
+	move.b	(Ctrl_1_Press).w,d1
+	andi.b	#button_start_mask,d1
+	bne.w	.returnToSega
 	dbf	d0,-
 
 	bsr.w	Pal_FadeToBlack
@@ -13217,10 +13234,11 @@ EndgameCredits:
 	cmpi.w	#$5E,(CreditsScreenIndex).w
 	blo.s	-
 	move.b	(Ctrl_1_Press).w,d1
-	andi.b	#button_B_mask|button_C_mask|button_A_mask|button_start_mask,d1
-	bne.s	+
+	andi.b	#button_start_mask,d1
+	bne.s	.returnToSega
 	dbf	d6,-
-+
+
+.returnToSega:
 	st.b	(Level_Inactive_flag).w
 	move.b	#GameModeID_SegaScreen,(Game_Mode).w ; => SegaScreen
 
@@ -22723,11 +22741,7 @@ Obj15_State4:
 	beq.w	BranchTo_loc_1000C
 	tst.b	(Oscillating_Data+$18).w
 	bne.w	BranchTo_loc_1000C
-    if removeJmpTos
-	bsr.w	AllocateObjectAfterCurrent
-    else
-	bsr.w	JmpTo2_AllocateObjectAfterCurrent
-    endif
+	jsr	(AllocateObjectAfterCurrent).l
 	bne.s	loc_100E4
 	moveq	#0,d0
 
@@ -24342,11 +24356,7 @@ Obj2D_Main:
 	move.w	d2,d3
 	addq.w	#1,d3
 	move.w	x_pos(a0),d4
-    if removeJmpTos
-	bsr.w	SolidObject
-    else
-	bsr.w	JmpTo2_SolidObject
-    endif
+	jsr	(SolidObject).l
 	bra.w	MarkObjGone                          ; delete object if off screen
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -27169,12 +27179,12 @@ Obj0F_Main:
 	beq.s	+
 	subq.b	#1,d2
 	bcc.s	+
-	move.b	#2,d2
+	move.b	#3,d2
 +
 	btst	#button_down,d0
 	beq.s	+
 	addq.b	#1,d2
-	cmpi.b	#3,d2
+	cmpi.b	#4,d2
 	blo.s	+
 	moveq	#0,d2
 +
