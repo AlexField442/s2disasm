@@ -28873,6 +28873,7 @@ EOL_Total:	spriteHeader	; Total text
 	spritePiece	-$48, 0, 3, 2, $5E6, 0, 0, 1, 1
 	spritePiece	-$30, 0, 2, 2, $5EC, 0, 0, 1, 1
 	spritePiece	-$2C, 0, 2, 2, $5F0, 0, 0, 0, 1
+        spritePiece     $30, 0, 1, 2, $520, 0, 0, 0, 1
 	spritePiece	$38, 0, 4, 2, $522, 0, 0, 0, 1
 	spritePiece	$58, 0, 1, 2, $6F0, 0, 0, 0, 1
 EOL_Total_End
@@ -28882,7 +28883,6 @@ EOL_TimeBonus:	spriteHeader	; Time Bonus text
 	spritePiece	-$5C, 0, 4, 2, $6DA, 0, 0, 1, 1
 	spritePiece	-$34, 0, 4, 2, $5DE, 0, 0, 1, 1
 	spritePiece	-$14, 0, 1, 2, $6CA, 0, 0, 1, 1
-        spritePiece     $30, 0, 1, 2, $520, 0, 0, 0, 1
 	spritePiece	-$18, 0, 2, 2, $5F0, 0, 0, 0, 1
 	spritePiece	$38, 0, 4, 2, $52A, 0, 0, 0, 1
 	spritePiece	$58, 0, 1, 2, $6F0, 0, 0, 0, 1
