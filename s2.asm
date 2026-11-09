@@ -11678,12 +11678,6 @@ MenuScreen:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_FontStuff),VRAM,WRITE),(VDP_control_port).l
 	lea	(ArtNem_FontStuff).l,a0
 	bsr.w	NemDec
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_MenuBox),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_MenuBox).l,a0
-	bsr.w	NemDec
-	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_LevelSelectPics),VRAM,WRITE),(VDP_control_port).l
-	lea	(ArtNem_LevelSelectPics).l,a0
-	bsr.w	NemDec
 	lea	(Chunk_Table).l,a1
 	lea	(MapEng_MenuBack).l,a0
 	move.w	#make_art_tile(ArtTile_VRAM_Start,3,0),d0
@@ -11718,6 +11712,14 @@ MenuScreen:
 	moveq	#bytesToWcnt(tiles_to_bytes(1)),d1
 -	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox+11,1,0),(a2)+
 	dbf	d1,-
+
+	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_LevelSelectPics),VRAM,WRITE),(VDP_control_port).l
+	lea	(ArtNem_LevelSelectPics).l,a0
+	bsr.w	NemDec
+
+	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_MenuBox),VRAM,WRITE),(VDP_control_port).l
+	lea	(ArtNem_MenuBox).l,a0
+	bsr.w	NemDec
 
 	bsr.w	Update2PLevSelSelection
 	addq.b	#1,(Current_Zone_2P).w
@@ -12001,6 +12003,9 @@ MenuScreen_Options:
 	lea	(MapEng_Options).l,a0
 	move.w	#make_art_tile(ArtTile_ArtNem_MenuBox,1,0),d0
 	bsr.w	EniDec
+	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_MenuBox),VRAM,WRITE),(VDP_control_port).l
+	lea	(ArtNem_MenuBox).l,a0
+	bsr.w	NemDec
 	clr.b	(Options_menu_box).w
 	bsr.w	OptionScreen_DrawSelected
 	addq.b	#1,(Options_menu_box).w
@@ -12350,6 +12355,11 @@ MenuScreen_LevelSelect:
 	moveq	#40-1,d1
 	moveq	#28-1,d2	; 40x28 = whole screen
 	jsrto	JmpTo_PlaneMapToVRAM_H40	; display patterns
+
+	; Load zone icon graphics
+	move.l	#vdpComm(tiles_to_bytes(ArtTile_ArtNem_LevelSelectPics),VRAM,WRITE),(VDP_control_port).l
+	lea	(ArtNem_LevelSelectPics).l,a0
+	bsr.w	NemDec
 
 	; Draw sound test number
 	moveq	#palette_line_0,d3
