@@ -26881,21 +26881,18 @@ TitleScreen_InitSprite:
 ; End of function TitleScreen_InitSprite
 
 ; ===========================================================================
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Object 0F - Title screen menu
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Sprite_13600:
 Obj0F:
 	moveq	#0,d0
 	move.b	routine(a0),d0
-	move.w	Obj0F_Index(pc,d0.w),d1
-	jsr	Obj0F_Index(pc,d1.w)
-	bra.w	DisplaySprite
+	jmp	Obj0F_Index(pc,d0.w)
 ; ===========================================================================
 ; off_13612: Obj0F_States:
-Obj0F_Index:	offsetTable
-		offsetTableEntry.w Obj0F_Init	; 0
-		offsetTableEntry.w Obj0F_Main	; 2
+Obj0F_Index:	bra.s Obj0F_Init	; 0
+		bra.s Obj0F_Main	; 2
 ; ===========================================================================
 ; loc_13616:
 Obj0F_Init:
@@ -26907,34 +26904,30 @@ Obj0F_Init:
 	bsr.w	Adjust2PArtPointer
 	andi.b	#1,(Title_screen_option).w
 	move.b	(Title_screen_option).w,mapping_frame(a0)
-
 ; loc_13644:
 Obj0F_Main:
 	moveq	#0,d2
 	move.b	(Title_screen_option).w,d2
+
 	move.b	(Ctrl_1_Press).w,d0
 	or.b	(Ctrl_2_Press).w,d0
+
 	btst	#button_up,d0
 	beq.s	+
 	subq.b	#1,d2
-	bcc.s	+
-	move.b	#3,d2
 +
 	btst	#button_down,d0
 	beq.s	+
 	addq.b	#1,d2
-	cmpi.b	#4,d2
-	blo.s	+
-	moveq	#0,d2
 +
+	andi.b	#3,d2
 	move.b	d2,mapping_frame(a0)
 	move.b	d2,(Title_screen_option).w
 	andi.b	#button_up_mask|button_down_mask,d0
-	beq.s	+	; rts
+	beq.w	DisplaySprite
 	moveq	#signextendB(SndID_Blip),d0 ; selection blip sound
-	jsrto	JmpTo4_PlaySound
-+
-	rts
+	jsr	(PlaySound).l
+	bra.w	DisplaySprite
 ; ===========================================================================
 ; animation script
 ; off_13686:
@@ -31760,10 +31753,8 @@ Touch_ConsumeRing:
 BuildRings:
 	movea.w	(Ring_start_addr).w,a0
 	movea.w	(Ring_end_addr).w,a4
-	cmpa.l	a0,a4	; are there any rings on-screen?
-	bne.s	+	; if there are, branch
-	rts		; otherwise, return
-+
+	cmpa.l	a0,a4		; are there any rings on-screen?
+	beq.s	BuildRings_End	; if there are not, branch
 	lea	(Camera_X_pos).w,a3
 ; loc_1718A:
 BuildRings_Loop:
@@ -31797,8 +31788,8 @@ BuildRings_Loop:
 	bne.s	+		; if this ring is using a specific frame, branch
 	move.b	(Rings_anim_frame).w,d1	; use global frame
 +
-	add.w	d1,d1
-	adda.w	(a1,d1.w),a1	; get frame data address
+	lsl.w	#3,d1
+	lea	(a1,d1.w),a1	; get frame data address
 	move.b	(a1)+,d0	; get Y offset
 	ext.w	d0
 	add.w	d2,d0		; add Y offset to Y pos
@@ -31818,6 +31809,8 @@ BuildRings_NextRing:
 	lea	6(a0),a0
 	cmpa.l	a0,a4
 	bne.w	BuildRings_Loop
+
+BuildRings_End:
 	rts
 
 ; ---------------------------------------------------------------------------
@@ -31907,8 +31900,8 @@ BuildRings_2P_Loop:
 	bne.s	+		; if there is one
 	move.b	(Rings_anim_frame).w,d1	; otherwise use global frame
 +
-	add.w	d1,d1
-	adda.w	(a1,d1.w),a1
+	lsl.w	#3,d1
+	lea	(a1,d1.w),a1	; get frame data address
 	move.b	(a1)+,d0
 	ext.w	d0
 	add.w	d2,d0
@@ -31943,6 +31936,46 @@ SpriteSizes_2P_3:
 	dc.b   9,9	; 11
 	dc.b  $C,$C	; 13
 	dc.b  $D,$D	; 15
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; sprite mappings
+; ---------------------------------------------------------------------------
+
+; Custom mappings format. Compare to Obj25_MapUnc_12382.
+
+; Differences include...
+;  No offset table (each sprite is assumed to be 8 bytes)
+;  No 'sprite pieces per frame' value (hardcoded to 1)
+
+; This was customised even further in Sonic 3 & Knuckles.
+
+; off_1736A:
+MapUnc_Rings:
+
+.frame1:
+	spritePiece	-8, -8, 2, 2, 0, 0, 0, 0, 0
+
+.frame2:
+	spritePiece	-8, -8, 2, 2, 4, 0, 0, 0, 0
+
+.frame3:
+	spritePiece	-4, -8, 1, 2, 8, 0, 0, 0, 0
+
+.frame4:
+	spritePiece	-8, -8, 2, 2, 4, 1, 0, 0, 0
+
+.frame5:
+	spritePiece	-8, -8, 2, 2, $A, 0, 0, 0, 0
+
+.frame6:
+	spritePiece	-8, -8, 2, 2, $A, 1, 1, 0, 0
+
+.frame7:
+	spritePiece	-8, -8, 2, 2, $A, 1, 0, 0, 0
+
+.frame8:
+	spritePiece	-8, -8, 2, 2, $A, 0, 1, 0, 0
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to perform initial rings manager setup
@@ -32040,59 +32073,8 @@ RingsMgr_SortRings:
 	dbf	d3,--		; repeat
 
 	rts
+
 ; ===========================================================================
-
-; -------------------------------------------------------------------------------
-; sprite mappings
-; -------------------------------------------------------------------------------
-
-; Custom mappings format. Compare to Obj25_MapUnc_12382.
-
-; Differences include...
-;  No 'sprite pieces per frame' value (hardcoded to 1)
-
-; This was customised even further in Sonic 3 & Knuckles.
-
-; off_1736A:
-MapUnc_Rings: mappingsTable
-	mappingsTableEntry.w .frame1
-	mappingsTableEntry.w .frame2
-	mappingsTableEntry.w .frame3
-	mappingsTableEntry.w .frame4
-	mappingsTableEntry.w .frame5
-	mappingsTableEntry.w .frame6
-	mappingsTableEntry.w .frame7
-	mappingsTableEntry.w .frame8
-
-.frame1:
-	spritePiece	-8, -8, 2, 2, 0, 0, 0, 0, 0
-
-.frame2:
-	spritePiece	-8, -8, 2, 2, 4, 0, 0, 0, 0
-
-.frame3:
-	spritePiece	-4, -8, 1, 2, 8, 0, 0, 0, 0
-
-.frame4:
-	spritePiece	-8, -8, 2, 2, 4, 1, 0, 0, 0
-
-.frame5:
-	spritePiece	-8, -8, 2, 2, $A, 0, 0, 0, 0
-
-.frame6:
-	spritePiece	-8, -8, 2, 2, $A, 1, 1, 0, 0
-
-.frame7:
-	spritePiece	-8, -8, 2, 2, $A, 1, 0, 0, 0
-
-.frame8:
-	spritePiece	-8, -8, 2, 2, $A, 0, 1, 0, 0
-
-	jmpTos0 ; Empty
-
-
-
-
 ; ---------------------------------------------------------------------------
 ; Pseudo-object to do collision with (and initialize?) the special bumpers in CNZ.
 ; These are the bumpers that are part of the level layout but have object-like collision.
