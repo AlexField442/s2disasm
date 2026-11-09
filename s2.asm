@@ -6040,25 +6040,11 @@ Osc_Data2_End:
 
 ; sub_4B64:
 ChangeRingFrame:
-	subq.b	#1,(Logspike_anim_counter).w
-	bpl.s	+
-	move.b	#$B,(Logspike_anim_counter).w
-	subq.b	#1,(Logspike_anim_frame).w ; animate unused log spikes
-	andi.b	#7,(Logspike_anim_frame).w
-+
 	subq.b	#1,(Rings_anim_counter).w
 	bpl.s	+
 	move.b	#7,(Rings_anim_counter).w
 	addq.b	#1,(Rings_anim_frame).w ; animate rings in the level (obj25)
 	andi.b	#3,(Rings_anim_frame).w
-+
-	subq.b	#1,(Unknown_anim_counter).w
-	bpl.s	+
-	move.b	#7,(Unknown_anim_counter).w
-	addq.b	#1,(Unknown_anim_frame).w ; animate nothing (deleted special stage object is my best guess)
-	cmpi.b	#6,(Unknown_anim_frame).w
-	blo.s	+
-	move.b	#0,(Unknown_anim_frame).w
 +
 	tst.b	(Ring_spill_anim_counter).w
 	beq.s	+	; rts
@@ -24396,9 +24382,9 @@ Obj2D_MapUnc_11822:	include "mappings/sprite/obj2D.asm"
 
 
 ; ===========================================================================
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Object 28 - Animal and the 100 points from a badnik
-; ----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 animal_ground_routine_base = objoff_30
 animal_ground_x_vel = objoff_32
 animal_ground_y_vel = objoff_34
@@ -24426,18 +24412,6 @@ Obj28_Index:	offsetTable
 		offsetTableEntry.w Obj28_Walk	; $18
 		offsetTableEntry.w Obj28_Walk	; $1A
 		offsetTableEntry.w Obj28_Prison	; $1C
-		; These are the S1 ending actions:
-		offsetTableEntry.w Obj28_FlickyWait	; $1E
-		offsetTableEntry.w Obj28_FlickyWait	; $20
-		offsetTableEntry.w Obj28_FlickyJump	; $22
-		offsetTableEntry.w Obj28_RabbitWait	; $24
-		offsetTableEntry.w Obj28_LandJump	; $26
-		offsetTableEntry.w Obj28_SingleBounce	; $28
-		offsetTableEntry.w Obj28_LandJump	; $2A
-		offsetTableEntry.w Obj28_SingleBounce	; $2C
-		offsetTableEntry.w Obj28_LandJump	; $2E
-		offsetTableEntry.w Obj28_FlyBounce	; $30
-		offsetTableEntry.w Obj28_DoubleBounce	; $32
 
 ; byte_118CE:
 Obj28_ZoneAnimals:	zoneOrderedTable 1,2
@@ -24491,77 +24465,9 @@ Monkey:		obj28decl -$2C0,-$300,Obj28_MapUnc_11E40
 Turtle:		obj28decl -$140,-$200,Obj28_MapUnc_11E40
 Bear:		obj28decl -$200,-$300,Obj28_MapUnc_11E40
 
-	; The following tables tell the properties of animals based on their subtype.
-
-; word_11950:
-Obj28_Speeds:
-	dc.w -$440, -$400
-	dc.w -$440, -$400	; 2
-	dc.w -$440, -$400	; 4
-	dc.w -$300, -$400	; 6
-	dc.w -$300, -$400	; 8
-	dc.w -$180, -$300	; 10
-	dc.w -$180, -$300	; 12
-	dc.w -$140, -$180	; 14
-	dc.w -$1C0, -$300	; 16
-	dc.w -$200, -$300	; 18
-	dc.w -$280, -$380	; 20
-; off_1197C:
-Obj28_Mappings:
-	dc.l Obj28_MapUnc_11E1C
-	dc.l Obj28_MapUnc_11E1C	; 1
-	dc.l Obj28_MapUnc_11E1C	; 2
-	dc.l Obj28_MapUnc_11EAC	; 3
-	dc.l Obj28_MapUnc_11EAC	; 4
-	dc.l Obj28_MapUnc_11EAC	; 5
-	dc.l Obj28_MapUnc_11EAC	; 6
-	dc.l Obj28_MapUnc_11E88	; 7
-	dc.l Obj28_MapUnc_11E64	; 8
-	dc.l Obj28_MapUnc_11E1C	; 9
-	dc.l Obj28_MapUnc_11E40	; 10
-; word_119A8:
-Obj28_ArtLocations:
-	dc.w  ArtTile_ArtNem_S1EndFlicky	;  0	Flicky
-	dc.w  ArtTile_ArtNem_S1EndFlicky	;  1	Flicky
-	dc.w  ArtTile_ArtNem_S1EndFlicky	;  2	Flicky
-	dc.w  ArtTile_ArtNem_S1EndRabbit	;  3	Rabbit
-	dc.w  ArtTile_ArtNem_S1EndRabbit	;  4	Rabbit
-	dc.w  ArtTile_ArtNem_S1EndPenguin	;  5	Penguin
-	dc.w  ArtTile_ArtNem_S1EndPenguin	;  6	Penguin
-	dc.w  ArtTile_ArtNem_S1EndSeal		;  7	Seal
-	dc.w  ArtTile_ArtNem_S1EndPig		;  8	Pig
-	dc.w  ArtTile_ArtNem_S1EndChicken	;  9	Chicken
-	dc.w  ArtTile_ArtNem_S1EndSquirrel	; 10	Squirrel
-
 ; ===========================================================================
 ; loc_119BE:
 Obj28_Init:
-	tst.b	subtype(a0)
-	beq.w	Obj28_InitRandom
-	moveq	#0,d0
-	move.b	subtype(a0),d0
-	add.w	d0,d0
-	move.b	d0,routine(a0)
-	subi.w	#$14,d0
-	move.w	Obj28_ArtLocations(pc,d0.w),art_tile(a0)
-	add.w	d0,d0
-	move.l	Obj28_Mappings(pc,d0.w),mappings(a0)
-	lea	Obj28_Speeds(pc),a1
-	move.w	(a1,d0.w),animal_ground_x_vel(a0)
-	move.w	(a1,d0.w),x_vel(a0)
-	move.w	2(a1,d0.w),animal_ground_y_vel(a0)
-	move.w	2(a1,d0.w),y_vel(a0)
-	bsr.w	Adjust2PArtPointer
-	move.b	#$C,y_radius(a0)
-	move.b	#1<<render_flags.level_fg,render_flags(a0)
-	bset	#render_flags.x_flip,render_flags(a0)
-	move.b	#6,priority(a0)
-	move.b	#8,width_pixels(a0)
-	move.b	#7,anim_frame_duration(a0)
-	bra.w	DisplaySprite
-; ===========================================================================
-; loc_11A2C:
-Obj28_InitRandom:
 	addq.b	#2,routine(a0)
 	jsrto	JmpTo_RandomNumber
 	move.w	#make_art_tile(ArtTile_ArtNem_Animal_1,0,0),art_tile(a0)
@@ -24608,7 +24514,7 @@ Obj28_InitRandom:
 	clr.w	x_vel(a0)
 	bra.w	DisplaySprite
 ; ===========================================================================
-;loc_11ADE
+; loc_11ADE
 Obj28_Main:
 	_btst	#render_flags.on_screen,render_flags(a0)
 	_beq.w	DeleteObject
@@ -24634,9 +24540,8 @@ Obj28_Main:
 	bchg	#render_flags.x_flip,render_flags(a0)
 +	bra.w	DisplaySprite
 ; ===========================================================================
-;loc_11B38
+; loc_11B38
 Obj28_Walk:
-
 	bsr.w	ObjectMoveAndFall
 	move.b	#1,mapping_frame(a0)
 	tst.w	y_vel(a0)
@@ -24654,7 +24559,7 @@ Obj28_Walk:
 	_beq.w	DeleteObject
 	bra.w	DisplaySprite
 ; ===========================================================================
-;loc_11B74
+; loc_11B74
 Obj28_Fly:
 	bsr.w	ObjectMove
 	addi.w	#$18,y_vel(a0)
@@ -24684,7 +24589,7 @@ Obj28_Fly:
 	_beq.w	DeleteObject
 	bra.w	DisplaySprite
 ; ===========================================================================
-;loc_11BD8
+; loc_11BD8
 Obj28_ChkDel:
 	move.w	x_pos(a0),d0
 	sub.w	(MainCharacter+x_pos).w,d0
@@ -24696,175 +24601,16 @@ Obj28_ChkDel:
 +
 	bra.w	DisplaySprite
 ; ===========================================================================
-;loc_11BF4
+; loc_11BF4
 Obj28_Prison:
 	_btst	#render_flags.on_screen,render_flags(a0)
 	_beq.w	DeleteObject
 	subq.w	#1,objoff_36(a0)
-	bne.w	+
+	bne.s	+
 	move.b	#2,routine(a0)
 	move.b	#1,priority(a0)
 +
 	bra.w	DisplaySprite
-; ===========================================================================
-;loc_11C14
-Obj28_FlickyWait:
-	bsr.w	ChkAnimalInRange
-	bcc.s	+
-	move.w	animal_ground_x_vel(a0),x_vel(a0)
-	move.w	animal_ground_y_vel(a0),y_vel(a0)
-	move.b	#$E,routine(a0)
-	bra.w	Obj28_Fly
-; ===========================================================================
-+
-	bra.w	Obj28_ChkDel
-; ===========================================================================
-;loc_11C34
-Obj28_FlickyJump:
-	bsr.w	ChkAnimalInRange
-	bpl.s	+
-	clr.w	x_vel(a0)
-	clr.w	animal_ground_x_vel(a0)
-	bsr.w	ObjectMove
-	addi.w	#$18,y_vel(a0)
-	bsr.w	AnimalJump
-	bsr.w	AnimalFaceSonic
-	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	+
-	move.b	#1,anim_frame_duration(a0)
-	addq.b	#1,mapping_frame(a0)
-	andi.b	#1,mapping_frame(a0)
-+
-	bra.w	Obj28_ChkDel
-; ===========================================================================
-;loc_11C6E
-Obj28_RabbitWait:
-	bsr.w	ChkAnimalInRange
-	bpl.s	++
-	move.w	animal_ground_x_vel(a0),x_vel(a0)
-	move.w	animal_ground_y_vel(a0),y_vel(a0)
-	move.b	#4,routine(a0)
-	bra.w	Obj28_Walk
-; ===========================================================================
-;loc_11C8A
-Obj28_DoubleBounce:
-	bsr.w	ObjectMoveAndFall
-	move.b	#1,mapping_frame(a0)
-	tst.w	y_vel(a0)
-	bmi.s	++
-	move.b	#0,mapping_frame(a0)
-	jsr	(ObjCheckFloorDist).l
-	tst.w	d1
-	bpl.s	++
-	not.b	objoff_29(a0)
-	bne.s	+
-	neg.w	x_vel(a0)
-	bchg	#render_flags.x_flip,render_flags(a0)
-+
-	add.w	d1,y_pos(a0)
-	move.w	animal_ground_y_vel(a0),y_vel(a0)
-+
-	bra.w	Obj28_ChkDel
-; ===========================================================================
-;loc_11CC8
-Obj28_LandJump:
-	bsr.w	ChkAnimalInRange
-	bpl.s	+
-	clr.w	x_vel(a0)
-	clr.w	animal_ground_x_vel(a0)
-	bsr.w	ObjectMoveAndFall
-	bsr.w	AnimalJump
-	bsr.w	AnimalFaceSonic
-+
-	bra.w	Obj28_ChkDel
-; ===========================================================================
-;loc_11CE6
-Obj28_SingleBounce:
-	bsr.w	ChkAnimalInRange
-	bpl.s	+
-	bsr.w	ObjectMoveAndFall
-	move.b	#1,mapping_frame(a0)
-	tst.w	y_vel(a0)
-	bmi.s	+
-	move.b	#0,mapping_frame(a0)
-	jsr	(ObjCheckFloorDist).l
-	tst.w	d1
-	bpl.s	+
-	neg.w	x_vel(a0)
-	bchg	#render_flags.x_flip,render_flags(a0)
-	add.w	d1,y_pos(a0)
-	move.w	animal_ground_y_vel(a0),y_vel(a0)
-+
-	bra.w	Obj28_ChkDel
-; ===========================================================================
-;loc_11D24
-Obj28_FlyBounce:
-	bsr.w	ChkAnimalInRange
-	bpl.s	+++
-	bsr.w	ObjectMove
-	addi.w	#$18,y_vel(a0)
-	tst.w	y_vel(a0)
-	bmi.s	++
-	jsr	(ObjCheckFloorDist).l
-	tst.w	d1
-	bpl.s	++
-	not.b	objoff_29(a0)
-	bne.s	+
-	neg.w	x_vel(a0)
-	bchg	#render_flags.x_flip,render_flags(a0)
-+
-	add.w	d1,y_pos(a0)
-	move.w	animal_ground_y_vel(a0),y_vel(a0)
-+
-	subq.b	#1,anim_frame_duration(a0)
-	bpl.s	+
-	move.b	#1,anim_frame_duration(a0)
-	addq.b	#1,mapping_frame(a0)
-	andi.b	#1,mapping_frame(a0)
-+
-	bra.w	Obj28_ChkDel
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-;sub_11D78
-AnimalJump:
-	move.b	#1,mapping_frame(a0)
-	tst.w	y_vel(a0)
-	bmi.s	+	; rts
-	move.b	#0,mapping_frame(a0)
-	jsr	(ObjCheckFloorDist).l
-	tst.w	d1
-	bpl.s	+	; rts
-	add.w	d1,y_pos(a0)
-	move.w	animal_ground_y_vel(a0),y_vel(a0)
-+
-	rts
-; End of function AnimalJump
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-;sub_11DA0
-AnimalFaceSonic:
-	bset	#render_flags.x_flip,render_flags(a0)
-	move.w	x_pos(a0),d0
-	sub.w	(MainCharacter+x_pos).w,d0
-	bcc.s	+	; rts
-	bclr	#render_flags.x_flip,render_flags(a0)
-+
-	rts
-; End of function AnimalFaceSonic
-
-
-; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-
-;sub_11DB8
-ChkAnimalInRange:
-	move.w	(MainCharacter+x_pos).w,d0
-	sub.w	x_pos(a0),d0
-	subi.w	#$B8,d0
-	rts
-; End of function ChkAnimalInRange
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -24934,28 +24680,22 @@ Obj29_MapUnc_11ED0:	include "mappings/sprite/obj29.asm"
 ; ---------------------------------------------------------------------------
 ; Object 25 - A ring (usually only placed through placement mode)
 ; ---------------------------------------------------------------------------
-; OST Variables:
-ring_base_x_pos		= objoff_32	; x-position of primary ring (leftover from Sonic 1)
-
 ; Sprite_11F44: Obj_Ring:
 Obj25:
 	moveq	#0,d0
 	move.b	routine(a0),d0
-	move.w	Obj25_Index(pc,d0.w),d1
-	jmp	Obj25_Index(pc,d1.w)
+	jmp	Obj25_Index(pc,d0.w)
 ; ===========================================================================
 ; off_11F52: Obj_25_subtbl:
-Obj25_Index:	offsetTable
-		offsetTableEntry.w Obj25_Init		; 0
-		offsetTableEntry.w Obj25_Animate	; 2
-		offsetTableEntry.w Obj25_Collect	; 4
-		offsetTableEntry.w Obj25_Sparkle	; 6
-		offsetTableEntry.w Obj25_Delete		; 8
+Obj25_Index:	bra.s Obj25_Init	; 0
+		bra.s Obj25_Animate	; 2
+		bra.s Obj25_Collect	; 4
+		bra.s Obj25_Sparkle	; 6
+		bra.s Obj25_Delete	; 8
 ; ===========================================================================
 ; loc_11F5C: Obj_25_sub_0:
 Obj25_Init:
 	addq.b	#2,routine(a0)
-	move.w	x_pos(a0),ring_base_x_pos(a0)
 	move.l	#Obj25_MapUnc_12382,mappings(a0)
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a0)
 	bsr.w	Adjust2PArtPointer
@@ -24966,8 +24706,7 @@ Obj25_Init:
 ; loc_11F90: Obj_25_sub_2:
 Obj25_Animate:
 	move.b	(Rings_anim_frame).w,mapping_frame(a0)
-	move.w	ring_base_x_pos(a0),d0
-	bra.w	MarkObjGone2
+	bra.w	MarkObjGone
 ; ===========================================================================
 ; loc_11F9E: Obj_25_sub_4:
 Obj25_Collect:
@@ -89334,9 +89073,6 @@ PlrList_Wfz1: plrlistheader
 	plreq ArtTile_ArtNem_BreakPanels, ArtNem_BreakPanels
 	plreq ArtTile_ArtNem_WfzScratch, ArtNem_WfzScratch
 	plreq ArtTile_ArtNem_WfzTiltPlatforms, ArtNem_WfzTiltPlatforms
-	; These two are already in the list, so this is redundant
-	plreq ArtTile_ArtNem_Tornado, ArtNem_Tornado
-	plreq ArtTile_ArtNem_Clouds, ArtNem_Clouds
 PlrList_Wfz1_End
 ;---------------------------------------------------------------------------------------
 ; PATTERN LOAD REQUEST LIST
